@@ -4,7 +4,15 @@ import React from 'react';
  * Logo Oficial "Detrás del Cartel" - Edición Espacio Negativo Alta Gama
  * Recreación vectorial 1:1
  */
-export default function DetrasDelCartelLogo({ className = "w-full max-w-md", showBackground = true }) {
+export default function DetrasDelCartelLogo({ className = "w-full max-w-md", showBackground = true, theme = "light" }) {
+  // Si estamos en modo oscuro y no mostramos el fondo blanco, invertimos los colores
+  const isDarkTransparent = theme === 'dark' && !showBackground;
+  
+  const primaryColor = isDarkTransparent ? "#F9F8F5" : "#0B192C";
+  const negativeColor = isDarkTransparent ? "#06090E" : "#FFFFFF";
+  const micStroke = isDarkTransparent ? "#F9F8F5" : "#0B192C";
+  const micFill = isDarkTransparent ? "#06090E" : "#F9F8F5";
+
   return (
     <div className={`relative flex items-center justify-center ${className}`}>
       <svg
@@ -42,27 +50,27 @@ export default function DetrasDelCartelLogo({ className = "w-full max-w-md", sho
           <polygon points="555,255 565,268 565,446 555,435" fill="#C88344" />
           <polygon points="300,435 555,435 565,446 310,446" fill="#C88344" />
 
-          {/* --- ESTRUCTURA PRINCIPAL EN AZUL NOCHE (NAVY #0B192C) --- */}
+          {/* --- ESTRUCTURA PRINCIPAL --- */}
           {/* Poste vertical con corte en ángulo superior */}
-          <polygon points="256,170 243,182 243,505 271,505 271,182" fill="#0B192C" />
+          <polygon points="256,170 243,182 243,505 271,505 271,182" fill={primaryColor} />
           {/* Remate de la punta superior del poste */}
-          <polygon points="256,170 271,182 243,182" fill="#0B192C" />
+          <polygon points="256,170 271,182 243,182" fill={primaryColor} />
 
           {/* Travesaño horizontal */}
-          <rect x="210" y="200" width="375" height="25" rx="2" fill="#0B192C" />
+          <rect x="210" y="200" width="375" height="25" rx="2" fill={primaryColor} />
 
           {/* Argollas / ganchos de sujeción metálicos */}
-          <rect x="332" y="225" width="10" height="30" rx="2" fill="#0B192C" />
-          <rect x="508" y="225" width="10" height="30" rx="2" fill="#0B192C" />
+          <rect x="332" y="225" width="10" height="30" rx="2" fill={primaryColor} />
+          <rect x="508" y="225" width="10" height="30" rx="2" fill={primaryColor} />
 
           {/* Tablero principal del Cartel */}
-          <rect x="296" y="255" width="258" height="180" rx="10" fill="#0B192C" />
+          <rect x="296" y="255" width="258" height="180" rx="10" fill={primaryColor} />
 
           {/* --- TEXTO "SE VENDE" --- */}
           <text
             x="425"
             y="312"
-            fill="#FFFFFF"
+            fill={negativeColor}
             fontSize="46"
             fontWeight="900"
             letterSpacing="0.06em"
@@ -80,29 +88,29 @@ export default function DetrasDelCartelLogo({ className = "w-full max-w-md", sho
           {/* Cara interna batiente en blanco/luz */}
           <polygon points="436,338 484,328 484,468 436,478" fill="#FFFFFF" />
           {/* Picaporte o cerradura minimalista */}
-          <circle cx="474" cy="406" r="3.5" fill="#0B192C" />
+          <circle cx="474" cy="406" r="3.5" fill={primaryColor} />
 
           {/* --- ISOTIPO: MICRÓFONO EN ESPACIO NEGATIVO --- */}
           {/* Cuerpo / cápsula principal del micrófono */}
-          <rect x="373" y="342" width="46" height="74" rx="23" fill="#0B192C" stroke="#F9F8F5" strokeWidth="8" />
+          <rect x="373" y="342" width="46" height="74" rx="23" fill={primaryColor} stroke={micFill} strokeWidth="8" />
           {/* Ranuras acústicas del micrófono (acento negativo) */}
-          <line x1="384" y1="368" x2="397" y2="368" stroke="#F9F8F5" strokeWidth="4" strokeLinecap="round" />
-          <line x1="384" y1="380" x2="397" y2="380" stroke="#F9F8F5" strokeWidth="4" strokeLinecap="round" />
-          <line x1="418" y1="368" x2="430" y2="368" stroke="#0B192C" strokeWidth="4" strokeLinecap="round" />
-          <line x1="418" y1="380" x2="430" y2="380" stroke="#0B192C" strokeWidth="4" strokeLinecap="round" />
+          <line x1="384" y1="368" x2="397" y2="368" stroke={micFill} strokeWidth="4" strokeLinecap="round" />
+          <line x1="384" y1="380" x2="397" y2="380" stroke={micFill} strokeWidth="4" strokeLinecap="round" />
+          <line x1="418" y1="368" x2="430" y2="368" stroke={primaryColor} strokeWidth="4" strokeLinecap="round" />
+          <line x1="418" y1="380" x2="430" y2="380" stroke={primaryColor} strokeWidth="4" strokeLinecap="round" />
 
           {/* Horquilla / arco de suspensión exterior */}
           <path
             d="M366 384 C366 430, 426 430, 426 384"
             fill="none"
-            stroke="#0B192C"
+            stroke={primaryColor}
             strokeWidth="8"
             strokeLinecap="round"
           />
 
           {/* Pie vertical y peana del micrófono */}
-          <line x1="396" y1="428" x2="396" y2="456" stroke="#0B192C" strokeWidth="8" strokeLinecap="round" />
-          <line x1="378" y1="456" x2="414" y2="456" stroke="#0B192C" strokeWidth="8" strokeLinecap="round" />
+          <line x1="396" y1="428" x2="396" y2="456" stroke={primaryColor} strokeWidth="8" strokeLinecap="round" />
+          <line x1="378" y1="456" x2="414" y2="456" stroke={primaryColor} strokeWidth="8" strokeLinecap="round" />
         </g>
 
         {/* 3. BLOQUE TIPOGRÁFICO EDITORIAL INFERIOR */}
@@ -110,7 +118,7 @@ export default function DetrasDelCartelLogo({ className = "w-full max-w-md", sho
           {/* TÍTULO PRINCIPAL: "DETRÁS DEL CARTEL" */}
           <text
             y="0"
-            fill="#0B192C"
+            fill={primaryColor}
             fontSize="54"
             fontWeight="900"
             letterSpacing="0.04em"

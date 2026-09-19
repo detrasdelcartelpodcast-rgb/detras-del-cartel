@@ -1,3 +1,41 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* ── Modo NOCHE (por defecto) ─────────────────────────────────────────── */
+:root {
+  --page: 6 9 14;
+  --card: 13 17 26;
+  --card2: 15 20 34;
+  --input: 7 9 14;
+  --fg: 255 255 255;
+  --soft: 203 213 225;
+  --muted: 148 163 184;
+  --faint: 71 85 105;
+  --line: 255 255 255;
+  --accent: 251 191 36;
+  --inset: rgba(0, 0, 0, 0.4);
+  --track: 51 65 85;
+  color-scheme: dark;
+}
+
+/* ── Modo DÍA (clase "light" en <html>, la pone src/theme.js) ─────────── */
+:root.light {
+  --page: 232 230 222;
+  --card: 255 255 255;
+  --card2: 240 237 228;
+  --input: 255 255 255;
+  --fg: 15 23 42;
+  --soft: 51 65 85;
+  --muted: 71 85 105;
+  --faint: 148 163 184;
+  --line: 15 23 42;
+  --accent: 161 98 7;
+  --inset: rgba(15, 23, 42, 0.05);
+  --track: 203 213 225;
+  color-scheme: light;
+}
+
+body {
+  background-color: rgb(var(--page));
+}

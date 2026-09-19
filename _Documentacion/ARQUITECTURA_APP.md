@@ -14,7 +14,10 @@ React 18 · Vite 5 · Tailwind 3 (PostCSS) · lucide-react. Sin router, sin esta
 | `src/App.jsx` (~715 líneas) | Toda la página. Arriba, `siteConfig` (editable). |
 | `src/DetrasDelCartelLogo.jsx` | Logo vectorial SVG (se usa si `brand.useVectorLogo = true`). |
 | `src/InstagramLogoCard.jsx` | Tarjeta de logo para Instagram. No se referencia desde `App.jsx`: verificar antes de borrar. |
-| `src/index.css` | Solo las 3 directivas de Tailwind. |
+| `src/index.css` | Directivas de Tailwind + variables de color de los modos noche (`:root`) y día (`:root.light`). |
+| `src/theme.js` / `src/ThemeToggle.jsx` | Hook y botón del modo día/noche. |
+| `src/Construccion.jsx` | Vista pública: logo + barra roja + botón día/noche. |
+| `src/dev/DevSimulator.jsx` | Barra de dispositivos, solo localhost (no llega a producción). |
 | `public/logo.png` | Logo en uso (`useVectorLogo: false`). |
 | `start.command` | Lanzador local (127.0.0.1:5173). |
 

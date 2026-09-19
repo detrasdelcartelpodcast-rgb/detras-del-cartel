@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { Play, Pause, RotateCcw, RotateCw, Share2, Radio, CheckCircle2, Send, ChevronRight, ShieldCheck, TrendingUp, Compass, Users, MessageSquare, Volume2, Clock, Headphones, HelpCircle, Lock, Briefcase } from 'lucide-react';
 import DetrasDelCartelLogo from './DetrasDelCartelLogo';
 import Construccion from './Construccion';
+import ThemeToggle from './ThemeToggle';
+import { useTheme } from './theme';
 
 /* ==========================================================================
    CONFIGURACIÓN EDITABLE (CAMBIÁ ACÁ FOTOS, TEXTOS, LINKS Y EPISODIOS)
@@ -256,6 +258,7 @@ function LogoEspacioNegativoVectorial() {
 export default function DetrasDelCartelLanding() {
   const { sections, brand, channels, featuredEpisode, myth, hosts, episodes, consultation, stats, contact } = siteConfig;
 
+  const [theme, toggleTheme] = useTheme();
   const [isPlaying, setIsPlaying] = useState(false);
   const [formData, setFormData] = useState({ nombre: '', email: '', conflicto: '', aceptado: true });
   const [enviado, setEnviado] = useState(false);
@@ -268,22 +271,22 @@ export default function DetrasDelCartelLanding() {
   // Sitio publicado = solo logo + barra "en construcción". En localhost se ve el prototipo completo;
   // para previsualizar lo público en local: agregar ?produccion=1 a la URL.
   const construccion = !import.meta.env.DEV || new URLSearchParams(window.location.search).has('produccion');
-  if (construccion) return <Construccion logoUrl={brand.customLogoImageUrl} title={brand.title} />;
+  if (construccion) return <Construccion logoUrl={brand.customLogoImageUrl} title={brand.title} theme={theme} onToggleTheme={toggleTheme} />;
 
   return (
-    <div className="min-h-screen bg-[#06090e] text-slate-100 font-sans antialiased pb-24 md:pb-12 selection:bg-amber-500/30 selection:text-amber-200">
+    <div className="min-h-screen bg-page text-fg font-sans antialiased pb-24 md:pb-12 selection:bg-amber-500/30 selection:text-accent">
       
       {/* ─── 1. HEADER FIJO (RESPONSIVE DESKTOP & MOBILE) ─── */}
       {sections.header && (
-      <header className="sticky top-0 z-50 backdrop-blur-md bg-[#06090e]/90 border-b border-white/5 px-4 md:px-8 py-3 flex items-center justify-between transition-all">
+      <header className="sticky top-0 z-50 backdrop-blur-md bg-page/90 border-b border-line/5 px-4 md:px-8 py-3 flex items-center justify-between transition-all">
         <div className="flex items-center space-x-3">
-          <div className="w-9 h-9 rounded-xl bg-[#0F1422] border border-amber-500/30 flex items-center justify-center text-amber-400 font-black text-xs shadow-inner">
+          <div className="w-9 h-9 rounded-xl bg-card2 border border-amber-500/30 flex items-center justify-center text-accent font-black text-xs shadow-inner">
             D/C
           </div>
           <div>
             <div className="flex items-center space-x-1.5">
               <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-              <span className="text-[11px] font-mono uppercase tracking-widest text-slate-200 font-bold">
+              <span className="text-[11px] font-mono uppercase tracking-widest text-soft font-bold">
                 ESTUDIO CENTRAL
               </span>
             </div>
@@ -292,6 +295,8 @@ export default function DetrasDelCartelLanding() {
             </p>
           </div>
         </div>
+        <div className="flex items-center gap-2">
+        <ThemeToggle theme={theme} onToggle={toggleTheme} />
         <a 
           href="#buzon" 
           className="px-4 py-2 rounded-full bg-amber-400 hover:bg-amber-300 text-[#07090E] font-extrabold text-xs md:text-sm flex items-center space-x-1.5 shadow-md shadow-amber-500/20 transition-transform active:scale-95"
@@ -299,6 +304,7 @@ export default function DetrasDelCartelLanding() {
           <span>{brand.ctaHeader}</span>
           <ChevronRight className="w-4 h-4" />
         </a>
+        </div>
       </header>
       )}
 
@@ -307,14 +313,14 @@ export default function DetrasDelCartelLanding() {
         
         {/* ─── 2. HERO: PORTADA OFICIAL Y LOGO CONFIGURABLE ─── */}
         {sections.hero && (
-          <section className="relative overflow-hidden rounded-3xl bg-gradient-to-b from-white/[0.04] to-transparent p-5 md:p-8 border border-white/5 shadow-2xl text-center space-y-5">
+          <section className="relative overflow-hidden rounded-3xl bg-gradient-to-b from-line/[0.04] to-transparent p-5 md:p-8 border border-line/5 shadow-2xl text-center space-y-5">
             {sections.heroDetails && (
             <div className="flex items-center justify-between max-w-sm md:max-w-md mx-auto">
-              <span className="text-[10px] md:text-xs font-mono tracking-widest text-amber-400 uppercase bg-amber-500/10 px-3 py-1 rounded-full border border-amber-500/20 flex items-center gap-1.5">
+              <span className="text-[10px] md:text-xs font-mono tracking-widest text-accent uppercase bg-amber-500/10 px-3 py-1 rounded-full border border-amber-500/20 flex items-center gap-1.5">
                 <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-ping" />
                 {brand.editionBadge}
               </span>
-              <span className="text-[10px] md:text-xs font-mono text-slate-400 bg-white/5 px-3 py-1 rounded-md border border-white/5 font-bold">
+              <span className="text-[10px] md:text-xs font-mono text-muted bg-line/5 px-3 py-1 rounded-md border border-line/5 font-bold">
                 {brand.volTag}
               </span>
             </div>
@@ -334,7 +340,7 @@ export default function DetrasDelCartelLanding() {
             )}
 
             {sections.heroDetails && (
-            <p className="text-xs md:text-sm text-slate-300 leading-relaxed max-w-md mx-auto font-sans font-medium">
+            <p className="text-xs md:text-sm text-soft leading-relaxed max-w-md mx-auto font-sans font-medium">
               {brand.tagline}
             </p>
             )}
@@ -345,13 +351,13 @@ export default function DetrasDelCartelLanding() {
         {sections.channels && (
           <section className="space-y-3.5">
             <div className="flex items-center justify-between px-1">
-              <div className="flex items-center space-x-2 text-amber-400">
+              <div className="flex items-center space-x-2 text-accent">
                 <Radio className="w-4 h-4" />
-                <h2 className="text-xs md:text-sm font-mono uppercase tracking-widest text-slate-300 font-bold">
+                <h2 className="text-xs md:text-sm font-mono uppercase tracking-widest text-soft font-bold">
                   TRANSMISIÓN & FEEDS
                 </h2>
               </div>
-              <span className="text-[10px] font-mono text-amber-400 bg-amber-500/10 px-2.5 py-0.5 rounded border border-amber-500/20">
+              <span className="text-[10px] font-mono text-accent bg-amber-500/10 px-2.5 py-0.5 rounded border border-amber-500/20">
                 4 CANALES ACTIVOS
               </span>
             </div>
@@ -364,17 +370,17 @@ export default function DetrasDelCartelLanding() {
                   href={ch.url} 
                   target="_blank" 
                   rel="noreferrer" 
-                  className="p-3.5 rounded-2xl bg-[#0D111A] border border-white/5 hover:border-amber-500/40 flex items-center space-x-3 transition group shadow-md"
+                  className="p-3.5 rounded-2xl bg-card border border-line/5 hover:border-amber-500/40 flex items-center space-x-3 transition group shadow-md"
                 >
                   {ch.id === "spotify" && <SpotifyIcon />}
                   {ch.id === "youtube" && <YouTubeIcon />}
                   {ch.id === "apple" && <ApplePodcastsIcon />}
                   {ch.id === "instagram" && <InstagramIcon />}
                   <div>
-                    <span className="text-[8px] md:text-[9px] font-mono block tracking-wider uppercase text-slate-400 font-bold">
+                    <span className="text-[8px] md:text-[9px] font-mono block tracking-wider uppercase text-muted font-bold">
                       {ch.badge}
                     </span>
-                    <span className="text-xs md:text-sm font-bold text-white group-hover:text-amber-400 transition">
+                    <span className="text-xs md:text-sm font-bold text-fg group-hover:text-accent transition">
                       {ch.name}
                     </span>
                   </div>
@@ -386,9 +392,9 @@ export default function DetrasDelCartelLanding() {
 
         {/* ─── 4. REPRODUCTOR HI-FI / EXPEDIENTE DESTACADO ─── */}
         {sections.featuredPlayer && (
-          <section className="rounded-3xl bg-[#0E131F] border border-amber-500/20 p-5 md:p-8 shadow-2xl space-y-5">
+          <section className="rounded-3xl bg-card2 border border-amber-500/20 p-5 md:p-8 shadow-2xl space-y-5">
             <div className="flex items-center justify-between text-[10px] md:text-xs font-mono">
-              <span className="text-amber-400 font-bold uppercase flex items-center gap-1.5">
+              <span className="text-accent font-bold uppercase flex items-center gap-1.5">
                 <span className="w-2 h-2 rounded-full bg-amber-400 animate-ping" />
                 EXPEDIENTE EN REPRODUCCIÓN {featuredEpisode.number}
               </span>
@@ -398,12 +404,13 @@ export default function DetrasDelCartelLanding() {
             </div>
 
             {/* Cabina / Foto del Estudio */}
-            <div className="relative rounded-2xl overflow-hidden border border-white/10 aspect-video md:aspect-[21/9] flex flex-col justify-end p-4 shadow-inner group">
+            <div className="relative rounded-2xl overflow-hidden border border-line/10 aspect-video md:aspect-[21/9] flex flex-col justify-end p-4 shadow-inner group">
               <img 
                 src={featuredEpisode.studioImageUrl} 
                 alt="Estudio Detrás del Cartel" 
                 className="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:scale-102 transition duration-500" 
               />
+              {/* Degradé oscuro fijo (no cambia con el modo día/noche): las etiquetas de abajo van sobre la foto */}
               <div className="absolute inset-0 bg-gradient-to-t from-[#0A0D15] via-transparent to-black/30" />
               
               <div className="relative z-10 flex items-center justify-between text-[9px] md:text-xs font-mono">
@@ -418,42 +425,42 @@ export default function DetrasDelCartelLanding() {
 
             {/* Título e info */}
             <div>
-              <span className="text-[10px] md:text-xs font-mono text-slate-400 uppercase tracking-wider font-bold">
+              <span className="text-[10px] md:text-xs font-mono text-muted uppercase tracking-wider font-bold">
                 AUDITORÍA DE TRINCHERA • {featuredEpisode.season}
               </span>
-              <h3 className="text-base md:text-xl font-bold text-white mt-1 leading-snug">
+              <h3 className="text-base md:text-xl font-bold text-fg mt-1 leading-snug">
                 {featuredEpisode.title}
               </h3>
-              <p className="text-xs md:text-sm text-slate-300 mt-1.5 leading-relaxed">
+              <p className="text-xs md:text-sm text-soft mt-1.5 leading-relaxed">
                 {featuredEpisode.description}
               </p>
             </div>
 
             {/* Onda sonora */}
-            <div className="space-y-2 bg-black/40 p-3.5 rounded-2xl border border-white/5">
+            <div className="space-y-2 bg-inset p-3.5 rounded-2xl border border-line/5">
               <div className="flex items-center justify-center space-x-1 md:space-x-1.5 h-7">
                 {[40, 65, 30, 90, 100, 75, 45, 80, 20, 35, 60, 85, 30, 65, 40, 90, 70, 50, 30, 60, 80].map((h, i) => (
                   <span 
                     key={i} 
-                    className={`w-1 md:w-1.5 rounded-full transition-all duration-300 ${isPlaying ? 'bg-amber-400 animate-pulse' : 'bg-slate-700'}`} 
+                    className={`w-1 md:w-1.5 rounded-full transition-all duration-300 ${isPlaying ? 'bg-amber-400 animate-pulse' : 'bg-track'}`} 
                     style={{ height: `${h}%` }} 
                   />
                 ))}
               </div>
-              <div className="flex justify-between text-[10px] md:text-xs font-mono text-slate-400">
+              <div className="flex justify-between text-[10px] md:text-xs font-mono text-muted">
                 <span>{featuredEpisode.currentTime}</span>
-                <span className="text-amber-400/80 font-semibold">{featuredEpisode.blockInfo}</span>
+                <span className="text-accent/80 font-semibold">{featuredEpisode.blockInfo}</span>
                 <span>{featuredEpisode.totalDuration}</span>
               </div>
             </div>
 
             {/* Controles del Reproductor */}
             <div className="flex items-center justify-between pt-1">
-              <span className="text-[10px] font-mono text-slate-400 bg-white/5 px-2.5 py-1 rounded">
+              <span className="text-[10px] font-mono text-muted bg-line/5 px-2.5 py-1 rounded">
                 1.0x
               </span>
               <div className="flex items-center space-x-5">
-                <button className="text-slate-400 hover:text-white transition">
+                <button className="text-muted hover:text-fg transition">
                   <RotateCcw className="w-5 h-5" />
                 </button>
                 <button 
@@ -462,11 +469,11 @@ export default function DetrasDelCartelLanding() {
                 >
                   {isPlaying ? <Pause className="w-5 h-5 md:w-6 md:h-6 fill-current" /> : <Play className="w-5 h-5 md:w-6 md:h-6 fill-current ml-0.5" />}
                 </button>
-                <button className="text-slate-400 hover:text-white transition">
+                <button className="text-muted hover:text-fg transition">
                   <RotateCw className="w-5 h-5" />
                 </button>
               </div>
-              <button className="text-slate-400 hover:text-white transition">
+              <button className="text-muted hover:text-fg transition">
                 <Share2 className="w-5 h-5" />
               </button>
             </div>
@@ -475,18 +482,18 @@ export default function DetrasDelCartelLanding() {
 
         {/* ─── 5. MITO PATRIMONIAL AUDITADO ─── */}
         {sections.mythAudit && (
-          <section className="rounded-2xl bg-[#0D111A] border-l-4 border-l-amber-400 border border-white/5 p-5 space-y-3 shadow-md">
+          <section className="rounded-2xl bg-card border-l-4 border-l-amber-400 border border-line/5 p-5 space-y-3 shadow-md">
             <div className="flex items-center justify-between text-[10px] md:text-xs font-mono">
-              <span className="text-amber-400 font-bold">{myth.refCode}</span>
+              <span className="text-accent font-bold">{myth.refCode}</span>
               <span className="text-rose-400 bg-rose-500/10 px-2 py-0.5 rounded uppercase font-bold border border-rose-500/20">
                 {myth.verdict}
               </span>
             </div>
-            <blockquote className="text-sm md:text-base font-semibold text-white italic leading-snug">
+            <blockquote className="text-sm md:text-base font-semibold text-fg italic leading-snug">
               {myth.quote}
             </blockquote>
-            <p className="text-xs md:text-sm text-slate-300 leading-relaxed border-t border-white/5 pt-3">
-              <span className="text-amber-400 font-bold font-mono mr-1.5">{myth.verdictTitle}</span>
+            <p className="text-xs md:text-sm text-soft leading-relaxed border-t border-line/5 pt-3">
+              <span className="text-accent font-bold font-mono mr-1.5">{myth.verdictTitle}</span>
               {myth.explanation}
             </p>
           </section>
@@ -496,26 +503,26 @@ export default function DetrasDelCartelLanding() {
         {sections.hosts && (
           <section className="space-y-4">
             <div>
-              <span className="text-[10px] md:text-xs font-mono text-amber-400 uppercase tracking-widest font-bold block">
+              <span className="text-[10px] md:text-xs font-mono text-accent uppercase tracking-widest font-bold block">
                 AUTORIDAD EN MESA
               </span>
-              <h2 className="text-xl md:text-2xl font-black text-white mt-1">Los Conductores</h2>
-              <p className="text-xs md:text-sm text-slate-400 mt-1 max-w-xl">
+              <h2 className="text-xl md:text-2xl font-black text-fg mt-1">Los Conductores</h2>
+              <p className="text-xs md:text-sm text-muted mt-1 max-w-xl">
                 Sin corbatas ni frases prefabricadas. Dos especialistas que combinan macroeconomía, datos de absorción y psicología de negociación.
               </p>
             </div>
 
-            <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center space-x-3 text-xs md:text-sm text-slate-200">
-              <ShieldCheck className="w-5 h-5 text-amber-400 shrink-0" />
+            <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center space-x-3 text-xs md:text-sm text-soft">
+              <ShieldCheck className="w-5 h-5 text-accent shrink-0" />
               <span>
-                <strong className="text-amber-400">+20 años acumulados</strong> auditando transacciones y desenmascarando abusos contractuales.
+                <strong className="text-accent">+20 años acumulados</strong> auditando transacciones y desenmascarando abusos contractuales.
               </span>
             </div>
 
             {/* Grilla: 1 columna en mobile, 2 en desktop */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {hosts.map((host, idx) => (
-                <div key={idx} className="p-5 rounded-2xl bg-[#0D111A] border border-white/5 space-y-3 flex flex-col justify-between">
+                <div key={idx} className="p-5 rounded-2xl bg-card border border-line/5 space-y-3 flex flex-col justify-between">
                   <div className="flex items-start space-x-4">
                     {/* FOTO DEL CONDUCTOR (Reemplazable en siteConfig.hosts) */}
                     <img 
@@ -524,15 +531,15 @@ export default function DetrasDelCartelLanding() {
                       className="w-16 h-16 rounded-2xl object-cover border border-amber-400/30 shrink-0 shadow-md"
                     />
                     <div>
-                      <span className="text-[9px] md:text-[10px] font-mono text-amber-400 font-bold uppercase tracking-wider block">
+                      <span className="text-[9px] md:text-[10px] font-mono text-accent font-bold uppercase tracking-wider block">
                         {host.role}
                       </span>
-                      <h3 className="text-base md:text-lg font-bold text-white mt-0.5">{host.name}</h3>
-                      <p className="text-xs text-slate-300 mt-1 leading-relaxed">{host.bio}</p>
+                      <h3 className="text-base md:text-lg font-bold text-fg mt-0.5">{host.name}</h3>
+                      <p className="text-xs text-soft mt-1 leading-relaxed">{host.bio}</p>
                     </div>
                   </div>
-                  <div className="pt-3 border-t border-white/5 flex items-center space-x-2 text-[11px] text-slate-300 font-mono">
-                    <TrendingUp className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                  <div className="pt-3 border-t border-line/5 flex items-center space-x-2 text-[11px] text-soft font-mono">
+                    <TrendingUp className="w-3.5 h-3.5 text-accent shrink-0" />
                     <span>{host.highlight}</span>
                   </div>
                 </div>
@@ -546,35 +553,35 @@ export default function DetrasDelCartelLanding() {
           <section className="space-y-4">
             <div className="flex justify-between items-end">
               <div>
-                <span className="text-[10px] md:text-xs font-mono text-amber-400 uppercase tracking-widest font-bold block">
+                <span className="text-[10px] md:text-xs font-mono text-accent uppercase tracking-widest font-bold block">
                   ARCHIVO DE CASOS
                 </span>
-                <h2 className="text-xl md:text-2xl font-black text-white mt-1">Dolencias Frecuentes</h2>
+                <h2 className="text-xl md:text-2xl font-black text-fg mt-1">Dolencias Frecuentes</h2>
               </div>
-              <span className="text-[10px] md:text-xs font-mono text-slate-400 bg-white/5 px-3 py-1 rounded">
+              <span className="text-[10px] md:text-xs font-mono text-muted bg-line/5 px-3 py-1 rounded">
                 24 EPISODIOS
               </span>
             </div>
 
             <div className="space-y-3">
               {episodes.map((ep, idx) => (
-                <div key={idx} className="p-4 md:p-5 rounded-2xl bg-[#0D111A] border border-white/5 space-y-2.5 hover:border-white/20 transition">
-                  <div className="flex justify-between text-[10px] md:text-xs font-mono text-slate-400">
-                    <span className="text-amber-400 font-bold">EXPEDIENTE {ep.id}</span>
+                <div key={idx} className="p-4 md:p-5 rounded-2xl bg-card border border-line/5 space-y-2.5 hover:border-line/20 transition">
+                  <div className="flex justify-between text-[10px] md:text-xs font-mono text-muted">
+                    <span className="text-accent font-bold">EXPEDIENTE {ep.id}</span>
                     <span className="flex items-center gap-1"><Clock className="w-3.5 h-3.5" /> {ep.duration}</span>
                   </div>
-                  <h4 className="text-sm md:text-base font-bold text-white leading-snug">{ep.title}</h4>
-                  <p className="text-xs md:text-sm text-slate-400 leading-relaxed">{ep.description}</p>
+                  <h4 className="text-sm md:text-base font-bold text-fg leading-snug">{ep.title}</h4>
+                  <p className="text-xs md:text-sm text-muted leading-relaxed">{ep.description}</p>
                   
-                  <div className="flex items-center justify-between pt-2 border-t border-white/5">
+                  <div className="flex items-center justify-between pt-2 border-t border-line/5">
                     <div className="flex space-x-1.5">
                       {ep.tags.map((t, i) => (
-                        <span key={i} className="text-[8px] md:text-[9px] font-mono text-slate-400 bg-white/5 px-2.5 py-0.5 rounded">
+                        <span key={i} className="text-[8px] md:text-[9px] font-mono text-muted bg-line/5 px-2.5 py-0.5 rounded">
                           {t}
                         </span>
                       ))}
                     </div>
-                    <button className="text-[11px] md:text-xs font-mono text-amber-400 hover:text-amber-300 font-bold flex items-center gap-1.5">
+                    <button className="text-[11px] md:text-xs font-mono text-accent hover:text-accent font-bold flex items-center gap-1.5">
                       <span>Reproducir</span>
                       <Play className="w-3.5 h-3.5 fill-current" />
                     </button>
@@ -587,20 +594,20 @@ export default function DetrasDelCartelLanding() {
 
         {/* ─── 8. BUZÓN DE CASOS (QUINCENAL & ANÓNIMO) ─── */}
         {sections.consultationBox && (
-          <section id="buzon" className="rounded-3xl bg-[#0E1320] border border-amber-500/20 p-6 md:p-8 space-y-5 shadow-2xl relative overflow-hidden">
+          <section id="buzon" className="rounded-3xl bg-card2 border border-amber-500/20 p-6 md:p-8 space-y-5 shadow-2xl relative overflow-hidden">
             <div className="absolute top-0 right-0 p-8 opacity-5 pointer-events-none">
-              <Lock className="w-48 h-48 text-amber-400" />
+              <Lock className="w-48 h-48 text-accent" />
             </div>
             
             <div>
-              <span className="text-[9px] md:text-[10px] font-mono text-amber-400 uppercase tracking-widest font-bold flex items-center gap-1.5">
+              <span className="text-[9px] md:text-[10px] font-mono text-accent uppercase tracking-widest font-bold flex items-center gap-1.5">
                 <MessageSquare className="w-3.5 h-3.5" />
                 {consultation.tag}
               </span>
-              <h2 className="text-lg md:text-2xl font-black text-white mt-1 leading-snug">
+              <h2 className="text-lg md:text-2xl font-black text-fg mt-1 leading-snug">
                 {consultation.title}
               </h2>
-              <p className="text-xs md:text-sm text-slate-400 mt-2 leading-relaxed max-w-xl">
+              <p className="text-xs md:text-sm text-muted mt-2 leading-relaxed max-w-xl">
                 {consultation.subtitle}
               </p>
             </div>
@@ -608,8 +615,8 @@ export default function DetrasDelCartelLanding() {
             {enviado ? (
               <div className="p-6 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-center space-y-2">
                 <CheckCircle2 className="w-10 h-10 text-emerald-400 mx-auto" />
-                <p className="text-base font-bold text-white">Caso recibido en el estudio</p>
-                <p className="text-xs md:text-sm text-slate-300">
+                <p className="text-base font-bold text-fg">Caso recibido en el estudio</p>
+                <p className="text-xs md:text-sm text-soft">
                   Daniel y Víctor auditarán los detalles para el próximo episodio quincenal.
                 </p>
               </div>
@@ -619,26 +626,26 @@ export default function DetrasDelCartelLanding() {
                 className="space-y-4 max-w-xl"
               >
                 <div>
-                  <label className="block text-[10px] md:text-xs font-mono uppercase text-slate-400 mb-1.5">
+                  <label className="block text-[10px] md:text-xs font-mono uppercase text-muted mb-1.5">
                     Nombre o Alias
                   </label>
-                  <input type="text" placeholder="Ej: Roberto de Nuñez" value={formData.nombre} onChange={(e) => setFormData({...formData, nombre: e.target.value})} className="w-full bg-[#07090E] border border-white/10 rounded-xl px-4 py-2.5 text-xs md:text-sm text-white placeholder-slate-600 focus:outline-none focus:border-amber-400 transition" required />
+                  <input type="text" placeholder="Ej: Roberto de Nuñez" value={formData.nombre} onChange={(e) => setFormData({...formData, nombre: e.target.value})} className="w-full bg-input border border-line/10 rounded-xl px-4 py-2.5 text-xs md:text-sm text-fg placeholder-faint focus:outline-none focus:border-amber-400 transition" required />
                 </div>
                 <div>
-                  <label className="block text-[10px] md:text-xs font-mono uppercase text-slate-400 mb-1.5">
+                  <label className="block text-[10px] md:text-xs font-mono uppercase text-muted mb-1.5">
                     Correo Electrónico Privado
                   </label>
-                  <input type="email" placeholder="contacto@tuemail.com" value={formData.email} onChange={(e) => setFormData({...formData, email: e.target.value})} className="w-full bg-[#07090E] border border-white/10 rounded-xl px-4 py-2.5 text-xs md:text-sm text-white placeholder-slate-600 focus:outline-none focus:border-amber-400 transition" required />
+                  <input type="email" placeholder="contacto@tuemail.com" value={formData.email} onChange={(e) => setFormData({...formData, email: e.target.value})} className="w-full bg-input border border-line/10 rounded-xl px-4 py-2.5 text-xs md:text-sm text-fg placeholder-faint focus:outline-none focus:border-amber-400 transition" required />
                 </div>
                 <div>
-                  <label className="block text-[10px] md:text-xs font-mono uppercase text-slate-400 mb-1.5">
+                  <label className="block text-[10px] md:text-xs font-mono uppercase text-muted mb-1.5">
                     Detalle del Conflicto o Situación
                   </label>
-                  <textarea rows={3} placeholder="Lleva 10 meses publicada. No hay consultas y nos piden una rebaja masiva..." value={formData.conflicto} onChange={(e) => setFormData({...formData, conflicto: e.target.value})} className="w-full bg-[#07090E] border border-white/10 rounded-xl px-4 py-2.5 text-xs md:text-sm text-white placeholder-slate-600 focus:outline-none focus:border-amber-400 transition resize-none" required />
+                  <textarea rows={3} placeholder="Lleva 10 meses publicada. No hay consultas y nos piden una rebaja masiva..." value={formData.conflicto} onChange={(e) => setFormData({...formData, conflicto: e.target.value})} className="w-full bg-input border border-line/10 rounded-xl px-4 py-2.5 text-xs md:text-sm text-fg placeholder-faint focus:outline-none focus:border-amber-400 transition resize-none" required />
                 </div>
                 
-                <label className="flex items-start space-x-2.5 text-[11px] md:text-xs text-slate-400 cursor-pointer pt-1">
-                  <input type="checkbox" checked={formData.aceptado} onChange={(e) => setFormData({...formData, aceptado: e.target.checked})} className="mt-0.5 rounded border-white/20 bg-[#07090E] text-amber-400 focus:ring-0" required />
+                <label className="flex items-start space-x-2.5 text-[11px] md:text-xs text-muted cursor-pointer pt-1">
+                  <input type="checkbox" checked={formData.aceptado} onChange={(e) => setFormData({...formData, aceptado: e.target.checked})} className="mt-0.5 rounded border-line/20 bg-input text-accent focus:ring-0" required />
                   <span>{consultation.disclaimer}</span>
                 </label>
 
@@ -653,13 +660,13 @@ export default function DetrasDelCartelLanding() {
 
         {/* ─── 9. MÉTRICAS ─── */}
         {sections.metrics && (
-          <section className="grid grid-cols-3 gap-3 text-center py-5 border-y border-white/5">
+          <section className="grid grid-cols-3 gap-3 text-center py-5 border-y border-line/5">
             {stats.map((st, idx) => (
               <div key={idx} className="p-2">
-                <span className={`text-2xl md:text-4xl font-black font-mono block ${st.highlight ? 'text-amber-400' : 'text-white'}`}>
+                <span className={`text-2xl md:text-4xl font-black font-mono block ${st.highlight ? 'text-accent' : 'text-fg'}`}>
                   {st.value}
                 </span>
-                <span className="text-[10px] md:text-xs font-mono text-slate-400 uppercase tracking-tight">
+                <span className="text-[10px] md:text-xs font-mono text-muted uppercase tracking-tight">
                   {st.label}
                 </span>
               </div>
@@ -669,16 +676,16 @@ export default function DetrasDelCartelLanding() {
 
         {/* ─── 10. FOOTER ─── */}
         {sections.footer && (
-          <footer className="space-y-6 pt-4 pb-8 text-slate-400">
+          <footer className="space-y-6 pt-4 pb-8 text-muted">
             <div className="flex flex-col md:flex-row justify-between gap-6">
               <div className="space-y-2 max-w-sm">
                 <div className="flex items-center space-x-3">
-                  <div className="w-10 h-10 rounded-xl bg-[#0E1320] border border-amber-500/30 flex items-center justify-center text-amber-400 font-black text-sm">
+                  <div className="w-10 h-10 rounded-xl bg-card2 border border-amber-500/30 flex items-center justify-center text-accent font-black text-sm">
                     D/C
                   </div>
                   <div>
-                    <h3 className="text-sm md:text-base font-black text-white tracking-wider">DETRÁS DEL CARTEL</h3>
-                    <p className="text-[10px] text-slate-400 font-mono">
+                    <h3 className="text-sm md:text-base font-black text-fg tracking-wider">DETRÁS DEL CARTEL</h3>
+                    <p className="text-[10px] text-muted font-mono">
                       Producción de análisis patrimonial independiente.
                     </p>
                   </div>
@@ -686,21 +693,21 @@ export default function DetrasDelCartelLanding() {
               </div>
               <div className="grid grid-cols-2 gap-8 text-xs font-mono">
                 <div>
-                  <span className="text-white font-bold block mb-2">EXPLORAR</span>
+                  <span className="text-fg font-bold block mb-2">EXPLORAR</span>
                   <p>Todos los Episodios</p>
                   <p>Guías de Tasación Real</p>
                   <p>Auditoría Gratuita</p>
                 </div>
                 <div>
-                  <span className="text-white font-bold block mb-2">ESTUDIO CENTRAL</span>
+                  <span className="text-fg font-bold block mb-2">ESTUDIO CENTRAL</span>
                   <p>{contact.email}</p>
                   <p>{contact.city}</p>
-                  <p className="text-amber-400">{contact.website}</p>
+                  <p className="text-accent">{contact.website}</p>
                 </div>
               </div>
             </div>
             
-            <div className="pt-6 border-t border-white/5 flex flex-col md:flex-row items-center justify-between text-[10px] md:text-xs font-mono text-slate-500 gap-2">
+            <div className="pt-6 border-t border-line/5 flex flex-col md:flex-row items-center justify-between text-[10px] md:text-xs font-mono text-slate-500 gap-2">
               <p>Spotify • YouTube • Instagram • Apple Podcasts</p>
               <p>© 2026 Detrás del Cartel. Daniel Bryn & Víctor Miascovsky.</p>
             </div>
@@ -711,20 +718,20 @@ export default function DetrasDelCartelLanding() {
 
       {/* ─── 11. DOCK INFERIOR FIJO (SOLO EN MÓVIL: md:hidden) ─── */}
       {sections.bottomNav && (
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-[#06090e]/95 backdrop-blur-lg border-t border-white/10 px-6 py-2.5 flex justify-around items-center">
-        <a href="#" className="flex flex-col items-center text-amber-400">
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-page/95 backdrop-blur-lg border-t border-line/10 px-6 py-2.5 flex justify-around items-center">
+        <a href="#" className="flex flex-col items-center text-accent">
           <Headphones className="w-4 h-4" />
           <span className="text-[9px] font-mono mt-1 font-bold">Episodios</span>
         </a>
-        <a href="#canales" className="flex flex-col items-center text-slate-400 hover:text-white transition">
+        <a href="#canales" className="flex flex-col items-center text-muted hover:text-fg transition">
           <Radio className="w-4 h-4" />
           <span className="text-[9px] font-mono mt-1">Feeds</span>
         </a>
-        <a href="#conductores" className="flex flex-col items-center text-slate-400 hover:text-white transition">
+        <a href="#conductores" className="flex flex-col items-center text-muted hover:text-fg transition">
           <Users className="w-4 h-4" />
           <span className="text-[9px] font-mono mt-1">Hosts</span>
         </a>
-        <a href="#buzon" className="flex flex-col items-center text-slate-400 hover:text-white transition">
+        <a href="#buzon" className="flex flex-col items-center text-muted hover:text-fg transition">
           <HelpCircle className="w-4 h-4" />
           <span className="text-[9px] font-mono mt-1">Buzón</span>
         </a>

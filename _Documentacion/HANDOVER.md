@@ -12,9 +12,9 @@
 - Landing estática de una página: React 18 + Vite 5 + Tailwind 3 + lucide-react. Sin backend ni base de datos.
 - Generada con otra herramienta el 18-09-2026; auditada ese mismo día contra las reglas de seguridad (ver `SEGURIDAD.md`).
 - Corre local en `127.0.0.1:5173` (`start.command` o botón "▶ Abrir" del panel del 8002).
-- Git local inicializado (rama `main`), `.gitignore` creado, 1 commit local de checkpoint (`6c5df55`, estado original; los cambios posteriores están sin commitear). El repo tiene `credential.helper` vacío a propósito para no heredar las credenciales de Inmovalue.
+- Git: rama `main`, historial de 1 commit limpio (se unificó antes del primer push para no subir referencias privadas). `.gitignore` creado. El repo tiene `credential.helper` vacío a propósito para no heredar las credenciales de Inmovalue.
 - **GitHub (18-09):** cuenta propia `detrasdelcartelpodcast-rgb`, repo privado vacío `detras-del-cartel`. Autenticación por clave SSH dedicada (`~/.ssh/id_ed25519_cartel`, alias `github-cartel` en `~/.ssh/config`, sin passphrase). Remote `origin` configurado; identidad local con el email noreply de GitHub. Conexión verificada; huella del host coincide con la publicada por GitHub.
-- **NO está publicada.** Sin push todavía. Cuenta de Vercel creada (equipo `detrasdelcartel`, conectada a la cuenta de GitHub nueva; app de GitHub instalada solo sobre `detras-del-cartel`). Falta `/security-review`, primer push e Import.
+- **✅ PUBLICADA (19-09-2026)** en `https://detras-del-cartel.vercel.app` (equipo Vercel `detrasdelcartel`, plan Hobby, 2FA a configurar/confirmar por Vic). Cada `git push` a `main` redespliega solo. Verificado en vivo: HTTP 200, CSP/HSTS/nosniff/frame DENY/Referrer/Permissions-Policy/X-Robots-Tag presentes, `robots.txt` Disallow, sin errores de CSP, se ve logo + barra roja "SITIO EN CONSTRUCCIÓN". Es de acceso público por URL (con noindex: no aparece en buscadores).
 
 - **Dos vistas (18-09, decisión de Vic):** en **localhost** se ve el PROTOTIPO completo (todos los bloques de `siteConfig.sections` en `true`, más la barra de dispositivos). En el **sitio publicado** se ve solo `src/Construccion.jsx`: logo grande centrado + barra roja fija arriba "SITIO EN CONSTRUCCIÓN". Se decide con `import.meta.env.DEV`; para previsualizar lo público en local: `localhost:5173/?produccion=1`. Verificado en el bundle de producción: el contenido de relleno (métricas, episodios, fotos Unsplash, formulario, mail inventado) NO viaja. Al lanzar en serio: cambiar la condición `construccion` en [App.jsx](../src/App.jsx) y activar bloque por bloque con contenido REAL.
 - **`noindex` en 3 capas:** `<meta robots>` en `index.html`, `public/robots.txt` (Disallow: /) y header `X-Robots-Tag` en `vercel.json` (junto con CSP, HSTS, nosniff, frame DENY, Referrer y Permissions-Policy). Quitar solo cuando Vic decida salir al público.
@@ -29,7 +29,7 @@
 - **2026-09-18 — El código de `siteConfig`** ([src/App.jsx](../src/App.jsx), arriba) concentra textos, links, fotos e interruptores de sección. Se edita ahí, no en el JSX.
 
 ## 🟡 PENDIENTES (por prioridad)
-1. `/security-review` → commit de los cambios → push → Import en Vercel (lo hace Vic en pantalla).
+1. Conectar el dominio `detrasdelcartel.com` (Hostinger, hoy estacionado) a Vercel por DNS: se hace al lanzar. Vercel > Settings > Domains + registros A/CNAME en Hostinger.
 2. Formulario: fuera del sitio publicado (no viaja). Al activarlo: backend propio que envíe al Gmail del proyecto, con el mail solo en variable de entorno.
 3. Fotos de Unsplash: no viajan al sitio publicado. Al activar conductores: fotos reales locales en `public/`.
 4. Poner los links reales de los 4 canales (hoy genéricos: spotify.com, youtube.com, etc.).

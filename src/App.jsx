@@ -102,16 +102,16 @@ export const siteConfig = {
     {
       name: "Daniel Bryn",
       role: "MERCADO & DATOS",
-      bio: "Contador y corredor inmobiliario. Escucha primero y te muestra con datos dónde estás parado.",
-      highlight: "Responde cada duda con datos del mercado, sin vueltas ni letra chica.",
+      bio: "Contador y corredor inmobiliario. Escucha cada caso antes de opinar y lo explica con datos.",
+      highlight: "En cada episodio traduce los números del mercado a lenguaje claro.",
       // Foto real de Daniel (src/assets/hosts/). Para cambiarla, reemplazar el archivo:
       photoUrl: fotoDaniel
     },
     {
       name: "Víctor Miascovsky",
       role: "NEGOCIACIÓN & FINANZAS",
-      bio: "Contador. Escucha primero y te ayuda a decidir con números claros, sin apuros ni presiones.",
-      highlight: "Te acompaña en la negociación, desde el primer contacto hasta la escritura.",
+      bio: "Contador. Escucha cada caso antes de opinar y lo analiza con números claros y sin apuro.",
+      highlight: "En cada episodio explica cómo se negocia una operación y qué hay detrás de cada cifra.",
       // Foto real de Víctor (src/assets/hosts/). Para cambiarla, reemplazar el archivo:
       photoUrl: fotoVictor
     }

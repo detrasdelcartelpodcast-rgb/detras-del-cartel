@@ -3,6 +3,7 @@ import { Play, Pause, RotateCcw, RotateCw, Share2, Radio, CheckCircle2, Send, Ch
 import DetrasDelCartelLogo from './DetrasDelCartelLogo';
 import Construccion from './Construccion';
 import ThemeToggle from './ThemeToggle';
+import MiniMark from './MiniMark';
 import { useTheme } from './theme';
 import fotoDaniel from './assets/hosts/daniel-bryn.jpg';
 import fotoVictor from './assets/hosts/victor-miascovsky.jpg';
@@ -18,6 +19,7 @@ export const siteConfig = {
   sections: {
     header: true,         // barra superior fija ("ESTUDIO CENTRAL" + botón Enviar caso)
     hero: true,           // portada con el logo
+    heroBadges: false,    // etiquetas "EDICIÓN DE COLECCIÓN / VOL. 02" (fuera: no dicen nada al oyente y requieren mantenimiento manual)
     heroDetails: true,    // badges "EDICIÓN DE COLECCIÓN / VOL. 02" + tagline de la portada
     channels: true,
     featuredPlayer: true,
@@ -38,7 +40,8 @@ export const siteConfig = {
     editionBadge: "EDICIÓN DE COLECCIÓN",
     volTag: "VOL. 02",
     tagline: "La verdad rigurosa sobre el mercado inmobiliario, sin filtros ni complacencias. Casos reales auditados por dos especialistas de trinchera.",
-    ctaHeader: "ENVIAR CASO",
+    ctaHeader: "ESCUCHAR",
+    headerSubtitle: "Podcast inmobiliario",
     // Podés poner acá tu imagen subida (URL de S3, Cloudinary o carpeta /public/logo.png).
     // Si dejás useVectorLogo: true, se dibuja el SVG de espacio negativo de alta gama.
     useVectorLogo: false,
@@ -293,25 +296,22 @@ export default function DetrasDelCartelLanding() {
       {sections.header && (
       <header className="sticky top-0 z-50 backdrop-blur-md bg-page/90 border-b border-line/5 px-4 md:px-8 py-3 flex items-center justify-between transition-all">
         <div className="flex items-center space-x-3">
-          <div className="w-9 h-9 rounded-xl bg-card2 border border-amber-500/30 flex items-center justify-center text-accent font-black text-xs shadow-inner">
-            D/C
+          <div className="w-9 h-9 rounded-xl bg-card2 border border-amber-500/30 flex items-center justify-center text-accent shadow-inner">
+            <MiniMark className="w-6 h-6" />
           </div>
           <div>
-            <div className="flex items-center space-x-1.5">
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-              <span className="text-[11px] font-mono uppercase tracking-widest text-soft font-bold">
-                ESTUDIO CENTRAL
-              </span>
-            </div>
-            <p className="text-[10px] font-mono text-slate-500 uppercase tracking-tight">
-              LIVE RECORDING DECK
+            <span className="block text-[12px] md:text-[13px] font-black uppercase tracking-wider text-fg leading-tight">
+              {brand.title}
+            </span>
+            <p className="text-[10px] font-mono text-muted uppercase tracking-tight">
+              {brand.headerSubtitle}
             </p>
           </div>
         </div>
         <div className="flex items-center gap-2">
         <ThemeToggle theme={theme} onToggle={toggleTheme} />
         <a 
-          href="#buzon" 
+          href="#episodio" 
           className="px-4 py-2 rounded-full bg-amber-400 hover:bg-amber-300 text-[#07090E] font-extrabold text-xs md:text-sm flex items-center space-x-1.5 shadow-md shadow-amber-500/20 transition-transform active:scale-95"
         >
           <span>{brand.ctaHeader}</span>
@@ -327,7 +327,7 @@ export default function DetrasDelCartelLanding() {
         {/* ─── 2. HERO: PORTADA OFICIAL Y LOGO CONFIGURABLE ─── */}
         {sections.hero && (
           <section className="relative overflow-hidden rounded-3xl bg-gradient-to-b from-line/[0.04] to-transparent p-5 md:p-8 border border-line/5 shadow-2xl text-center space-y-5">
-            {sections.heroDetails && (
+            {sections.heroBadges && (
             <div className="flex items-center justify-between max-w-sm md:max-w-md mx-auto">
               <span className="text-[10px] md:text-xs font-mono tracking-widest text-accent uppercase bg-amber-500/10 px-3 py-1 rounded-full border border-amber-500/20 flex items-center gap-1.5">
                 <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-ping" />
@@ -341,9 +341,9 @@ export default function DetrasDelCartelLanding() {
             
             {/* Alternador de Logo: Si useVectorLogo es false, usa la imagen insertada */}
             {true ? (
-              <DetrasDelCartelLogo showBackground={false} theme={theme} className="w-full max-w-sm md:max-w-md mx-auto" />
+              <DetrasDelCartelLogo showBackground={false} theme={theme} className="w-full max-w-md md:max-w-xl mx-auto" />
             ) : (
-              <div className="w-full max-w-sm md:max-w-md mx-auto rounded-3xl shadow-2xl overflow-hidden">
+              <div className="w-full max-w-md md:max-w-xl mx-auto rounded-3xl shadow-2xl overflow-hidden">
                 <img 
                   src={brand.customLogoImageUrl} 
                   alt={brand.title} 
@@ -405,7 +405,7 @@ export default function DetrasDelCartelLanding() {
 
         {/* ─── 4. REPRODUCTOR HI-FI / EXPEDIENTE DESTACADO ─── */}
         {sections.featuredPlayer && (
-          <section className="rounded-3xl bg-card2 border border-amber-500/20 p-5 md:p-8 shadow-2xl space-y-5">
+          <section id="episodio" className="rounded-3xl bg-card2 border border-amber-500/20 p-5 md:p-8 shadow-2xl space-y-5">
             <div className="flex items-center justify-between text-[10px] md:text-xs font-mono">
               <span className="text-accent font-bold uppercase flex items-center gap-1.5">
                 <span className="w-2 h-2 rounded-full bg-amber-400 animate-ping" />

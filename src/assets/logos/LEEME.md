@@ -5,6 +5,7 @@
 | Archivo | Tamaño | Qué es | Notas / problemas |
 |---|---|---|---|
 | `01-circular-cobrizo-en-venta-real-estate.jpg` | 2048×2048 | Emblema redondo cobrizo, "EN VENTA", micrófono, "REAL ESTATE PODCAST" | **Alta resolución.** Texto "DETRÁS DEL CARTEL" **cortado en los bordes** (falta la D y la L). Slogan en inglés. |
+| `10-circular-cobrizo-en-venta-completo-1024.png` | 1024×1024 | **Exportado de Stitch (Exportar → .zip → `screen.png`)**. Emblema redondo cobrizo, "EN VENTA", micrófono, planos, "DETRÁS DEL CARTEL / REAL ESTATE PODCAST" | **Nombre completo, sin cortar** (corrige al 01). Es el que Vic propuso para la web. Pendientes: slogan en inglés, "EN VENTA" (vs "SE VENDE"), fondo BLANCO sin transparencia (en modo noche va dentro de una tarjeta blanca), y mucho detalle: no sirve a 36 px (para el menú, usar el mini logo simple). 1024 px alcanza para ~500 px en pantalla; en pantallas retina se ve algo blando. |
 | `02-cartel-naranja-lo-que-no-te-cuentan-A.png` | 271×276 | Cartel naranja con esquina despegada + micrófono, "LO QUE NO TE CUENTAN" | Baja resolución (captura). |
 | `03-cartel-naranja-lo-que-no-te-cuentan-B.png` | 270×272 | Variante de la anterior, "EN VENTA" | Baja resolución (captura). |
 | `04-for-sale-en-venta-verde.png` | 275×275 | Cartel navy/verde con esquina despegada, "FOR SALE / EN VENTA", tipografía serif | Baja resolución. Bilingüe. |
@@ -21,6 +22,9 @@
 - **Resolución:** salvo el 01 (2048 px), los logos son capturas de ~270 px. Sirven para íconos/pruebas, NO para el hero grande (se ven borrosos). Piden los originales de la herramienta que los generó.
 - **Banner:** dice `DETRASCARTEL.COM` (el dominio real es **detrasdelcartel.com**); repite "Nuevos episodios todos los meses" y "Nuevos episodios cada semana" (se contradicen); promete "Entrevistas" y frecuencia (validar que sea cierto). Para YouTube hay que reencuadrarlo a 2560×1440 con zona segura central de 1546×423.
 - **Falta el ícono** "micrófono sobre cartel de madera" (fondo circular oscuro): la imagen pegada en el chat no quedó en disco. Pedir el archivo.
+
+## Cómo exportar desde Stitch (probado 20-09)
+Seleccionar la pantalla del logo → **Exportar → .zip** → el zip trae `screen.png` (1024×1024, sin transparencia). Siempre se llama igual: **renombrar cada uno al descargarlo** (o pasar uno por vez y avisar cuál es).
 
 ## Cómo mirarlos
 - `http://localhost:5173/logos-preview.html` (solo desarrollo; NO se publica: no forma parte del build). Muestra los logos en grande, en tamaño chico y sobre fondo oscuro.

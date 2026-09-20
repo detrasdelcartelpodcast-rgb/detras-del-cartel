@@ -110,8 +110,8 @@ export const siteConfig = {
     {
       name: "Víctor Miascovsky",
       role: "ESTRATEGIA & NEGOCIACIÓN",
-      bio: "Estratega comercial inmobiliario, mediador en contraofertas complejas y resolución de trabas registrales.",
-      highlight: "Especialista en destrabar ventas empantanadas por herencias.",
+      bio: "Más de 20 años en finanzas corporativas, Gerente Financiero de multinacionales.",
+      highlight: "Posgrado en Desarrollo Inmobiliario (FADU UBA): negocia con la mirada del desarrollador.",
       // Foto real de Víctor (src/assets/hosts/). Para cambiarla, reemplazar el archivo:
       photoUrl: fotoVictor
     }

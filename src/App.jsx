@@ -117,6 +117,17 @@ export const siteConfig = {
     }
   ],
 
+  // 6b. Recuadro "JUNTOS" bajo las dos bios: para qué es el podcast y qué hay detrás del cartel
+  // (PROPUESTA 20-09, a validar por Vic y Daniel). Un solo texto + etiquetas de temas y emociones.
+  hostsTogether: {
+    tag: "JUNTOS",
+    before: "Sabemos que te mudás pocas veces en la vida y que hay mucho en juego: una familia que creció, una herencia, un cambio de vida, una inversión que da miedo. Se decide con emoción y después se justifica con la razón. Acá hablamos de las dos cosas, con información clara y tips para que lo transites con la mayor certeza posible. Por eso te contamos, en primera persona, todo lo que hay ",
+    brand: "DETRÁS DEL CARTEL",
+    after: "…",
+    topics: ["PRECIO", "NEGOCIACIÓN", "PAPELES", "HERENCIAS", "INVERSIÓN", "MIEDO", "FRUSTRACIÓN", "MALAS EXPERIENCIAS", "DESCONOCIMIENTO", "DESCONFIANZA", "PROCRASTINACIÓN"]
+  },
+
+
   // 7. Archivo de Dolencias y Casos Frecuentes
   episodes: [
     {
@@ -258,7 +269,7 @@ function LogoEspacioNegativoVectorial() {
    COMPONENTE PRINCIPAL DE LA LANDING
 ========================================================================== */
 export default function DetrasDelCartelLanding() {
-  const { sections, brand, channels, featuredEpisode, myth, hosts, episodes, consultation, stats, contact } = siteConfig;
+  const { sections, brand, channels, featuredEpisode, myth, hosts, hostsTogether, episodes, consultation, stats, contact } = siteConfig;
 
   const [theme, toggleTheme] = useTheme();
   const [isPlaying, setIsPlaying] = useState(false);
@@ -546,6 +557,30 @@ export default function DetrasDelCartelLanding() {
                   </div>
                 </div>
               ))}
+            </div>
+
+            {/* Recuadro JUNTOS: un solo texto que abarca las dos bios + etiquetas */}
+            <div className="p-5 md:p-6 rounded-2xl bg-card border border-amber-500/20 flex items-start space-x-4">
+              <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center shrink-0">
+                <Users className="w-5 h-5 text-accent" />
+              </div>
+              <div>
+                <span className="text-[9px] md:text-[10px] font-mono text-accent font-bold uppercase tracking-wider block">
+                  {hostsTogether.tag}
+                </span>
+                <p className="text-xs md:text-sm text-soft mt-1 leading-relaxed">
+                  {hostsTogether.before}
+                  <strong className="text-accent font-black tracking-wide">{hostsTogether.brand}</strong>
+                  {hostsTogether.after}
+                </p>
+                <div className="flex flex-wrap gap-1.5 mt-3">
+                  {hostsTogether.topics.map((t, i) => (
+                    <span key={i} className="text-[8px] md:text-[9px] font-mono text-muted bg-line/5 px-2.5 py-0.5 rounded">
+                      {t}
+                    </span>
+                  ))}
+                </div>
+              </div>
             </div>
           </section>
         )}

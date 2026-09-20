@@ -4,6 +4,8 @@ import DetrasDelCartelLogo from './DetrasDelCartelLogo';
 import Construccion from './Construccion';
 import ThemeToggle from './ThemeToggle';
 import { useTheme } from './theme';
+import fotoDaniel from './assets/hosts/daniel-bryn.jpg';
+import fotoVictor from './assets/hosts/victor-miascovsky.jpg';
 
 /* ==========================================================================
    CONFIGURACIÓN EDITABLE (CAMBIÁ ACÁ FOTOS, TEXTOS, LINKS Y EPISODIOS)
@@ -102,16 +104,16 @@ export const siteConfig = {
       role: "DATOS & MACRO-REAL ESTATE",
       bio: "Especialista en análisis algorítmico, monitoreo de stock en CABA y tasas de dispersión real.",
       highlight: "Creador del monitor de oferta/demanda inmobiliaria CABA.",
-      // CAMBIÁ AQUÍ LA FOTO DE DANIEL:
-      photoUrl: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80"
+      // Foto real de Daniel (src/assets/hosts/). Para cambiarla, reemplazar el archivo:
+      photoUrl: fotoDaniel
     },
     {
       name: "Víctor Miascovsky",
       role: "ESTRATEGIA & NEGOCIACIÓN",
       bio: "Estratega comercial inmobiliario, mediador en contraofertas complejas y resolución de trabas registrales.",
       highlight: "Especialista en destrabar ventas empantanadas por herencias.",
-      // CAMBIÁ AQUÍ LA FOTO DE VÍCTOR:
-      photoUrl: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=400&q=80"
+      // Foto real de Víctor (src/assets/hosts/). Para cambiarla, reemplazar el archivo:
+      photoUrl: fotoVictor
     }
   ],
 
@@ -327,8 +329,8 @@ export default function DetrasDelCartelLanding() {
             )}
             
             {/* Alternador de Logo: Si useVectorLogo es false, usa la imagen insertada */}
-            {brand.useVectorLogo ? (
-              <DetrasDelCartelLogo showBackground={true} className="w-full max-w-sm md:max-w-md mx-auto" />
+            {true ? (
+              <DetrasDelCartelLogo showBackground={false} theme={theme} className="w-full max-w-sm md:max-w-md mx-auto" />
             ) : (
               <div className="w-full max-w-sm md:max-w-md mx-auto rounded-3xl shadow-2xl overflow-hidden">
                 <img 
@@ -528,7 +530,7 @@ export default function DetrasDelCartelLanding() {
                     <img 
                       src={host.photoUrl} 
                       alt={host.name} 
-                      className="w-16 h-16 rounded-2xl object-cover border border-amber-400/30 shrink-0 shadow-md"
+                      className="w-16 h-16 rounded-2xl object-cover object-top border border-amber-400/30 shrink-0 shadow-md"
                     />
                     <div>
                       <span className="text-[9px] md:text-[10px] font-mono text-accent font-bold uppercase tracking-wider block">

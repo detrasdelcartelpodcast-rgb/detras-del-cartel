@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="robots" content="noindex, nofollow" />
+<title>Vista previa de logos (solo desarrollo)</title>
+<style>
+  body{margin:0;font-family:system-ui,sans-serif;background:#eceae4;color:#111827}
+  header{padding:20px 28px;background:#0b192c;color:#fff}
+  header h1{margin:0;font-size:20px} header p{margin:6px 0 0;opacity:.75;font-size:13px}
+  section{padding:24px 28px}
+  h2{font-size:15px;text-transform:uppercase;letter-spacing:.08em;color:#6b7280;margin:0 0 14px}
+  .row{display:flex;flex-wrap:wrap;gap:22px;align-items:flex-start}
+  figure{margin:0;background:#fff;border-radius:14px;padding:14px;box-shadow:0 2px 10px rgba(0,0,0,.08)}
+  figure.dark{background:#06090e;color:#e5e7eb}
+  figcaption{font-size:12px;margin-top:8px;max-width:340px;line-height:1.35;color:#4b5563}
+  figure.dark figcaption{color:#9ca3af}
+  img{display:block}
+  .big img{width:340px;height:340px;object-fit:contain}
+  .sizes{display:flex;gap:18px;align-items:flex-end;margin-bottom:6px}
+  .bad{color:#b91c1c;font-weight:600}
+</style>
+</head>
+<body>
+<header>
+  <h1>Logos de Detrás del Cartel: vista previa</h1>
+  <p>Solo desarrollo (no se publica). Los archivos están en src/assets/logos/. Los vectoriales se ven tal como los dibuja el código recibido.</p>
+</header>
+
+<section>
+  <h2>1 · Los dos recibidos en código (SVG)</h2>
+  <div class="row big">
+    <figure><img src="/src/assets/logos/vector/08-cartel-despegado-lo-que-no-te-cuentan.svg" alt="08" /><figcaption><b>08 · Cartel despegado.</b> <span class="bad">El micrófono queda tapado y la solapa corta "VENTA".</span></figcaption></figure>
+    <figure><img src="/src/assets/logos/vector/09-emblema-split-real-estate-podcast.svg" alt="09" /><figcaption><b>09 · Emblema partido.</b> Texto en inglés ("Real estate podcast").</figcaption></figure>
+    <figure><img src="/src/assets/logos/01-circular-cobrizo-en-venta-real-estate.jpg" alt="01" /><figcaption><b>01 · El diseño original en imagen (2048 px)</b> que el código intenta recrear. Nombre cortado en los bordes.</figcaption></figure>
+  </div>
+</section>
+
+<section>
+  <h2>2 · Cómo se ven en tamaño chico (menú, ícono, pestaña)</h2>
+  <div class="row">
+    <figure>
+      <div class="sizes">
+        <img src="/src/assets/logos/vector/08-cartel-despegado-lo-que-no-te-cuentan.svg" width="128" height="128" alt="" />
+        <img src="/src/assets/logos/vector/08-cartel-despegado-lo-que-no-te-cuentan.svg" width="64" height="64" alt="" />
+        <img src="/src/assets/logos/vector/08-cartel-despegado-lo-que-no-te-cuentan.svg" width="32" height="32" alt="" />
+      </div><figcaption>08 a 128 / 64 / 32 px</figcaption>
+    </figure>
+    <figure>
+      <div class="sizes">
+        <img src="/src/assets/logos/vector/09-emblema-split-real-estate-podcast.svg" width="128" height="128" alt="" />
+        <img src="/src/assets/logos/vector/09-emblema-split-real-estate-podcast.svg" width="64" height="64" alt="" />
+        <img src="/src/assets/logos/vector/09-emblema-split-real-estate-podcast.svg" width="32" height="32" alt="" />
+      </div><figcaption>09 a 128 / 64 / 32 px</figcaption>
+    </figure>
+    <figure>
+      <div class="sizes">
+        <img src="/src/assets/logos/06-circular-se-vende-podcast-inmobiliario.png" width="128" height="128" alt="" />
+        <img src="/src/assets/logos/06-circular-se-vende-podcast-inmobiliario.png" width="64" height="64" alt="" />
+        <img src="/src/assets/logos/06-circular-se-vende-podcast-inmobiliario.png" width="32" height="32" alt="" />
+      </div><figcaption>06 (el que se despega) a 128 / 64 / 32 px</figcaption>
+    </figure>
+  </div>
+</section>
+
+<section>
+  <h2>3 · Sobre fondo oscuro (modo noche de la web)</h2>
+  <div class="row">
+    <figure class="dark"><img src="/src/assets/logos/vector/08-cartel-despegado-lo-que-no-te-cuentan.svg" width="200" height="200" alt="" /><figcaption>08 (el fondo blanco del logo se ve como un recuadro)</figcaption></figure>
+    <figure class="dark"><img src="/src/assets/logos/vector/09-emblema-split-real-estate-podcast.svg" width="200" height="200" alt="" /><figcaption>09</figcaption></figure>
+    <figure class="dark"><img src="/src/assets/logos/06-circular-se-vende-podcast-inmobiliario.png" width="200" height="200" alt="" /><figcaption>06</figcaption></figure>
+  </div>
+</section>
+
+<section>
+  <h2>4 · Todos los demás (imágenes de baja resolución)</h2>
+  <div class="row">
+    <figure><img src="/src/assets/logos/02-cartel-naranja-lo-que-no-te-cuentan-A.png" width="180" alt="" /><figcaption>02</figcaption></figure>
+    <figure><img src="/src/assets/logos/03-cartel-naranja-lo-que-no-te-cuentan-B.png" width="180" alt="" /><figcaption>03</figcaption></figure>
+    <figure><img src="/src/assets/logos/04-for-sale-en-venta-verde.png" width="180" alt="" /><figcaption>04</figcaption></figure>
+    <figure><img src="/src/assets/logos/05-hexagono-podcast.png" width="180" alt="" /><figcaption>05</figcaption></figure>
+    <figure><img src="/src/assets/logos/06-circular-se-vende-podcast-inmobiliario.png" width="180" alt="" /><figcaption>06</figcaption></figure>
+    <figure><img src="/src/assets/logos/07-plano-se-vende-con-nombres.png" width="180" alt="" /><figcaption>07</figcaption></figure>
+  </div>
+</section>
+</body>
+</html>

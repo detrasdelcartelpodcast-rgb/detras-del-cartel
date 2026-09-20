@@ -11,6 +11,7 @@
 | `05-hexagono-podcast.png` | 274×271 | Hexágono con cartel, micrófono y ondas, "DETRÁS DEL CARTEL PODCAST" | Baja resolución. Sin "inmobiliario". |
 | `06-circular-se-vende-podcast-inmobiliario.png` | 277×277 | Círculo, "SE VENDE" con esquina despegada revelando el micrófono, "PODCAST INMOBILIARIO" | Baja resolución. **Candidato a logo principal** (ilustra "lo que hay detrás del cartel"). |
 | `07-plano-se-vende-con-nombres.png` | 265×260 | Versión plana azul/naranja, "SE VENDE", "CON DANIEL BRYN & VÍCTOR MIASCOVSKY" | Baja resolución aquí. El mismo logo en 500×507 es `public/logo.png` (el que usa hoy el sitio público). |
+| `vector/08-cartel-despegado-lo-que-no-te-cuentan.svg` y `vector/08-CartelDespegadoLogo.jsx` | vectorial 700×700 | Logo en CÓDIGO (SVG y componente React) generado por otra herramienta: cartel "EN VENTA" con esquina despegada, planos, micrófono, "DETRÁS DEL CARTEL / LO QUE NO TE CUENTAN" | **Seguro** (solo formas, sin scripts ni enlaces externos). **El dibujo no coincide con lo que promete:** el micrófono queda tapado por el cartel (solo asoman las ondas y las cotas), la solapa dorada cubre "VENTA" (se lee "VENT"), y la tipografía usa Impact / Arial Black / Plus Jakarta Sans como texto vivo (en celulares cambia; convendría pasar el texto a trazos). Usa "EN VENTA" y el slogan que aún no se decidió. |
 | `../banners/banner-youtube-v2.jpg` | 2848×1490 | Banner con cartel de madera, micrófono y ciudad | Ver problemas abajo. |
 
 ## Pendiente / a corregir antes de usar

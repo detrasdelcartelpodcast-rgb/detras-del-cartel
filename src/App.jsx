@@ -517,7 +517,7 @@ export default function DetrasDelCartelLanding() {
             <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center space-x-3 text-xs md:text-sm text-soft">
               <ShieldCheck className="w-5 h-5 text-accent shrink-0" />
               <span>
-                <strong className="text-accent">+20 años acumulados</strong> auditando transacciones y desenmascarando abusos contractuales.
+                <strong className="text-accent">+20 años acumulados</strong> asesorando y auditando operaciones, con mirada financiera: para decidir con datos y más certeza, no con presentimientos.
               </span>
             </div>
 

@@ -101,17 +101,17 @@ export const siteConfig = {
   hosts: [
     {
       name: "Daniel Bryn",
-      role: "DATOS & MACRO-REAL ESTATE",
-      bio: "Especialista en análisis algorítmico, monitoreo de stock en CABA y tasas de dispersión real.",
-      highlight: "Creador del monitor de oferta/demanda inmobiliaria CABA.",
+      role: "MERCADO & DATOS",
+      bio: "Contador y corredor inmobiliario. Escucha primero y te muestra con datos dónde estás parado.",
+      highlight: "Responde cada duda con datos del mercado, sin vueltas ni letra chica.",
       // Foto real de Daniel (src/assets/hosts/). Para cambiarla, reemplazar el archivo:
       photoUrl: fotoDaniel
     },
     {
       name: "Víctor Miascovsky",
-      role: "ESTRATEGIA & NEGOCIACIÓN",
-      bio: "Más de 20 años en finanzas corporativas, Gerente Financiero de multinacionales.",
-      highlight: "Posgrado en Desarrollo Inmobiliario (FADU UBA): negocia con la mirada del desarrollador.",
+      role: "NEGOCIACIÓN & FINANZAS",
+      bio: "Contador. Escucha primero y te ayuda a decidir con números claros, sin apuros ni presiones.",
+      highlight: "Te acompaña en la negociación, desde el primer contacto hasta la escritura.",
       // Foto real de Víctor (src/assets/hosts/). Para cambiarla, reemplazar el archivo:
       photoUrl: fotoVictor
     }

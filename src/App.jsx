@@ -110,7 +110,7 @@ export const siteConfig = {
     {
       name: "Víctor Miascovsky",
       role: "NEGOCIACIÓN & FINANZAS",
-      bio: "Contador. Escucha cada caso antes de opinar y lo analiza con números claros y sin apuro.",
+      bio: "Contador y consultor inmobiliario. Escucha cada caso antes de opinar y lo analiza con números.",
       highlight: "En cada episodio explica cómo se negocia una operación y qué hay detrás de cada cifra.",
       // Foto real de Víctor (src/assets/hosts/). Para cambiarla, reemplazar el archivo:
       photoUrl: fotoVictor

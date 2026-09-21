@@ -7,12 +7,18 @@ import MiniMark from './MiniMark';
 import { useTheme } from './theme';
 import fotoDaniel from './assets/hosts/daniel-bryn.jpg';
 import fotoVictor from './assets/hosts/victor-miascovsky.jpg';
-import emblema from './assets/logos/12-emblema-cobrizo-final-TRANSPARENTE-764.png';
+import emblema from './assets/logos/12-emblema-cobrizo-final-TRANSPARENTE-764.webp';
 
 /* ==========================================================================
    CONFIGURACIÓN EDITABLE (CAMBIÁ ACÁ FOTOS, TEXTOS, LINKS Y EPISODIOS)
 ========================================================================== */
 export const siteConfig = {
+  // 0. Estado de publicación
+  //  publicarCompleto: true  → el sitio publicado muestra la landing COMPLETA.
+  //  publicarCompleto: false → el sitio publicado muestra solo el logo + barra "en construcción".
+  //  hayEpisodios: false → el bloque "Último episodio" muestra "Muy pronto". Pasar a true SOLO al conectar YouTube.
+  sitio: { publicarCompleto: true, hayEpisodios: false },
+
   // 1. Control de visibilidad de secciones (true / false)
   // Todo activo: este es el PROTOTIPO que se ve en localhost.
   // El sitio publicado (Vercel) NO usa estos interruptores: muestra solo el logo + barra
@@ -55,31 +61,31 @@ export const siteConfig = {
     {
       id: "spotify",
       name: "Spotify",
-      badge: "AUDIO MASTER",
+      badge: "ESCUCHALO",
       url: "", // pegar acá el enlace del podcast en Spotify cuando exista
     },
     {
       id: "youtube",
       name: "YouTube",
-      badge: "VIDEO 4K",
+      badge: "MIRÁ LOS EPISODIOS",
       url: "https://www.youtube.com/@detrasdelcartelpodcast",
     },
     {
       id: "apple",
       name: "Apple Podcasts",
-      badge: "LOSSLESS FEED",
+      badge: "ESCUCHALO",
       url: "", // pegar acá el enlace del podcast en Apple Podcasts cuando exista
     },
     {
       id: "instagram",
       name: "Instagram",
-      badge: "COMUNIDAD",
+      badge: "SEGUINOS",
       url: "https://www.instagram.com/detrasdelcartelpodcast/",
     }
   ],
 
   // 4. Expediente en Reproducción (Player Hi-Fi)
-  featuredEpisode: {
+  featuredEpisode: import.meta.env.DEV ? {
     number: "#014",
     season: "TEMPORADA 02",
     badgeFormat: "24-bit / 96kHz",
@@ -91,7 +97,7 @@ export const siteConfig = {
     totalDuration: "38:20",
     // Foto de la cabina / estudio
     studioImageUrl: "https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?auto=format&fit=crop&w=1200&q=80"
-  },
+  } : {},   // EJEMPLOS del prototipo: solo en localhost, NO viajan al sitio publicado
 
   // 5. Mito Patrimonial Auditado
   myth: {
@@ -135,7 +141,7 @@ export const siteConfig = {
 
 
   // 7. Episodios anteriores (EJEMPLOS del prototipo local; en la web pública van los reales de YouTube)
-  episodes: [
+  episodes: import.meta.env.DEV ? [
     {
       id: "#13",
       duration: "32 MIN",
@@ -157,7 +163,7 @@ export const siteConfig = {
       description: "Desarmando un departamento que estuvo frenado 14 meses y cómo se reposicionó con fotografía arquitectónica y tasación rigurosa.",
       tags: ["CASO REAL", "CIERRE"]
     }
-  ],
+  ] : [],   // EJEMPLOS del prototipo: solo en localhost, NO viajan al sitio publicado
 
   // 8. Buzón Confidencial (Quincenal)
   consultation: {
@@ -173,11 +179,11 @@ export const siteConfig = {
 
 
   // 9. Métricas de Impacto
-  stats: [
+  stats: import.meta.env.DEV ? [
     { value: "24+", label: "EPISODIOS" },
     { value: "120k", label: "OYENTES" },
     { value: "180+", label: "CASOS DESTRABADOS", highlight: true }
-  ],
+  ] : [],   // EJEMPLOS del prototipo: solo en localhost, NO viajan al sitio publicado
 
   // 10. Datos de Contacto y Footer
   contact: {
@@ -280,13 +286,15 @@ function LogoEspacioNegativoVectorial() {
    COMPONENTE PRINCIPAL DE LA LANDING
 ========================================================================== */
 export default function DetrasDelCartelLanding() {
-  const { sections, brand, channels, featuredEpisode, myth, hosts, hostsTogether, episodes, consultation, stats, contact } = siteConfig;
+  const { sitio, sections, brand, channels, featuredEpisode, myth, hosts, hostsTogether, episodes, consultation, stats, contact } = siteConfig;
 
   const [theme, toggleTheme] = useTheme();
   const [isPlaying, setIsPlaying] = useState(false);
   // Sitio publicado = solo logo + barra "en construcción". En localhost se ve el prototipo completo;
   // para previsualizar lo público en local: agregar ?produccion=1 a la URL.
-  const construccion = !import.meta.env.DEV || new URLSearchParams(window.location.search).has('produccion');
+  const construccion = import.meta.env.DEV
+    ? new URLSearchParams(window.location.search).has('produccion')   // en localhost: ?produccion=1 muestra la vista en construcción
+    : !sitio.publicarCompleto;
   if (construccion) return <Construccion logoUrl={brand.customLogoImageUrl} title={brand.title} theme={theme} onToggleTheme={toggleTheme} />;
 
   return (
@@ -362,17 +370,14 @@ export default function DetrasDelCartelLanding() {
 
         {/* ─── 3. CANALES & FEEDS (LOGOS OFICIALES ORIGINALES) ─── */}
         {sections.channels && (
-          <section className="space-y-3.5">
+          <section id="canales" className="space-y-3.5">
             <div className="flex items-center justify-between px-1">
               <div className="flex items-center space-x-2 text-accent">
                 <Radio className="w-4 h-4" />
                 <h2 className="text-xs md:text-sm font-mono uppercase tracking-widest text-soft font-bold">
-                  TRANSMISIÓN & FEEDS
+                  ESCUCHANOS EN
                 </h2>
               </div>
-              <span className="text-[10px] font-mono text-accent bg-amber-500/10 px-2.5 py-0.5 rounded border border-amber-500/20">
-                4 CANALES ACTIVOS
-              </span>
             </div>
             
             {/* Grilla: 2 columnas en mobile, 4 columnas en desktop */}
@@ -407,7 +412,23 @@ export default function DetrasDelCartelLanding() {
         )}
 
         {/* ─── 4. REPRODUCTOR HI-FI / EXPEDIENTE DESTACADO ─── */}
-        {sections.featuredPlayer && (
+        {sections.featuredPlayer && !sitio.hayEpisodios && (
+          <section id="episodio" className="rounded-3xl bg-card2 border border-amber-500/20 p-6 md:p-8 text-center space-y-3 shadow-2xl">
+            <span className="text-[10px] md:text-xs font-mono text-accent font-bold uppercase tracking-widest block">
+              ÚLTIMO EPISODIO
+            </span>
+            <h2 className="text-xl md:text-2xl font-black text-fg">Muy pronto: el primer episodio</h2>
+            <p className="text-xs md:text-sm text-soft max-w-md mx-auto leading-relaxed">
+              Lo vas a encontrar acá y en nuestro canal de YouTube apenas esté publicado.
+            </p>
+            <a href="https://www.youtube.com/@detrasdelcartelpodcast" target="_blank" rel="noopener noreferrer" className="inline-flex items-center space-x-1.5 px-4 py-2 rounded-full bg-amber-400 hover:bg-amber-300 text-[#07090E] font-extrabold text-xs md:text-sm transition active:scale-95">
+              <span>Ir al canal de YouTube</span>
+              <ChevronRight className="w-4 h-4" />
+            </a>
+          </section>
+        )}
+
+        {sections.featuredPlayer && sitio.hayEpisodios && (
           <section id="episodio" className="rounded-3xl bg-card2 border border-amber-500/20 p-5 md:p-8 shadow-2xl space-y-5">
             <div className="flex items-center justify-between text-[10px] md:text-xs font-mono">
               <span className="text-accent font-bold uppercase flex items-center gap-1.5">
@@ -517,7 +538,7 @@ export default function DetrasDelCartelLanding() {
 
         {/* ─── 6. CONDUCTORES CON FOTOS EDITABLES ─── */}
         {sections.hosts && (
-          <section className="space-y-4">
+          <section id="conductores" className="space-y-4">
             <div>
               <span className="text-[10px] md:text-xs font-mono text-accent uppercase tracking-widest font-bold block">
                 DETRÁS DEL MICRÓFONO
@@ -589,7 +610,7 @@ export default function DetrasDelCartelLanding() {
         )}
 
         {/* ─── 7. EPISODIOS ANTERIORES ─── */}
-        {sections.recentCases && (
+        {sections.recentCases && import.meta.env.DEV && (
           <section className="space-y-4">
             <div className="flex justify-between items-end">
               <div>
@@ -629,9 +650,6 @@ export default function DetrasDelCartelLanding() {
         {/* ─── 8. BUZÓN DE CASOS (QUINCENAL & ANÓNIMO) ─── */}
         {sections.consultationBox && (
           <section id="buzon" className="rounded-3xl bg-card2 border border-amber-500/20 p-6 md:p-8 space-y-5 shadow-2xl relative overflow-hidden">
-            <div className="absolute top-0 right-0 p-8 opacity-5 pointer-events-none">
-              <Lock className="w-48 h-48 text-accent" />
-            </div>
             
             <div>
               <span className="text-[9px] md:text-[10px] font-mono text-accent uppercase tracking-widest font-bold flex items-center gap-1.5">
@@ -683,36 +701,38 @@ export default function DetrasDelCartelLanding() {
             <div className="flex flex-col md:flex-row justify-between gap-6">
               <div className="space-y-2 max-w-sm">
                 <div className="flex items-center space-x-3">
-                  <div className="w-10 h-10 rounded-xl bg-card2 border border-amber-500/30 flex items-center justify-center text-accent font-black text-sm">
-                    D/C
+                  <div className="w-10 h-10 rounded-xl bg-card2 border border-amber-500/30 flex items-center justify-center text-accent">
+                    <MiniMark className="w-6 h-6" />
                   </div>
                   <div>
                     <h3 className="text-sm md:text-base font-black text-fg tracking-wider">DETRÁS DEL CARTEL</h3>
-                    <p className="text-[10px] text-muted font-mono">
-                      Producción de análisis patrimonial independiente.
+                    <p className="text-[11px] text-muted">
+                      Podcast inmobiliario con Daniel Bryn y Víctor Miascovsky.
                     </p>
                   </div>
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-8 text-xs font-mono">
                 <div>
-                  <span className="text-fg font-bold block mb-2">EXPLORAR</span>
-                  <p>Todos los Episodios</p>
-                  <p>Guías de Tasación Real</p>
-                  <p>Auditoría Gratuita</p>
+                  <span className="text-fg font-bold block mb-2">ESCUCHANOS</span>
+                  {channels.filter((c) => c.url).map((c) => (
+                    <p key={c.id}>
+                      <a href={c.url} target="_blank" rel="noopener noreferrer" className="hover:text-accent transition">{c.name}</a>
+                    </p>
+                  ))}
                 </div>
                 <div>
-                  <span className="text-fg font-bold block mb-2">ESTUDIO CENTRAL</span>
-                  <p>{contact.email}</p>
-                  <p>{contact.city}</p>
-                  <p className="text-accent">{contact.website}</p>
+                  <span className="text-fg font-bold block mb-2">CONTACTO</span>
+                  <p className="break-all">
+                    <a href={`mailto:${contact.email}`} className="hover:text-accent transition">{contact.email}</a>
+                  </p>
                 </div>
               </div>
             </div>
-            
-            <div className="pt-6 border-t border-line/5 flex flex-col md:flex-row items-center justify-between text-[10px] md:text-xs font-mono text-slate-500 gap-2">
-              <p>Spotify • YouTube • Instagram • Apple Podcasts</p>
-              <p>© 2026 Detrás del Cartel. Daniel Bryn & Víctor Miascovsky.</p>
+
+            <div className="pt-6 border-t border-line/5 space-y-1.5 text-[10px] md:text-xs font-mono text-muted">
+              <p>© 2026 Detrás del Cartel.</p>
+              <p>Este programa es informativo y no reemplaza el asesoramiento profesional para tu caso.</p>
             </div>
           </footer>
         )}
@@ -722,21 +742,21 @@ export default function DetrasDelCartelLanding() {
       {/* ─── 11. DOCK INFERIOR FIJO (SOLO EN MÓVIL: md:hidden) ─── */}
       {sections.bottomNav && (
       <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-page/95 backdrop-blur-lg border-t border-line/10 px-6 py-2.5 flex justify-around items-center">
-        <a href="#" className="flex flex-col items-center text-accent">
+        <a href="#episodio" className="flex flex-col items-center text-accent">
           <Headphones className="w-4 h-4" />
           <span className="text-[9px] font-mono mt-1 font-bold">Episodios</span>
         </a>
         <a href="#canales" className="flex flex-col items-center text-muted hover:text-fg transition">
           <Radio className="w-4 h-4" />
-          <span className="text-[9px] font-mono mt-1">Feeds</span>
+          <span className="text-[9px] font-mono mt-1">Escuchar</span>
         </a>
         <a href="#conductores" className="flex flex-col items-center text-muted hover:text-fg transition">
           <Users className="w-4 h-4" />
-          <span className="text-[9px] font-mono mt-1">Hosts</span>
+          <span className="text-[9px] font-mono mt-1">Nosotros</span>
         </a>
         <a href="#buzon" className="flex flex-col items-center text-muted hover:text-fg transition">
           <HelpCircle className="w-4 h-4" />
-          <span className="text-[9px] font-mono mt-1">Buzón</span>
+          <span className="text-[9px] font-mono mt-1">Temas</span>
         </a>
       </nav>
       )}

@@ -94,12 +94,13 @@ export const siteConfig = {
 
   // 5. Mito Patrimonial Auditado
   myth: {
-    refCode: "REF. 031 // MITO PATRIMONIAL AUDITADO",
-    verdict: "FALSO",
+    refCode: "MITO O REALIDAD",
+    verdict: "MITO",
     quote: "“Publicalo un 15% más caro para tener margen de negociación.”",
-    verdictTitle: "VEREDICTO TÉCNICO:",
-    explanation: "Iniciar con sobreprecio quema los primeros 30 días de tracción algorítmica en Zonaprop y Argenprop. Tu casa se convierte en la vidriera comparativa que termina vendiendo los inmuebles del vecino mejor tasados."
+    verdictTitle: "LA REALIDAD:",
+    explanation: "Parece prudente, pero suele jugar en contra: quien busca dentro de un rango de precio no llega a ver tu propiedad, y la que sí se ve se compara con las de al lado. Empezar en un precio ajustado a lo que hoy se paga suele dar más margen real que empezar alto."
   },
+
 
   // 6. Conductores (Fotos, Datos y Bio 100% editables)
   hosts: [
@@ -132,7 +133,7 @@ export const siteConfig = {
   },
 
 
-  // 7. Archivo de Dolencias y Casos Frecuentes
+  // 7. Episodios anteriores (EJEMPLOS del prototipo local; en la web pública van los reales de YouTube)
   episodes: [
     {
       id: "#13",
@@ -159,11 +160,16 @@ export const siteConfig = {
 
   // 8. Buzón Confidencial (Quincenal)
   consultation: {
-    tag: "CONFIDENCIAL // MESA DE AUDITORÍA",
-    title: "¿Tu inmueble está paralizado o sospechás de tu intermediario?",
-    subtitle: "Daniel Bryn y Víctor Miascovsky seleccionan casos reales para analizarlos en el estudio. Identidades y direcciones 100% resguardadas.",
-    disclaimer: "Acepto que los datos técnicos sean tratados de forma anónima para análisis en el episodio quincenal."
+    tag: "PROPONÉ UN TEMA",
+    title: "¿Qué querés que hablemos en el podcast?",
+    subtitle: "Contanos qué te preocupa o qué te pasó con tu propiedad. Elegimos los temas más pedidos para los próximos episodios. Si usamos tu caso, lo contamos sin nombres ni direcciones.",
+    button: "Contanos tu caso",
+    email: "detrasdelcartelpodcast@gmail.com",
+    subject: "Tema para Detrás del Cartel",
+    body: "Tema que me interesa:\n\n\nMi caso (opcional):\n\n\nAcepto que mi caso se use en el programa, sin nombres ni direcciones.",
+    note: "Se abre tu correo con un mensaje listo para completar. Si no se abre, escribinos a"
   },
+
 
   // 9. Métricas de Impacto
   stats: [
@@ -174,7 +180,7 @@ export const siteConfig = {
 
   // 10. Datos de Contacto y Footer
   contact: {
-    email: "hola@detrasdelcartel.com",
+    email: "detrasdelcartelpodcast@gmail.com",
     city: "Buenos Aires, Argentina",
     website: "www.detrasdelcartel.com"
   }
@@ -277,14 +283,6 @@ export default function DetrasDelCartelLanding() {
 
   const [theme, toggleTheme] = useTheme();
   const [isPlaying, setIsPlaying] = useState(false);
-  const [formData, setFormData] = useState({ nombre: '', email: '', conflicto: '', aceptado: true });
-  const [enviado, setEnviado] = useState(false);
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    setEnviado(true);
-  };
-
   // Sitio publicado = solo logo + barra "en construcción". En localhost se ve el prototipo completo;
   // para previsualizar lo público en local: agregar ?produccion=1 a la URL.
   const construccion = !import.meta.env.DEV || new URLSearchParams(window.location.search).has('produccion');
@@ -583,19 +581,13 @@ export default function DetrasDelCartelLanding() {
           </section>
         )}
 
-        {/* ─── 7. DOLENCIAS FRECUENTES (ARCHIVO DE CASOS) ─── */}
+        {/* ─── 7. EPISODIOS ANTERIORES ─── */}
         {sections.recentCases && (
           <section className="space-y-4">
             <div className="flex justify-between items-end">
               <div>
-                <span className="text-[10px] md:text-xs font-mono text-accent uppercase tracking-widest font-bold block">
-                  ARCHIVO DE CASOS
-                </span>
-                <h2 className="text-xl md:text-2xl font-black text-fg mt-1">Dolencias Frecuentes</h2>
+                <h2 className="text-xl md:text-2xl font-black text-fg">Episodios anteriores</h2>
               </div>
-              <span className="text-[10px] md:text-xs font-mono text-muted bg-line/5 px-3 py-1 rounded">
-                24 EPISODIOS
-              </span>
             </div>
 
             <div className="space-y-3">
@@ -647,49 +639,18 @@ export default function DetrasDelCartelLanding() {
               </p>
             </div>
 
-            {enviado ? (
-              <div className="p-6 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-center space-y-2">
-                <CheckCircle2 className="w-10 h-10 text-emerald-400 mx-auto" />
-                <p className="text-base font-bold text-fg">Caso recibido en el estudio</p>
-                <p className="text-xs md:text-sm text-soft">
-                  Daniel y Víctor auditarán los detalles para el próximo episodio quincenal.
-                </p>
-              </div>
-            ) : (
-              <form 
-                onSubmit={handleSubmit}
-                className="space-y-4 max-w-xl"
+            <div className="space-y-3">
+              <a
+                href={`mailto:${consultation.email}?subject=${encodeURIComponent(consultation.subject)}&body=${encodeURIComponent(consultation.body)}`}
+                className="inline-flex items-center space-x-2 px-6 py-3.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-[#07090E] font-black text-xs md:text-sm uppercase tracking-wider shadow-lg shadow-amber-500/20 transition active:scale-95"
               >
-                <div>
-                  <label className="block text-[10px] md:text-xs font-mono uppercase text-muted mb-1.5">
-                    Nombre o Alias
-                  </label>
-                  <input type="text" placeholder="Ej: Roberto de Nuñez" value={formData.nombre} onChange={(e) => setFormData({...formData, nombre: e.target.value})} className="w-full bg-input border border-line/10 rounded-xl px-4 py-2.5 text-xs md:text-sm text-fg placeholder-faint focus:outline-none focus:border-amber-400 transition" required />
-                </div>
-                <div>
-                  <label className="block text-[10px] md:text-xs font-mono uppercase text-muted mb-1.5">
-                    Correo Electrónico Privado
-                  </label>
-                  <input type="email" placeholder="contacto@tuemail.com" value={formData.email} onChange={(e) => setFormData({...formData, email: e.target.value})} className="w-full bg-input border border-line/10 rounded-xl px-4 py-2.5 text-xs md:text-sm text-fg placeholder-faint focus:outline-none focus:border-amber-400 transition" required />
-                </div>
-                <div>
-                  <label className="block text-[10px] md:text-xs font-mono uppercase text-muted mb-1.5">
-                    Detalle del Conflicto o Situación
-                  </label>
-                  <textarea rows={3} placeholder="Lleva 10 meses publicada. No hay consultas y nos piden una rebaja masiva..." value={formData.conflicto} onChange={(e) => setFormData({...formData, conflicto: e.target.value})} className="w-full bg-input border border-line/10 rounded-xl px-4 py-2.5 text-xs md:text-sm text-fg placeholder-faint focus:outline-none focus:border-amber-400 transition resize-none" required />
-                </div>
-                
-                <label className="flex items-start space-x-2.5 text-[11px] md:text-xs text-muted cursor-pointer pt-1">
-                  <input type="checkbox" checked={formData.aceptado} onChange={(e) => setFormData({...formData, aceptado: e.target.checked})} className="mt-0.5 rounded border-line/20 bg-input text-accent focus:ring-0" required />
-                  <span>{consultation.disclaimer}</span>
-                </label>
-
-                <button type="submit" className="w-full py-3.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-[#07090E] font-black text-xs md:text-sm uppercase tracking-wider flex items-center justify-center space-x-2 shadow-lg shadow-amber-500/20 transition active:scale-98">
-                  <span>Enviar Caso a Producción</span>
-                  <Send className="w-4 h-4" />
-                </button>
-              </form>
-            )}
+                <span>{consultation.button}</span>
+                <Send className="w-4 h-4" />
+              </a>
+              <p className="text-[11px] md:text-xs text-muted leading-relaxed">
+                {consultation.note} <span className="text-soft font-semibold select-all">{consultation.email}</span>.
+              </p>
+            </div>
           </section>
         )}
 

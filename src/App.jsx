@@ -62,7 +62,7 @@ export const siteConfig = {
       id: "spotify",
       name: "Spotify",
       badge: "ESCUCHALO",
-      url: "https://open.spotify.com/show/1ksoLOg5L9V1VIKSNnZz2b", // pegado 21-09 antes de publicar el 1.er episodio: da "no encontrado" hasta que el programa sea público. Verificar al publicar (Compartir → Copiar enlace).
+      url: "https://open.spotify.com/show/1ksoLOg5L9V1VlKSNnZz2b", // pegado 21-09 antes de publicar el 1.er episodio: da "no encontrado" hasta que el programa sea público. Verificar al publicar (Compartir → Copiar enlace).
     },
     {
       id: "youtube",

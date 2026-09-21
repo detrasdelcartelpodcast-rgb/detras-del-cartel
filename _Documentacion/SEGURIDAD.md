@@ -45,6 +45,9 @@
 - **Pruebas automáticas** (`npm run probar`, **33**): feeds y respuestas de API inventados, incluidos hostiles (scripts en título, IDs inyectados, XXE, entidades absurdas, respuestas gigantes, timeouts, canal inválido, clave con formato raro, errores sin la clave, elementos `null`). Una prueba encontró y corrigió un fallo real.
 - **Pruebas en navegador real** con las reglas reales de `vercel.json`: 4 escenarios (con episodios / vacío / API caída / texto hostil): 0 violaciones de CSP, 0 errores de JavaScript, sin desborde horizontal a 390 px.
 
+## Cambios locales aún sin revisar (deploy pendiente)
+Los 6 commits locales (crema en CSS, `404 → lista vacía` en `api/_lib/youtube.js`, enlace de Spotify, documentación) **todavía no pasaron por `/security-review`**: se revisan en el deploy (regla fija). Riesgo estimado bajo: CSS y una constante (el enlace de Spotify es público y fijo); el cambio de `youtube.js` solo trata un 404 como lista vacía y agrega `e.status` al error (que no incluye la clave ni la URL). Verificar en el deploy: (a) que los errores sigan sin contener la clave, (b) que 403/500 sigan cayendo al feed (pruebas), (c) 0 violaciones de CSP.
+
 ## Si se compromete la clave de YouTube
 1. Google Cloud → APIs y servicios → Credenciales → **borrar la clave** y crear otra (gratis, restringida a YouTube Data API v3).
 2. Vercel → Settings → Environment Variables → editar `YOUTUBE_API_KEY` → **Redeploy**.

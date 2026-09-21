@@ -1,45 +1,74 @@
 # HANDOVER — Detrás del Cartel
 
-> Última actualización: **2026-09-21 (noche)**. Reescrito completo con el estado real. La versión anterior (bitácora acumulada) está en el historial de git.
-> App **INDEPENDIENTE** del ecosistema Inmovalue: no comparte repo, base, cuenta de hosting ni credenciales. Solo cumple las mismas reglas de seguridad.
+> Última actualización: **2026-09-22 (madrugada)**. Reescrito completo con el estado real, el deploy pendiente y todo lo que falta. La bitácora anterior está en el historial de git.
+> App **INDEPENDIENTE** del ecosistema Inmovalue: no comparte repo, base, cuentas ni credenciales. Solo cumple las mismas reglas de seguridad.
+> Documentos hermanos: `PLATAFORMAS.md` (cada cuenta, IDs y trampas) · `ARQUITECTURA_APP.md` · `SEGURIDAD.md` · `RUNBOOK.md` (operación y día de lanzamiento) · `../src/assets/logos/LEEME.md` (inventario de logos).
 
 ## 🚨 ZONA PROHIBIDA
 - **Directorio prohibido de iCloud (carpeta "C"):** ningún proceso lo toca (regla global de Vic).
-- **NO usar las cuentas del ecosistema** (GitHub/Vercel/Supabase de Inmovalue) para esta app. Cuentas propias (ver "Cuentas").
-- **NO conectar esta app a ninguna base de datos de otros proyectos.** Si algún día necesita base, una propia.
-- Nunca subir `.env`, claves, tokens ni datos de personas al repo. La clave de YouTube vive SOLO en Vercel.
-- **`/security-review` antes de CADA deploy** (regla fija de Vic). Hecho 3 veces (ver `SEGURIDAD.md`).
-- **No modificar código sin OK de Vic.** Proponer primero, mostrar en localhost, recién ahí publicar. Lección del 20-09: cuando Vic pidió cambiar un TEXTO, se rediseñó el bloque por iniciativa propia y hubo que deshacerlo.
+- **NO usar las cuentas del ecosistema** (GitHub/Vercel/Supabase de Inmovalue) ni las personales de Vic para esta app. Cuentas propias del podcast (ver `PLATAFORMAS.md`).
+- **NO conectar esta app a ninguna base de datos de otros proyectos.** Si necesita base, una propia.
+- Nunca subir `.env`, claves, tokens ni datos de personas al repo. **La clave de YouTube vive SOLO en Vercel.**
+- **`/security-review` antes de CADA deploy** (regla fija de Vic). Hecho 3 veces; la próxima es en el deploy pendiente (ver abajo).
+- **No modificar código ni publicar sin OK de Vic.** Proponer primero, mostrar en `localhost:5173`, recién ahí publicar. Lección del 20-09: cuando Vic pidió cambiar un TEXTO, se rediseñó el bloque por iniciativa propia y hubo que deshacerlo.
+- **NUNCA transcribir IDs o enlaces desde una captura de pantalla** (Lección del 21-09: al copiar a mano el ID de Spotify confundí una "l" minúscula con una "I" mayúscula; el botón de la web habría quedado roto incluso con el programa publicado). Pedir siempre que Vic **copie y pegue el texto**, y comparar carácter por carácter.
 
-## 🔴 ESTADO ACTUAL (21-09-2026)
-**Publicada y funcionando en `https://detras-del-cartel.vercel.app`** (Vercel, equipo `detrasdelcartel`, plan Hobby). Es la landing COMPLETA, con `noindex` (Google no la muestra). Cada `git push` a `main` redespliega solo (~30 s).
+## 🔴 ESTADO ACTUAL (21-09-2026, noche)
 
-| Bloque de la web | Estado |
+### Producción vs. tu Mac
+| | Producción (`https://detras-del-cartel.vercel.app`) | Local (`localhost:5173`, último commit `HEAD`) |
+|---|---|---|
+| Código | commit **`742f75a`** | **6 commits más** (abajo) |
+| Fondo de la tarjeta de portada (modo día) | gris apagado | **crema** `#FBF8F1` |
+| Botón Spotify | "Próximamente" apagado | **activo** con el enlace del programa |
+| `/api/episodios` con el canal SIN videos públicos | responde **502** (error; la web igual muestra "Muy pronto") | responde 200 con lista vacía (**corregido**, 33 pruebas) |
+| Episodio | "Muy pronto" (el video de prueba está en Privado) | igual |
+
+### 🚀 DEPLOY PENDIENTE (Vic lo pidió: "en cuanto publiquemos, hacé el deploy para que quede todo actualizado y en línea en Vercel")
+**Cuándo:** al publicar el primer episodio / cuando exista el número de Apple. **Qué sube** (commits locales sin subir, del más nuevo al más viejo):
+- `9eb0f9b` docs: avance de Apple Podcasts Connect
+- `cc11b51` **Enlace de Spotify pegado en la web** (`src/App.jsx`)
+- `ecf369c` docs: avance de Spotify
+- `b150c9b` docs: decisión de una sola columna centrada
+- `17b16d5` **API: 404 en la lista de subidas = lista vacía, no error** (`api/_lib/youtube.js`, +2 pruebas → 33)
+- `ac61c46` **Tarjeta de la portada en crema en modo día** (`src/index.css`, clase `tarjeta-portada` en `src/App.jsx`)
+- (y este commit de documentación máxima detalle + la corrección del ID de Spotify)
+
+**Antes de subir:** ① pegar el enlace de **Apple** (ver "Falta" abajo) en `siteConfig.channels` (`id: "apple"`, campo `url`); ② `npm run probar` (debe dar 33 OK); ③ `npm run build` y verificar que el JS no tenga ejemplos ni claves; ④ **`/security-review`**; ⑤ `git push origin main`.
+**Después de subir (verificar en vivo):** ⓐ `curl -s https://detras-del-cartel.vercel.app/api/episodios` → **HTTP 200** y `{"ok":true,"episodios":[…]}` (CONFIRMA la hipótesis de que un canal sin videos daba 404 y ahora es lista vacía; con el episodio publicado debe traerlo); ⓑ las tarjetas de Spotify y Apple activas y con los enlaces correctos (abrirlos con un clic); ⓒ 0 violaciones de CSP en el navegador; ⓓ el fondo crema en modo día y el modo noche sin cambios; ⓔ registrar en este HANDOVER, la neurona y el Brain.
+
+### Lo que falta de Apple (para pegar en la web)
+El **enlace de Apple no existe todavía**: el número lo asigna Apple **al enviar el programa**, y para enviarlo hace falta el feed con ≥ 1 episodio. Es UN solo enlace para todo el programa (`https://podcasts.apple.com/ar/podcast/id<NÚMERO>`); los episodios nuevos aparecen solos. Apenas se envíe, pedir a Vic el número (o el enlace copiado del navegador) y pegarlo **sin esperar la aprobación**.
+
+### Enlaces de acceso rápido (guardados a pedido de Vic, 21-09)
+- **Apple Podcasts Connect (lista de programas):** https://podcastsconnect.apple.com/my-podcasts
+- **Spotify for Creators → Distribución (feed RSS y plataformas):** https://creators.spotify.com/pod/show/1ksoLOg5L9V1VlKSNnZz2b/podcast/distribution
+- **Spotify for Creators (inicio del programa):** https://creators.spotify.com/home
+- **Enlace público del programa en Spotify (ya pegado en la web):** https://open.spotify.com/show/1ksoLOg5L9V1VlKSNnZz2b (da "no encontrado" hasta publicar el 1.er episodio)
+- **Web publicada:** https://detras-del-cartel.vercel.app · **API:** https://detras-del-cartel.vercel.app/api/episodios
+- **Canal de YouTube:** https://www.youtube.com/@detrasdelcartelpodcast · **Instagram:** https://www.instagram.com/detrasdelcartelpodcast/ (privada)
+- **Repo:** GitHub `detrasdelcartelpodcast-rgb/detras-del-cartel` (privado)
+
+### Qué hay hecho en la web (todo verificado)
+| Bloque | Estado |
 |---|---|
-| Menú (mini logo, nombre, botón "Escuchar" → baja al episodio, botón día/noche) | ✅ |
-| Portada: emblema cobrizo + "EL LADO B DEL MERCADO INMOBILIARIO" + texto | ✅ |
-| Dónde escucharnos: YouTube e Instagram activos; Spotify y Apple "Próximamente" | ✅ |
-| **Último episodio (automático desde YouTube)** | ✅ **Probado en vivo el 21-09**: con el video de prueba público aparecía solo; al pasarlo a Privado desapareció y volvió "Muy pronto" (tras renovarse la caché, ~5 min) |
-| Mito o realidad (texto fijo) | ✅ (texto redactado por Claude; lo valida Vic) |
-| Los Conductores: fotos reales, bios, franja, recuadro "Juntos" | ✅ (falta que Daniel valide su bio y "Juntos") |
-| Episodios anteriores (automático, aparece desde el 2.º video) | ✅ implementado; sin datos reales todavía |
-| Proponé un tema (botón `mailto:` al Gmail del proyecto) | ✅ |
-| Pie (Gmail, canales, aviso "informativo, no reemplaza asesoramiento") | ✅ |
-| Barra inferior del celular (Episodios / Escuchar / Nosotros / Temas) | ✅ |
+| Menú (mini logo, nombre, "Escuchar" → baja al episodio, día/noche) | ✅ |
+| Portada: emblema cobrizo + "EL LADO B DEL MERCADO INMOBILIARIO" + texto | ✅ (crema pendiente de deploy) |
+| Dónde escucharnos: YouTube e Instagram activos; Spotify (activo en local); Apple "Próximamente" | ✅ / 🟡 |
+| **Último episodio automático desde YouTube** | ✅ probado en vivo: público → apareció solo; privado → desapareció (~5 min de caché) |
+| Mito o realidad (texto fijo) | ✅ (redactado por Claude; lo valida Vic) |
+| Los Conductores: fotos, bios, franja y "Juntos" | ✅ (Daniel debe validar) |
+| Episodios anteriores (automático desde el 2.º video) | ✅ sin datos reales todavía |
+| Proponé un tema (`mailto:` al Gmail del proyecto) | ✅ |
+| Pie · Barra inferior del celular · Modo día/noche · `noindex` · Headers de seguridad | ✅ |
 
-**Hoy el bloque de episodio muestra "Muy pronto: el primer episodio"** porque el video de prueba (`lfogKQdhBMc`, "muy pronto 10s") está en **Privado**. Cuando Vic suba el primer episodio real (público, horizontal), aparece solo.
+**Localhost:** mismo código + barra flotante de dispositivos (solo dev) + `?demo=1` (episodios de ejemplo) + `?produccion=1` (vista "en construcción").
 
-**Localhost (`localhost:5173`, botón "▶ Abrir" del panel 8002):** mismo código + barra flotante de dispositivos (solo dev) + `?demo=1` (episodios de ejemplo) + `?produccion=1` (vista "en construcción").
-
-## 🔑 CUENTAS Y ACCESOS (sin secretos)
-- **GitHub:** cuenta `detrasdelcartelpodcast-rgb`, repo privado `detras-del-cartel`, rama `main`. Acceso por **clave SSH dedicada** (`~/.ssh/id_ed25519_cartel`, alias `github-cartel` en `~/.ssh/config`). Repo con `credential.helper` vacío y identidad local (email noreply) para NO heredar las credenciales del ecosistema.
-- **Vercel:** equipo `detrasdelcartel` (cuenta nueva, 2FA a confirmar por Vic), conectado al repo.
-- **Google Cloud:** proyecto `detras-del-cartel` (cuenta Gmail del podcast). Clave de API "YouTube Data API v3" → cargada en Vercel como **`YOUTUBE_API_KEY`** (Production). **Verificar que la clave esté restringida a "YouTube Data API v3"** (Vic lo iba a hacer al crearla; no quedó confirmado por escrito).
-- **YouTube:** canal `@detrasdelcartelpodcast`, ID `UCRVH9mlcrwMockg7aTbOr-Q` (público). Teléfono verificado (a confirmar). Banner y descripción cargados.
-- **Instagram:** `@detrasdelcartelpodcast`, hoy **privada** (decisión de Vic hasta lanzar).
-- **Gmail del proyecto:** `detrasdelcartelpodcast@gmail.com` (contacto de la web y destino de "Proponé un tema").
-- **Dominio `detrasdelcartel.com`:** es de Vic, en **Hostinger**, hoy "estacionado". Sin registros de correo (MX). **Todavía NO apunta a Vercel.**
-- **Panel del 8002** (`inmovalue-brain-app`): tiene la neurona `apps/detras-del-cartel` y el botón "▶ Abrir" (usa `start.command`).
+### Plataformas (resumen; detalle y trampas en `PLATAFORMAS.md`)
+- **Spotify for Creators:** programa creado y configurado, **sin ningún episodio publicado a propósito** (recién es público al publicar el 1.º; el feed RSS nace ahí). Portada `~/Downloads/portada-podcast-2000x2000-margen.jpg`.
+- **Apple Podcasts Connect:** cuenta activa, tipo Particular, **lista vacía**; gratis por RSS.
+- **YouTube:** canal armado, banner y descripción cargados; video de prueba `lfogKQdhBMc` en **Privado**.
+- **Instagram:** privada. **Dominio `detrasdelcartel.com`:** estacionado en Hostinger, sin conectar. **Google Cloud:** proyecto + clave (restricción por confirmar).
 
 ## 🎯 OBJETIVO Y CRITERIOS (decisiones de Vic)
 - **Landing de un PODCAST con el MÍNIMO mantenimiento posible.** Todo lo que cambia solo (episodios, contador, fechas) se lee de YouTube; lo escrito a mano es lo mínimo (textos fijos + el "Mito").
@@ -58,50 +87,52 @@
 - **Proponé un tema:** "¿Qué querés que hablemos en el podcast?" + botón "Contanos tu caso" (`mailto:` con asunto y cuerpo prearmados).
 
 ## ⚙️ CÓMO SE ACTUALIZA SOLO (episodios)
-`Vercel /api/episodios` → YouTube Data API v3 (con `YOUTUBE_API_KEY`) → caché 5 min → `Episodios.jsx`. Muestra videos **públicos e insertables** del canal (máx. 12). El título "#5 · Algo" muestra "Nº 5". **Resumen = las 2 primeras líneas de la descripción del video** → al subir un episodio, escribir ARRIBA 2 líneas propias del episodio y DEBAJO el texto fijo del canal (que ya se pre-carga como descripción predeterminada). Si la API falla o no hay clave, cae al feed público (`videos.xml`), que YouTube rompió el 1-3 sep 2026 (404 constante; era intermitente desde dic 2025). Si todo falla → "Muy pronto" (nunca se rompe). Detalle técnico: `ARQUITECTURA_APP.md`; operación: `RUNBOOK.md`.
+`Vercel /api/episodios` → YouTube Data API v3 (clave `YOUTUBE_API_KEY`) → caché 5 min → `src/Episodios.jsx`. Muestra videos **públicos e insertables** del canal (máx. 12). Título `#5 · Algo` → "Nº 5". **Resumen = las 2 primeras líneas de la descripción del video** (escribir ARRIBA 2 líneas propias y DEBAJO el texto fijo del canal). Muestra la duración ("fecha · 0:11": es la DURACIÓN, no la hora). Si la API falla o falta la clave, cae al feed público (`videos.xml`), que YouTube rompió el 1-3 sep 2026; si todo falla → "Muy pronto". Un video privado o no listado NO aparece (a propósito). Detalle técnico en `ARQUITECTURA_APP.md`.
 
 ## 🔴 TRAMPAS Y LECCIONES
+- **IDs y enlaces: nunca transcribirlos desde una captura** (I mayúscula / l minúscula / 1 / O / 0 se confunden). Ver "Zona prohibida".
+- **La traducción automática de Chrome rompe los formularios de Spotify y de Apple** (botones "Siguiente"/"Guardar" que no responden o dan "Algo salió mal"). Apagarla ("Mostrar original") y recargar.
 - **Código que entrega Stitch/Gemini "en React/SVG" NO es fiel al diseño** (es una recreación imprecisa). La fuente de verdad es la IMAGEN. En Stitch: Exportar → `.zip` → `screen.png` (1024 px, sin transparencia; siempre se llama igual: renombrar).
-- **Las imágenes pegadas en el chat NO quedan en disco.** Pedir siempre el archivo (carpeta Descargas + ruta).
-- **Fotos de conductores y logos no publicados:** viven en `src/assets/` y un plugin de `vite.config.js` descarta del build las imágenes que ningún código publicado usa. Verificado en ambos sentidos.
-- **Datos de ejemplo del prototipo** (episodios demo) van envueltos en `import.meta.env.DEV`: no viajan al JS de producción (verificado: 0 apariciones de textos de ejemplo).
-- **Colores:** en secciones nuevas usar SIEMPRE los colores del tema (`bg-card`, `text-fg`, `text-muted`, `border-line/10`, `text-accent`…), nunca `text-white` ni hex fijos, o esa sección no responderá al modo claro.
-- **Canal sin videos públicos → la API de YouTube contesta 404 (`playlistNotFound`) en `playlistItems`.** Lo detectó Vic al pasar el video de prueba a Privado: `/api/episodios` respondía 502 en vez de "lista vacía" (la web igual mostraba "Muy pronto"). Corregido en `api/_lib/youtube.js` (un 404 en `playlistItems` = lista vacía; 403/500 siguen cayendo al feed) + 2 pruebas (33 en total). **Hipótesis por confirmar en vivo tras publicar** (no se puede probar sin la clave, que solo está en Vercel): con el canal sin videos públicos, `/api/episodios` debe dar `{"ok":true,"episodios":[]}` con HTTP 200.
-- **Caché:** los cambios en YouTube tardan hasta ~5 min en verse en la web (con hasta 1 h de dato viejo si YouTube falla).
-- **Un video "no listado" NO aparece en la web** (a propósito); tampoco uno privado.
-- **"0:11" en la fecha del episodio es la DURACIÓN**, no la hora (Vic lo leyó como hora el 21-09). Propuesta pendiente: rotularlo "Duración 0:11".
-- **Puerto 5173** (default de Vite): si otro proyecto Vite lo ocupa, `start.command` falla por `--strictPort`.
-- **Vercel Hobby es solo para uso no comercial**: si la web pasa a promocionar servicios o llevar publicidad, requiere Pro.
+- **Las imágenes pegadas en el chat NO quedan en disco.** Pedir siempre el archivo (Descargas + ruta).
+- **Un canal sin videos públicos hace que la API de YouTube (`playlistItems`) conteste 404.** Corregido (lista vacía); confirmar en vivo tras el deploy.
+- **Fotos de conductores, logos y portadas sin uso** viven en `src/assets/`; un plugin de `vite.config.js` descarta del build las imágenes que ningún código publicado usa (verificado en ambos sentidos).
+- **Datos de ejemplo del prototipo** (`?demo=1`) van envueltos en `import.meta.env.DEV`: no viajan a producción.
+- **Colores:** en secciones nuevas usar SIEMPRE los colores del tema (`bg-card`, `text-fg`, `text-muted`, `border-line/10`, `text-accent`…), nunca `text-white` ni hex fijos.
+- **Caché:** los cambios en YouTube tardan hasta ~5 min en verse (y hasta 1 h de dato viejo si YouTube falla).
+- **Puerto 5173:** si otro proyecto Vite lo ocupa, `start.command` falla por `--strictPort`.
+- **Vercel Hobby es solo para uso no comercial.**
+- **No usar el iPhone personal para aceptar términos de Apple** (cambia la cuenta de compras del teléfono).
 
 ## 🟡 PENDIENTES (por prioridad)
-0. **Publicar (esperando OK de Vic):** commit local `ac61c46` (tarjeta de portada en crema en modo día, aprobada el 21-09) + corrección del 404 de lista vacía (33 pruebas). Requiere `/security-review` y push; después verificar en vivo el 200 con lista vacía.
-1. **Confirmar la restricción de la clave** en Google Cloud (solo "YouTube Data API v3") y el 2FA de la cuenta de Vercel.
-2. **Subir el primer episodio real** (público, 16:9, título "#1 · …", 2 líneas de resumen arriba) y verificar en la web. Antes: probar "Ver en YouTube" y el reproductor en el celular real.
-3. **Daniel debe validar** su bio, el recuadro "Juntos", el texto del Mito y la franja.
-4. **Decidir el fondo de la tarjeta de portada en modo día:** hoy gris (se ve apagado). Vic dudó; se comparó gris/blanco/crema/sin tarjeta (`~/Downloads/comparativa-fondo-portada.png`); recomendación de Claude: **crema**.
-5. **Rotular la duración** ("Duración 0:11") y revisar si conviene mostrar la fecha en otro formato.
-6. **Dominio:** en Vercel → Settings → Domains agregar `detrasdelcartel.com`; en Hostinger (zona DNS) reemplazar los registros del "estacionado" por los que Vercel indique (A y CNAME de `www`). Después mirar que el banner de YouTube ya no apunte a un dominio vacío.
-7. **Spotify y Apple Podcasts:** necesitan un servicio de alojamiento con feed RSS (p. ej. Spotify for Creators, gratis) → enviar a Apple Podcasts Connect → pegar los enlaces en `siteConfig.channels[].url` (la tarjeta se activa sola). Portadas listas: `~/Downloads/portada-podcast-azul-3000x3000.jpg` y `…-blanca-…` (agrandadas, no redibujadas).
-   **Apple Podcasts (21-09, avance):** cuenta de Apple propia del proyecto (Gmail del podcast, verificación en dos pasos con 1 teléfono de confianza; conviene sumar un segundo de respaldo) y cuenta de **Apple Podcasts Connect** ya activa: nombre "Detrás del Cartel", tipo Particular, términos aceptados, lista de programas VACÍA. **Falta:** enviar el programa (Connect → Añadir programa → con un feed RSS) cuando exista el feed de Spotify (Configuración → Disponibilidad → Distribución RSS; existe recién al publicar el 1.er episodio; Apple exige ≥1 episodio). Es GRATIS por RSS (solo el Apple Podcasters Program, US$ 19,99/año, es de pago y sirve para suscripciones: no hace falta). Aprobación: unos días; después pegar el enlace en `siteConfig.channels[apple].url`. Trampas del alta: (1) Connect decía "terminar de activar tu cuenta": hizo falta datos de pago/domicilio y aceptar el acuerdo de Medios y compras entrando a `podcasts.apple.com` con la cuenta (y a `music.apple.com`); se destrabó tras unos minutos; (2) el botón Guardar de "Configurar la cuenta" dio "error, vuelve más tarde" hasta apagar la traducción de Chrome y reintentar; (3) no usar el iPhone personal para aceptar términos (cambia la cuenta de compras). Apple soporta video por HLS vía el proveedor de alojamiento: verificar más adelante si Spotify for Creators lo envía.
-   **Spotify (21-09, avance):** programa creado en Spotify for Creators (cuenta Google del proyecto, "Continuar con Google"): nombre "Detrás del Cartel", creador "Daniel Bryn y Víctor Miascovsky", descripción, portada `~/Downloads/portada-podcast-2000x2000-margen.jpg` (2000 px, 357 KB, emblema al 68 % del ancho para que un recorte no lo toque), categoría Negocios, español (Argentina), sin contenido explícito. **NO se publicó ningún episodio a propósito** (un programa recién es público al publicar el primero; sin episodios no hay feed RSS ni se puede enviar a Apple). ID del programa: `1ksoLOg5L9V1VIKSNnZz2b` → enlace candidato `https://open.spotify.com/show/1ksoLOg5L9V1VIKSNnZz2b` (hoy da 404 porque no está publicado; verificar con curl y con "Compartir → Copiar enlace" cuando se publique, y RECIÉN ahí pegarlo en `siteConfig.channels[spotify].url`). Trampa: Chrome traduciendo la página de Spotify rompía el botón Siguiente ("Algo salió mal"): desactivar la traducción. Lanzamiento recomendado: 2-3 episodios juntos; enviar el feed a Apple el mismo día (aprobación: días)."
-8. **Stitch:** pedir versión SIMPLE del logo (cartel + micrófono, sin texto, transparente) para menú, favicon y marca de agua de YouTube (150×150). Hoy el menú usa `MiniMark.jsx` (dibujo provisorio de Claude).
-9. **Vista previa al compartir el link** (etiquetas Open Graph: título, descripción e imagen del emblema). Nota: con `noindex` no interfiere.
-10. **Foto de perfil** de YouTube/Instagram (emblema recortado en círculo, 800×800) y bio de Instagram (opciones armadas, límite 150 caracteres) con "lado B".
-11. **Al lanzar en serio:** quitar `noindex` (3 capas: meta en `index.html`, `public/robots.txt`, header `X-Robots-Tag` en `vercel.json`), hacer pública la cuenta de Instagram, repetir `/security-review`, revisar las promesas ("Nuevos episodios todos los meses" está en el banner y la descripción de YouTube: solo si se puede sostener).
-12. **⚠ Frecuencia inconsistente:** la propuesta del podcast (memoria del 17-08: 12 episodios, **quincenal**, 6 meses, 20-25 min) no coincide con el banner de YouTube ("Nuevos episodios todos los meses" / en una versión "cada semana") ni con la descripción del canal ("todos los meses"). Decidir UNA frecuencia y alinear banner (regenerable con `tools/componer-banner-youtube.py`), descripción del canal y la del video. Además la propuesta original mencionaba un formulario que llega al mail; hoy es un `mailto:` (decisión del 21-09).
-13. **Backup:** decisión de Vic (¿entra al script diario de `_scripts/backup_inmovalue.sh` o va aparte?). Hoy el código vive en la Mac (Time Machine) y en el GitHub propio.
-14. Botón QR en la barra de dispositivos (implica abrir el servidor dev a la red local; decisión de Vic). Opcional: Google Forms en lugar del `mailto:` para "Proponé un tema".
-15. `npm audit`: 0 vulnerabilidades en producción; 2 en desarrollo (esbuild/vite, solo servidor local). Subir Vite es un cambio mayor: evaluar con calma.
+0. **Deploy pendiente** (ver arriba): sube crema, corrección del 404, enlace de Spotify y el enlace de Apple cuando exista.
+1. **Confirmar la restricción de la clave** de Google Cloud (solo "YouTube Data API v3") y el 2FA de la cuenta de Vercel; sumar un 2.º teléfono de confianza a la cuenta de Apple.
+2. **Decidir la frecuencia** ⚠: la propuesta del podcast (memoria del 17-08) es **quincenal**, 12 episodios en 6 meses, 20-25 min; el banner ("todos los meses"/una versión "cada semana") y la descripción del canal dicen mensual. Alinear banner (regenerable con `tools/componer-banner-youtube.py`), descripción del canal y la del video.
+3. **Grabar el primer episodio** (recomendado: 2-3 juntos, o un tráiler de 30-60 s). Subir a Spotify (audio; video opcional) y a YouTube (público, 16:9, `#1 · …`, 2 líneas de resumen arriba). Pasar el video de prueba a borrar.
+4. **Enviar el programa a Apple** el mismo día (Connect → Añadir programa → feed RSS de Spotify: Configuración → Disponibilidad → Distribución RSS). Aprobación: días. Pedir el número que asigna Apple y hacer el deploy.
+5. **Daniel debe validar** su bio, "Juntos", el Mito y la franja (hoy son texto redactado por Claude a partir de lo dicho por Vic). Además, su nombre ya figura públicamente en el banner y en Spotify como creador.
+6. **Dominio:** Vercel → Settings → Domains agregar `detrasdelcartel.com` (y `www`); Hostinger → reemplazar los registros del estacionado por los que Vercel indique. Después actualizar la dirección del banner y las bios.
+7. **Logo simple** (Stitch: cartel + micrófono, sin texto, transparente) para menú, favicon y marca de agua de YouTube (150×150). Hoy el menú usa `MiniMark.jsx` (dibujo provisorio de Claude). **Foto de perfil** 800×800 y **bio de Instagram** (opciones armadas, 150 caracteres).
+8. **Vista previa al compartir el link** (Open Graph: título, descripción e imagen del emblema).
+9. **Rotular la duración** ("Duración 0:11") para que no se confunda con una hora (Vic la leyó como hora el 21-09).
+10. **Al lanzar en serio:** quitar `noindex` (3 capas: meta en `index.html`, `public/robots.txt`, header `X-Robots-Tag` en `vercel.json`), hacer pública la cuenta de Instagram, repetir `/security-review`, revisar promesas públicas.
+11. **Backup:** decisión de Vic (¿entra al script diario de `_scripts/backup_inmovalue.sh` o va aparte?). Hoy: la Mac (Time Machine) + el repo privado de GitHub (que NO tiene los 6 commits pendientes hasta el deploy).
+12. Opcionales: botón QR en la barra de dispositivos (implica abrir el servidor dev a la red local); Google Forms en lugar del `mailto:` para "Proponé un tema"; ¿Spotify for Creators envía video HLS a Apple? (verificar); subir Vite (cambio mayor; solo afecta al servidor de desarrollo).
+
+## 📜 HISTORIAL RESUMIDO
+- **18-09:** la app llega generada por otra herramienta (prototipo React). Auditoría de seguridad; git, docs, cuentas separadas; SSH dedicada; panel 8002.
+- **19-09:** publicada en modo "en construcción" (logo + barra roja) con `noindex` y headers de seguridad; modo día/noche.
+- **20-09:** fotos y bios reales de los conductores; recuadro "Juntos"; "lado B"; menú y hero nuevos; logos (emblema cobrizo), banner de YouTube y portadas; estructura definitiva de la landing.
+- **21-09:** landing completa publicada; conexión con YouTube (feed roto → API oficial con clave en Vercel); 3 `/security-review` sin hallazgos; crema; Spotify y Apple creados sin publicar episodios; documentación al máximo detalle.
 
 ## 🚦 CÓMO RETOMAR EN OTRA SESIÓN
-1. Leer este HANDOVER y `RUNBOOK.md`. Abrir el chat en `PROYECTOS_APPS/detras-del-cartel`.
-2. `git log --oneline | head` y `git status` (todo debería estar subido).
-3. Verificar en vivo: `curl -s https://detras-del-cartel.vercel.app/api/episodios` → `{"ok":true,"episodios":[…]}`.
+1. Leer este HANDOVER, `PLATAFORMAS.md` y `RUNBOOK.md`. Abrir el chat en `PROYECTOS_APPS/detras-del-cartel`.
+2. `git status -sb` y `git log --oneline origin/main..HEAD` (deben verse los commits del deploy pendiente).
+3. Verificar en vivo: `curl -s https://detras-del-cartel.vercel.app/api/episodios`.
 4. Mostrar cualquier cambio primero en `localhost:5173`; publicar solo con OK de Vic y `/security-review`.
 
 ## Dónde manejar cada cosa
 | Tema | Dónde |
 |---|---|
-| Esta web (código, textos, deploy, YouTube) | Chat abierto en `detras-del-cartel` |
+| Esta web (código, textos, deploy, YouTube, Spotify, Apple) | Chat abierto en `detras-del-cartel` |
 | Panel de apps (8002) y neurona | `inmovalue-brain-app` |
 | Ecosistema Inmovalue (CRM, webpage, etc.) | Sus propios chats. Esta app no interviene. |

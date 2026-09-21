@@ -30,6 +30,17 @@
 - Variable en Vercel: `YOUTUBE_API_KEY` (Production). Cambiarla: Settings → Environment Variables → editar → **Redeploy** (solo aplica a despliegues nuevos).
 - **Rotar la clave:** ver `SEGURIDAD.md` → "Si se compromete la clave".
 
+## 🚀 DÍA DE LANZAMIENTO (paso a paso, en este orden)
+**Antes:** definir la frecuencia (quincenal vs mensual) y alinear banner y descripción de YouTube; tener 2-3 episodios (o un tráiler) grabados; Daniel valida bios/"Juntos"/Mito.
+1. **Spotify for Creators** (`creators.spotify.com/home` → "Continuar con Google"): subir el/los episodio(s) (audio; video opcional) y publicar (o PROGRAMAR la fecha). El programa se hace público y nace el feed RSS. Sin traducción de Chrome.
+2. **Feed RSS:** https://creators.spotify.com/pod/show/1ksoLOg5L9V1VlKSNnZz2b/podcast/distribution → copiar la dirección del feed.
+3. **Apple Podcasts Connect** (https://podcastsconnect.apple.com/my-podcasts): **Añadir programa → con un feed RSS** → pegar el feed → validar → enviar. Aprobación: unos días. **Anotar el número (Apple ID del programa) que se ve en la página del programa** → enlace `https://podcasts.apple.com/ar/podcast/id<NÚMERO>` (copiar y pegar, no transcribir).
+4. **YouTube Studio:** subir el video (16:9, PÚBLICO, título `#1 · …`, 2 líneas de resumen arriba + texto fijo). Pasar el video de prueba a borrar.
+5. **Web:** pegar el enlace de Apple en `src/App.jsx` → `siteConfig.channels` (`id: "apple"`, `url`); confirmar con un clic que el enlace de Spotify abre el programa (Compartir → Copiar enlace al programa); `npm run probar` (33 OK); `npm run build`; **`/security-review`**; `git push origin main`.
+6. **Verificar en vivo:** `curl -s https://detras-del-cartel.vercel.app/api/episodios` → 200 con el/los episodios; el bloque "Último episodio" con reproductor, título, fecha y duración; tarjetas Spotify y Apple activas; 0 violaciones de CSP; modo día (crema) y noche.
+7. **Lanzamiento público:** quitar `noindex` (meta en `index.html`, `public/robots.txt`, header `X-Robots-Tag` en `vercel.json`) y redeployar; hacer pública la cuenta de Instagram y cargar la bio; conectar el dominio (sección de abajo) y actualizar bios y banner con `detrasdelcartel.com`; repetir `/security-review`.
+8. **Registrar** en HANDOVER, neurona del Brain y memoria.
+
 ## Conectar el dominio `detrasdelcartel.com` (pendiente)
 1. Vercel → proyecto → Settings → Domains → agregar `detrasdelcartel.com` (y `www`). Vercel muestra los registros DNS exactos.
 2. Hostinger → Dominios → DNS / zona DNS: reemplazar los registros del "dominio estacionado" (A del dominio y CNAME de `www`) por los que indicó Vercel. El dominio no tiene MX (no se corta ningún correo).

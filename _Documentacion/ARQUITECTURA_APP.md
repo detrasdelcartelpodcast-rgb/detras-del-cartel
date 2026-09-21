@@ -1,6 +1,6 @@
 # ARQUITECTURA — Detrás del Cartel
 
-> Verificado contra el código el 2026-09-21.
+> Verificado contra el código el 2026-09-21 (noche). Producción = commit `742f75a`; el código local tiene 6 commits más pendientes de deploy (ver `HANDOVER.md`).
 
 ## Qué es
 Landing de una página del podcast "Detrás del Cartel" (Daniel Bryn y Víctor Miascovsky) + una función de servidor que lee los episodios del canal de YouTube. Objetivo: **mantenimiento mínimo**.
@@ -29,6 +29,12 @@ React 18 · Vite 5 · Tailwind 3 (colores por variables CSS, modo día/noche) ·
 | `logos-preview.html` | Vista previa de logos, solo dev |
 | `start.command` | Lanzador local (127.0.0.1:5173), usado por el panel 8002 |
 | `public/` | `logo.png` (vista en construcción), `robots.txt` (Disallow) |
+
+## Detalles de implementación que conviene saber
+- **Modo día/noche:** variables CSS en `src/index.css` (`:root` = noche, `:root.light` = día) mapeadas a colores de Tailwind (`bg-card`, `text-fg`, `text-muted`, `border-line/10`, `text-accent`…). Clase **`tarjeta-portada`** (portada): en modo día fuerza fondo crema `#FBF8F1` y borde dorado suave (`:root.light .tarjeta-portada`, mayor especificidad que las utilidades de Tailwind); modo noche sin cambios.
+- **Columna única:** `main` con `max-w-4xl` (~896 px) en todos los dispositivos. Decisión de Vic: no hacer un formato distinto para escritorio.
+- **Canales:** `siteConfig.channels[]` con `url`; `url: ""` = tarjeta apagada "PRÓXIMAMENTE" sin enlace; con `url` = enlace activo. El pie lista solo los canales con `url`.
+- **API de episodios (`api/_lib/youtube.js`):** `obtenerEpisodios()` → si hay `YOUTUBE_API_KEY` válida (`^[A-Za-z0-9_-]{30,60}$`) usa la API v3 (`playlistItems` sobre `UU`+canal, luego `videos?part=snippet,contentDetails,status`); un **404 en `playlistItems` (canal sin videos públicos) se toma como lista vacía**; 403/500/timeout/respuesta gigante caen al feed; si el feed también falla, la función lanza y `episodios.js` responde 502 (la web muestra "Muy pronto"). La clave va por header `x-goog-api-key`. Filtro: `privacyStatus=public` y `embeddable=true`. Salida: `{id, titulo, fecha, resumen, duracion}`.
 
 ## Flujo de los episodios
 ```

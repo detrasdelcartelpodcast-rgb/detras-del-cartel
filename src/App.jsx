@@ -525,12 +525,12 @@ export default function DetrasDelCartelLanding() {
                   <div>
                     <h3 className="text-sm md:text-base font-black text-fg tracking-wider">DETRÁS DEL CARTEL</h3>
                     <p className="text-[11px] text-muted">
-                      Podcast inmobiliario con Daniel Bryn y Víctor Miascovsky.
+                      Podcast inmobiliario con <span className="whitespace-nowrap">Daniel Bryn</span> y <span className="whitespace-nowrap">Víctor Miascovsky</span>.
                     </p>
                   </div>
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-8 text-xs font-mono">
+              <div className="flex flex-col sm:flex-row gap-6 sm:gap-10 text-xs font-mono">
                 <div>
                   <span className="text-fg font-bold block mb-2">ESCUCHANOS</span>
                   {channels.filter((c) => c.url).map((c) => (
@@ -541,7 +541,7 @@ export default function DetrasDelCartelLanding() {
                 </div>
                 <div>
                   <span className="text-fg font-bold block mb-2">CONTACTO</span>
-                  <p className="break-all">
+                  <p className="whitespace-nowrap">
                     <a href={`mailto:${contact.email}`} className="hover:text-accent transition">{contact.email}</a>
                   </p>
                 </div>

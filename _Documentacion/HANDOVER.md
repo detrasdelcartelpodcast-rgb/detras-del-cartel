@@ -65,6 +65,7 @@
 - **Fotos de conductores y logos no publicados:** viven en `src/assets/` y un plugin de `vite.config.js` descarta del build las imágenes que ningún código publicado usa. Verificado en ambos sentidos.
 - **Datos de ejemplo del prototipo** (episodios demo) van envueltos en `import.meta.env.DEV`: no viajan al JS de producción (verificado: 0 apariciones de textos de ejemplo).
 - **Colores:** en secciones nuevas usar SIEMPRE los colores del tema (`bg-card`, `text-fg`, `text-muted`, `border-line/10`, `text-accent`…), nunca `text-white` ni hex fijos, o esa sección no responderá al modo claro.
+- **Canal sin videos públicos → la API de YouTube contesta 404 (`playlistNotFound`) en `playlistItems`.** Lo detectó Vic al pasar el video de prueba a Privado: `/api/episodios` respondía 502 en vez de "lista vacía" (la web igual mostraba "Muy pronto"). Corregido en `api/_lib/youtube.js` (un 404 en `playlistItems` = lista vacía; 403/500 siguen cayendo al feed) + 2 pruebas (33 en total). **Hipótesis por confirmar en vivo tras publicar** (no se puede probar sin la clave, que solo está en Vercel): con el canal sin videos públicos, `/api/episodios` debe dar `{"ok":true,"episodios":[]}` con HTTP 200.
 - **Caché:** los cambios en YouTube tardan hasta ~5 min en verse en la web (con hasta 1 h de dato viejo si YouTube falla).
 - **Un video "no listado" NO aparece en la web** (a propósito); tampoco uno privado.
 - **"0:11" en la fecha del episodio es la DURACIÓN**, no la hora (Vic lo leyó como hora el 21-09). Propuesta pendiente: rotularlo "Duración 0:11".
@@ -72,6 +73,7 @@
 - **Vercel Hobby es solo para uso no comercial**: si la web pasa a promocionar servicios o llevar publicidad, requiere Pro.
 
 ## 🟡 PENDIENTES (por prioridad)
+0. **Publicar (esperando OK de Vic):** commit local `ac61c46` (tarjeta de portada en crema en modo día, aprobada el 21-09) + corrección del 404 de lista vacía (33 pruebas). Requiere `/security-review` y push; después verificar en vivo el 200 con lista vacía.
 1. **Confirmar la restricción de la clave** en Google Cloud (solo "YouTube Data API v3") y el 2FA de la cuenta de Vercel.
 2. **Subir el primer episodio real** (público, 16:9, título "#1 · …", 2 líneas de resumen arriba) y verificar en la web. Antes: probar "Ver en YouTube" y el reproductor en el celular real.
 3. **Daniel debe validar** su bio, el recuadro "Juntos", el texto del Mito y la franja.

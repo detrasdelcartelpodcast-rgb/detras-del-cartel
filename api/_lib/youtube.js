@@ -83,7 +83,11 @@ async function pedir(fetchFn, url, headers = {}) {
   const timer = setTimeout(() => ctl.abort(), TIMEOUT_MS);
   try {
     const r = await fetchFn(url, { signal: ctl.signal, redirect: 'error', headers: { 'User-Agent': 'DetrasDelCartel-Web/1.0', ...headers } });
-    if (!r.ok) throw new Error(`YouTube respondió ${r.status}`); // mensaje sin la URL: la clave nunca sale en un error
+    if (!r.ok) {
+      const e = new Error(`YouTube respondió ${r.status}`); // mensaje sin la URL: la clave nunca sale en un error
+      e.status = r.status;
+      throw e;
+    }
     const buf = await r.arrayBuffer();
     if (buf.byteLength > MAX_BYTES) throw new Error('respuesta demasiado grande');
     return new TextDecoder('utf-8').decode(buf);
@@ -138,7 +142,14 @@ async function episodiosPorApi(canal, clave, fetchFn) {
   const cab = { 'x-goog-api-key': clave, Accept: 'application/json' };
   const lista = 'UU' + canal.slice(2); // lista de "subidas" del canal
   const base = 'https://www.googleapis.com/youtube/v3';
-  const subidas = JSON.parse(await pedir(fetchFn, `${base}/playlistItems?part=contentDetails&playlistId=${lista}&maxResults=${MAX_EPISODIOS}`, cab));
+  let subidas;
+  try {
+    subidas = JSON.parse(await pedir(fetchFn, `${base}/playlistItems?part=contentDetails&playlistId=${lista}&maxResults=${MAX_EPISODIOS}`, cab));
+  } catch (e) {
+    // Un canal SIN videos públicos no tiene lista de subidas: la API contesta 404 (playlistNotFound). No es una falla: es "lista vacía".
+    if (e && e.status === 404) return [];
+    throw e;
+  }
   const ids = (Array.isArray(subidas.items) ? subidas.items : [])
     .map((it) => it && it.contentDetails && it.contentDetails.videoId)
     .filter((x) => typeof x === 'string' && /^[A-Za-z0-9_-]{11}$/.test(x));

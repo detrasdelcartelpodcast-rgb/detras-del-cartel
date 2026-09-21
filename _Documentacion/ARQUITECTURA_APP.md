@@ -24,7 +24,7 @@ React 18 · Vite 5 · Tailwind 3 (colores por variables CSS, modo día/noche) ·
 | `api/_lib/youtube.js` | Lógica: API oficial (principal) + feed (respaldo); validación y limpieza de todos los campos |
 | `vite.config.js` | Plugin que descarta del build imágenes sin uso + plugin `apiLocal` (sirve `/api/episodios` en localhost con el mismo código) |
 | `vercel.json` | Headers de seguridad (CSP, HSTS…) y `noindex` |
-| `tools/probar-episodios.mjs` | `npm run probar` (31 pruebas) |
+| `tools/probar-episodios.mjs` | `npm run probar` (33 pruebas) |
 | `tools/componer-banner-youtube.py` | Regenera el banner de YouTube desde una imagen de Stitch |
 | `logos-preview.html` | Vista previa de logos, solo dev |
 | `start.command` | Lanzador local (127.0.0.1:5173), usado por el panel 8002 |

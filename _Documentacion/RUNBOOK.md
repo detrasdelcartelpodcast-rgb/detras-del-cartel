@@ -9,7 +9,7 @@
 - Vistas útiles: `?demo=1` (episodios de ejemplo), `?produccion=1` (vista en construcción).
 
 ## Pruebas
-- `npm run probar` → 31 pruebas del servidor (sin red).
+- `npm run probar` → 33 pruebas del servidor (sin red).
 - `npm run build` → `dist/`. Verificar que no viajen ejemplos: `cat dist/assets/*.js | grep -c "demoAAAAAA"` debe dar 0.
 
 ## Publicar

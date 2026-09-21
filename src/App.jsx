@@ -55,25 +55,25 @@ export const siteConfig = {
       id: "spotify",
       name: "Spotify",
       badge: "AUDIO MASTER",
-      url: "https://open.spotify.com",
+      url: "", // pegar acá el enlace del podcast en Spotify cuando exista
     },
     {
       id: "youtube",
       name: "YouTube",
       badge: "VIDEO 4K",
-      url: "https://youtube.com",
+      url: "https://www.youtube.com/@detrasdelcartelpodcast",
     },
     {
       id: "apple",
       name: "Apple Podcasts",
       badge: "LOSSLESS FEED",
-      url: "https://podcasts.apple.com",
+      url: "", // pegar acá el enlace del podcast en Apple Podcasts cuando exista
     },
     {
       id: "instagram",
       name: "Instagram",
       badge: "COMUNIDAD",
-      url: "https://instagram.com",
+      url: "https://www.instagram.com/detrasdelcartelpodcast/",
     }
   ],
 
@@ -372,13 +372,15 @@ export default function DetrasDelCartelLanding() {
             
             {/* Grilla: 2 columnas en mobile, 4 columnas en desktop */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-              {channels.map((ch) => (
-                <a 
-                  key={ch.id} 
-                  href={ch.url} 
-                  target="_blank" 
-                  rel="noreferrer" 
-                  className="p-3.5 rounded-2xl bg-card border border-line/5 hover:border-amber-500/40 flex items-center space-x-3 transition group shadow-md"
+              {channels.map((ch) => {
+                const activo = Boolean(ch.url);
+                const Tag = activo ? 'a' : 'div';
+                const linkProps = activo ? { href: ch.url, target: '_blank', rel: 'noopener noreferrer' } : { 'aria-disabled': true };
+                return (
+                <Tag
+                  key={ch.id}
+                  {...linkProps}
+                  className={`p-3.5 rounded-2xl bg-card border border-line/5 flex items-center space-x-3 transition group shadow-md ${activo ? 'hover:border-amber-500/40' : 'opacity-60 cursor-default'}`}
                 >
                   {ch.id === "spotify" && <SpotifyIcon />}
                   {ch.id === "youtube" && <YouTubeIcon />}
@@ -386,14 +388,15 @@ export default function DetrasDelCartelLanding() {
                   {ch.id === "instagram" && <InstagramIcon />}
                   <div>
                     <span className="text-[8px] md:text-[9px] font-mono block tracking-wider uppercase text-muted font-bold">
-                      {ch.badge}
+                      {activo ? ch.badge : "PRÓXIMAMENTE"}
                     </span>
-                    <span className="text-xs md:text-sm font-bold text-fg group-hover:text-accent transition">
+                    <span className={`text-xs md:text-sm font-bold text-fg transition ${activo ? 'group-hover:text-accent' : ''}`}>
                       {ch.name}
                     </span>
                   </div>
-                </a>
-              ))}
+                </Tag>
+                );
+              })}
             </div>
           </section>
         )}

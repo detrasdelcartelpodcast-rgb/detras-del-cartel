@@ -34,3 +34,6 @@ Seleccionar la pantalla del logo → **Exportar → .zip** → el zip trae `scre
 
 ## Lección (20-09): el código que da Stitch/Gemini NO es fiel al diseño
 El logo "en código" (08 y 09) es una **recreación hecha por un modelo de texto**, no el dibujo que se ve en Stitch: sale más simple y con errores (micrófono tapado, texto cortado, composición reducida). **La fuente de verdad es la IMAGEN** (PNG/JPG de alta resolución). Para pedir algo exacto: exportar la imagen tal cual (PNG 2048 px, fondo transparente), NO pedir "React" ni "SVG". El vectorial solo se justifica para marcas muy simples (como el mini logo del menú, que dibuja Claude).
+
+## Portadas del podcast para Spotify y Apple (21-09)
+`src/assets/covers/portada-podcast-azul-3000.jpg` y `…-blanca-3000.jpg`: 3000×3000, RGB, JPG (~1,7 MB). Hechas por Claude agrandando el emblema 12 (3,6×, por pasos con Lanczos + nitidez suave) porque Stitch no entregaba más de 1024 px. **Es agrandado, no redibujado:** no hay más detalle que en el original; a 100% en pantalla los bordes se ven algo suaves, pero a los tamaños reales de las listas (300 px o menos) se ve nítido. Cumple lo que piden Spotify y Apple (cuadrado, 1400-3000 px). Copias para subir en `~/Downloads`.

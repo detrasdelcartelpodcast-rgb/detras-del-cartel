@@ -513,11 +513,11 @@ export default function DetrasDelCartelLanding() {
           <section className="space-y-4">
             <div>
               <span className="text-[10px] md:text-xs font-mono text-accent uppercase tracking-widest font-bold block">
-                AUTORIDAD EN MESA
+                DETRÁS DEL MICRÓFONO
               </span>
               <h2 className="text-xl md:text-2xl font-black text-fg mt-1">Los Conductores</h2>
               <p className="text-xs md:text-sm text-muted mt-1 max-w-xl">
-                Sin corbatas ni frases prefabricadas. Dos especialistas que combinan macroeconomía, datos de absorción y psicología de negociación.
+                Una forma distinta de contar el mercado inmobiliario: con empatía y con oficio en las negociaciones difíciles.
               </p>
             </div>
 

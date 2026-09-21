@@ -38,15 +38,15 @@
 - El repo tiene `credential.helper` vacío y clave SSH dedicada (no hereda las credenciales globales de la Mac).
 - Servidor de desarrollo solo en `127.0.0.1`.
 
-## Revisiones de seguridad hechas (todas: sin hallazgos ≥ 8/10)
+## Revisiones de seguridad hechas (todas: sin hallazgos ≥ 8/10; 4 en total, la última el 22-09)
 1. **2026-09-19** — manual (el skill no corría sin `origin/HEAD`): archivos a subir, dependencias (177 paquetes de `registry.npmjs.org`), build.
 2. **2026-09-21** — `/security-review` de la landing completa + función `/api/episodios` + CSP con `frame-src`.
 3. **2026-09-21** — `/security-review` de la lectura por API oficial (clave por header, filtro de privacidad, duración).
 - **Pruebas automáticas** (`npm run probar`, **33**): feeds y respuestas de API inventados, incluidos hostiles (scripts en título, IDs inyectados, XXE, entidades absurdas, respuestas gigantes, timeouts, canal inválido, clave con formato raro, errores sin la clave, elementos `null`). Una prueba encontró y corrigió un fallo real.
 - **Pruebas en navegador real** con las reglas reales de `vercel.json`: 4 escenarios (con episodios / vacío / API caída / texto hostil): 0 violaciones de CSP, 0 errores de JavaScript, sin desborde horizontal a 390 px.
 
-## Cambios locales aún sin revisar (deploy pendiente)
-Los 6 commits locales (crema en CSS, `404 → lista vacía` en `api/_lib/youtube.js`, enlace de Spotify, documentación) **todavía no pasaron por `/security-review`**: se revisan en el deploy (regla fija). Riesgo estimado bajo: CSS y una constante (el enlace de Spotify es público y fijo); el cambio de `youtube.js` solo trata un 404 como lista vacía y agrega `e.status` al error (que no incluye la clave ni la URL). Verificar en el deploy: (a) que los errores sigan sin contener la clave, (b) que 403/500 sigan cayendo al feed (pruebas), (c) 0 violaciones de CSP.
+## Revisión del 22-09 (deploy `e8aacba`) — sin hallazgos ≥ 8/10
+Cambios de código revisados: (1) `api/_lib/youtube.js`: un 404 en `playlistItems` se toma como lista vacía y el error lleva `e.status` (el mensaje sigue sin incluir la clave ni la URL); 403/500/timeout siguen cayendo al feed; (2) `src/App.jsx`: enlace público y fijo de Spotify + clase CSS; (3) `src/index.css`: regla del fondo crema. Verificado en vivo tras el deploy: `/api/episodios` HTTP 200 con lista vacía, CSP/HSTS/noindex, 0 violaciones de CSP, sin claves ni ejemplos en el JS publicado.
 
 ## Si se compromete la clave de YouTube
 1. Google Cloud → APIs y servicios → Credenciales → **borrar la clave** y crear otra (gratis, restringida a YouTube Data API v3).

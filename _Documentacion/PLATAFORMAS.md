@@ -13,8 +13,8 @@
 ## Resumen
 | Plataforma | Estado | Falta |
 |---|---|---|
-| GitHub | ✅ repo privado con todo el código | subir (push) los commits locales pendientes al hacer el deploy |
-| Vercel | ✅ web publicada (noindex) + función + variable de la clave | deploy pendiente (ver HANDOVER); conectar dominio |
+| GitHub | ✅ repo privado, al día con producción (`e8aacba`) | — |
+| Vercel | ✅ web publicada (noindex) + función + variable de la clave; deploy del 22-09 hecho | conectar dominio; deploy 2 con el enlace de Apple |
 | Google Cloud | ✅ proyecto + clave de YouTube Data API v3 | confirmar restricción de la clave |
 | YouTube | ✅ canal armado; video de prueba en Privado | subir episodios; alinear frecuencia en banner/descripción |
 | Instagram | ✅ cuenta creada, PRIVADA | bio con "lado B", foto de perfil, hacerla pública al lanzar |
@@ -27,7 +27,7 @@
 - Cuenta `detrasdelcartelpodcast-rgb`; repo privado `detras-del-cartel`, rama `main`.
 - Acceso por **clave SSH dedicada** (`~/.ssh/id_ed25519_cartel`, alias de host `github-cartel` en `~/.ssh/config`, sin passphrase). Remote: `git@github-cartel:detrasdelcartelpodcast-rgb/detras-del-cartel.git`.
 - El repo tiene `credential.helper` vacío e identidad local (email noreply de GitHub) para no heredar las credenciales de la Mac. Cada push a `main` dispara un deploy en Vercel.
-- **Estado del código:** producción está en `742f75a`. Hay **6 commits locales sin subir** (ver HANDOVER → "Deploy pendiente").
+- **Estado del código:** producción y GitHub están en `e8aacba` (deploy del 22-09 01:14 ART).
 
 ## Vercel
 - Equipo `detrasdelcartel` (cuenta nueva, plan Hobby = solo uso NO comercial; si la web promociona servicios o lleva publicidad hace falta Pro). 2FA: confirmar.

@@ -1,6 +1,6 @@
 # ARQUITECTURA — Detrás del Cartel
 
-> Verificado contra el código el 2026-09-21 (noche). Producción = commit `742f75a`; el código local tiene 6 commits más pendientes de deploy (ver `HANDOVER.md`).
+> Verificado contra el código el 2026-09-22. Producción = commit `e8aacba` (igual que el código local).
 
 ## Qué es
 Landing de una página del podcast "Detrás del Cartel" (Daniel Bryn y Víctor Miascovsky) + una función de servidor que lee los episodios del canal de YouTube. Objetivo: **mantenimiento mínimo**.

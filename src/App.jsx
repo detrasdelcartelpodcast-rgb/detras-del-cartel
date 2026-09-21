@@ -7,6 +7,7 @@ import MiniMark from './MiniMark';
 import { useTheme } from './theme';
 import fotoDaniel from './assets/hosts/daniel-bryn.jpg';
 import fotoVictor from './assets/hosts/victor-miascovsky.jpg';
+import emblema from './assets/logos/12-emblema-cobrizo-final-TRANSPARENTE-764.png';
 
 /* ==========================================================================
    CONFIGURACIÓN EDITABLE (CAMBIÁ ACÁ FOTOS, TEXTOS, LINKS Y EPISODIOS)
@@ -339,18 +340,12 @@ export default function DetrasDelCartelLanding() {
             </div>
             )}
             
-            {/* Alternador de Logo: Si useVectorLogo es false, usa la imagen insertada */}
-            {true ? (
-              <DetrasDelCartelLogo showBackground={false} theme={theme} className="w-full max-w-md md:max-w-xl mx-auto" />
-            ) : (
-              <div className="w-full max-w-md md:max-w-xl mx-auto rounded-3xl shadow-2xl overflow-hidden">
-                <img 
-                  src={brand.customLogoImageUrl} 
-                  alt={brand.title} 
-                  className="w-full h-auto object-contain"
-                />
-              </div>
-            )}
+            {/* Logo del hero: emblema cobrizo con fondo transparente (flota sobre la página en día y en noche) */}
+            <img
+              src={emblema}
+              alt={brand.title}
+              className="w-full max-w-sm md:max-w-md mx-auto h-auto select-none drop-shadow-2xl"
+            />
 
             {sections.heroDetails && (
             <p className="text-xs md:text-sm text-soft leading-relaxed max-w-md mx-auto font-sans font-medium">

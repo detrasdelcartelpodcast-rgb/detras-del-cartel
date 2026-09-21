@@ -9,14 +9,14 @@
 - **NO usar las cuentas del ecosistema** (GitHub/Vercel/Supabase de Inmovalue) ni las personales de Vic para esta app. Cuentas propias del podcast (ver `PLATAFORMAS.md`).
 - **NO conectar esta app a ninguna base de datos de otros proyectos.** Si necesita base, una propia.
 - Nunca subir `.env`, claves, tokens ni datos de personas al repo. **La clave de YouTube vive SOLO en Vercel.**
-- **`/security-review` antes de CADA deploy** (regla fija de Vic). Hecho 4 veces (la última el 22-09, antes del deploy de `e8aacba`, sin hallazgos).
+- **`/security-review` antes de CADA deploy** (regla fija de Vic). Hecho 5 veces (la última el 22-09, antes del deploy del pie `dd4fe38`, sin hallazgos).
 - **No modificar código ni publicar sin OK de Vic.** Proponer primero, mostrar en `localhost:5173`, recién ahí publicar. Lección del 20-09: cuando Vic pidió cambiar un TEXTO, se rediseñó el bloque por iniciativa propia y hubo que deshacerlo.
 - **NUNCA transcribir IDs o enlaces desde una captura de pantalla** (Lección del 21-09: al copiar a mano el ID de Spotify confundí una "l" minúscula con una "I" mayúscula; el botón de la web habría quedado roto incluso con el programa publicado). Pedir siempre que Vic **copie y pegue el texto**, y comparar carácter por carácter.
 
 ## 🔴 ESTADO ACTUAL (21-09-2026, noche)
 
-### Producción = local (deploy hecho el 22-09 a las 01:14 ART)
-Producción (`https://detras-del-cartel.vercel.app`) está en el commit **`e8aacba`**, igual que el código local. Se subieron: fondo **crema** de la tarjeta de portada en modo día · corrección **404 → lista vacía** en la API · enlace de **Spotify** activo · documentación. **Verificado en vivo:** página HTTP 200 · `/api/episodios` → **HTTP 200 `{"ok":true,"episodios":[]}`** (antes daba 502: **el fix quedó confirmado**) · CSP/HSTS/`noindex` presentes · 0 violaciones de CSP y 0 recursos rotos en modo día y noche · sin desborde a 1280 px · el JS publicado contiene el enlace de Spotify correcto y 0 ejemplos/0 claves · el CSS publicado tiene la regla del crema. Tarjeta de Spotify **activa** (lleva a "no encontrado" hasta publicar el 1.er episodio); tarjeta de Apple "Próximamente".
+### Producción = local (deploy 1 el 22-09 a las 01:14 ART; corrección del pie a las ~01:25)
+Producción (`https://detras-del-cartel.vercel.app`) está al día con `main`; último cambio de código: **`dd4fe38`** (pie corregido). Antes, el deploy 1 fue `e8aacba`. Se subieron: fondo **crema** de la tarjeta de portada en modo día · corrección **404 → lista vacía** en la API · enlace de **Spotify** activo · documentación. **Verificado en vivo:** página HTTP 200 · `/api/episodios` → **HTTP 200 `{"ok":true,"episodios":[]}`** (antes daba 502: **el fix quedó confirmado**) · CSP/HSTS/`noindex` presentes · 0 violaciones de CSP y 0 recursos rotos en modo día y noche · sin desborde a 1280 px · el JS publicado contiene el enlace de Spotify correcto y 0 ejemplos/0 claves · el CSS publicado tiene la regla del crema. Tarjeta de Spotify **activa** (lleva a "no encontrado" hasta publicar el 1.er episodio); tarjeta de Apple "Próximamente".
 
 ### 🚀 DEPLOY 2 PENDIENTE (solo el enlace de Apple)
 **Cuándo:** cuando se haya publicado el primer episodio y se haya enviado el programa a Apple (Apple asigna el número al enviar). **Qué:** pegar el enlace de Apple en `siteConfig.channels` (`id: "apple"`, campo `url`). **Cómo:** `npm run probar` (33 OK) → `npm run build` → `/security-review` → `git push origin main` → verificar en vivo (tarjeta de Apple activa y enlace correcto; `/api/episodios` con el episodio). Detalle en `RUNBOOK.md` → "Día de lanzamiento".
@@ -108,6 +108,7 @@ El **enlace de Apple no existe todavía**: el número lo asigna Apple **al envia
 - **20-09:** fotos y bios reales de los conductores; recuadro "Juntos"; "lado B"; menú y hero nuevos; logos (emblema cobrizo), banner de YouTube y portadas; estructura definitiva de la landing.
 - **21-09:** landing completa publicada; conexión con YouTube (feed roto → API oficial con clave en Vercel); 3 `/security-review` sin hallazgos; Spotify y Apple creados sin publicar episodios; documentación al máximo detalle.
 - **22-09 (01:14):** deploy de crema + fix de la API + enlace de Spotify (`e8aacba`), verificado en vivo; 4.ª `/security-review` sin hallazgos.
+- **22-09 (~01:25):** pie de página corregido a pedido de Vic: "Daniel Bryn" y "Víctor Miascovsky" no se cortan entre renglones (`whitespace-nowrap`) y el mail queda en UNA línea (columnas apiladas en celular, `flex flex-col sm:flex-row`); medido en 8 anchos (320-1440 px): mail en una línea, sin desborde. 5.ª `/security-review` sin hallazgos.
 
 ## 🚦 CÓMO RETOMAR EN OTRA SESIÓN
 1. Leer este HANDOVER, `PLATAFORMAS.md` y `RUNBOOK.md`. Abrir el chat en `PROYECTOS_APPS/detras-del-cartel`.

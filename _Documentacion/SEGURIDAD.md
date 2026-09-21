@@ -38,7 +38,7 @@
 - El repo tiene `credential.helper` vacío y clave SSH dedicada (no hereda las credenciales globales de la Mac).
 - Servidor de desarrollo solo en `127.0.0.1`.
 
-## Revisiones de seguridad hechas (todas: sin hallazgos ≥ 8/10; 4 en total, la última el 22-09)
+## Revisiones de seguridad hechas (todas: sin hallazgos ≥ 8/10; 5 en total, la última el 22-09 (pie: solo clases de presentación))
 1. **2026-09-19** — manual (el skill no corría sin `origin/HEAD`): archivos a subir, dependencias (177 paquetes de `registry.npmjs.org`), build.
 2. **2026-09-21** — `/security-review` de la landing completa + función `/api/episodios` + CSP con `frame-src`.
 3. **2026-09-21** — `/security-review` de la lectura por API oficial (clave por header, filtro de privacidad, duración).

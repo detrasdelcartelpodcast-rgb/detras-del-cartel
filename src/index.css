@@ -39,3 +39,11 @@
 body {
   background-color: rgb(var(--page));
 }
+
+/* Tarjeta de la portada (logo): en modo DÍA usa un crema cálido (el gris se veía apagado y el blanco puro
+   funde la cinta blanca del emblema). En modo noche no cambia. Decisión de Vic, 21-09. */
+:root.light .tarjeta-portada {
+  background-image: none;
+  background-color: #FBF8F1;
+  border-color: rgba(160, 120, 40, 0.18);
+}

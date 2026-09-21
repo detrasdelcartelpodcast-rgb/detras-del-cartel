@@ -302,7 +302,7 @@ export default function DetrasDelCartelLanding() {
         
         {/* ─── 2. HERO: PORTADA OFICIAL Y LOGO CONFIGURABLE ─── */}
         {sections.hero && (
-          <section className="relative overflow-hidden rounded-3xl bg-gradient-to-b from-line/[0.04] to-transparent p-5 md:p-8 border border-line/5 shadow-2xl text-center space-y-5">
+          <section className="tarjeta-portada relative overflow-hidden rounded-3xl bg-gradient-to-b from-line/[0.04] to-transparent p-5 md:p-8 border border-line/5 shadow-2xl text-center space-y-5">
             {sections.heroBadges && (
             <div className="flex items-center justify-between max-w-sm md:max-w-md mx-auto">
               <span className="text-[10px] md:text-xs font-mono tracking-widest text-accent uppercase bg-amber-500/10 px-3 py-1 rounded-full border border-amber-500/20 flex items-center gap-1.5">

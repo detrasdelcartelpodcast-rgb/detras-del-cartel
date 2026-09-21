@@ -22,6 +22,28 @@ function purgarImagenesSinUso() {
   }
 }
 
+// SOLO en localhost: Vite no ejecuta las funciones de /api (Vercel sí, en producción).
+// Este plugin sirve /api/episodios con EL MISMO código (api/_lib/youtube.js), así lo que ves acá es lo que corre en Vercel.
+function apiLocal() {
+  return {
+    name: 'api-local-episodios',
+    apply: 'serve',
+    configureServer(server) {
+      server.middlewares.use('/api/episodios', async (_req, res) => {
+        res.setHeader('Content-Type', 'application/json; charset=utf-8')
+        try {
+          const { obtenerEpisodios } = await server.ssrLoadModule('/api/_lib/youtube.js')
+          res.statusCode = 200
+          res.end(JSON.stringify(await obtenerEpisodios()))
+        } catch {
+          res.statusCode = 502
+          res.end(JSON.stringify({ ok: false, episodios: [] }))
+        }
+      })
+    },
+  }
+}
+
 export default defineConfig({
-  plugins: [react(), purgarImagenesSinUso()],
+  plugins: [react(), purgarImagenesSinUso(), apiLocal()],
 })

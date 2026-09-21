@@ -3,6 +3,7 @@ import { Play, Pause, RotateCcw, RotateCw, Share2, Radio, CheckCircle2, Send, Ch
 import DetrasDelCartelLogo from './DetrasDelCartelLogo';
 import Construccion from './Construccion';
 import ThemeToggle from './ThemeToggle';
+import { useEpisodios, UltimoEpisodio, EpisodiosAnteriores } from './Episodios';
 import MiniMark from './MiniMark';
 import { useTheme } from './theme';
 import fotoDaniel from './assets/hosts/daniel-bryn.jpg';
@@ -16,8 +17,8 @@ export const siteConfig = {
   // 0. Estado de publicación
   //  publicarCompleto: true  → el sitio publicado muestra la landing COMPLETA.
   //  publicarCompleto: false → el sitio publicado muestra solo el logo + barra "en construcción".
-  //  hayEpisodios: false → el bloque "Último episodio" muestra "Muy pronto". Pasar a true SOLO al conectar YouTube.
-  sitio: { publicarCompleto: true, hayEpisodios: false },
+  //  Los episodios se leen SOLOS del canal de YouTube (ver src/Episodios.jsx y api/episodios.js): sin videos → "Muy pronto".
+  sitio: { publicarCompleto: true },
 
   // 1. Control de visibilidad de secciones (true / false)
   // Todo activo: este es el PROTOTIPO que se ve en localhost.
@@ -34,7 +35,6 @@ export const siteConfig = {
     hosts: true,
     recentCases: true,
     consultationBox: true,
-    metrics: false,       // apagado (Vic, 21-09): eran cifras inventadas; no reemplazar por datos que no existen
     footer: true,
     bottomNav: true       // dock inferior móvil
   },
@@ -85,19 +85,6 @@ export const siteConfig = {
   ],
 
   // 4. Expediente en Reproducción (Player Hi-Fi)
-  featuredEpisode: import.meta.env.DEV ? {
-    number: "#014",
-    season: "TEMPORADA 02",
-    badgeFormat: "24-bit / 96kHz",
-    badgeStatus: "CASO ACTIVO #104",
-    title: "¿Por qué pasaron 8 meses y tu cartel sigue ahí colgado?",
-    description: "Sobretasación inducida por complacencia, contratos de exclusividad pasivos y la reestructuración comercial inmediata de un activo paralizado.",
-    blockInfo: "Bloque 02: El costo de oportunidad",
-    currentTime: "04:15",
-    totalDuration: "38:20",
-    // Foto de la cabina / estudio
-    studioImageUrl: "https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?auto=format&fit=crop&w=1200&q=80"
-  } : {},   // EJEMPLOS del prototipo: solo en localhost, NO viajan al sitio publicado
 
   // 5. Mito Patrimonial Auditado
   myth: {
@@ -141,29 +128,6 @@ export const siteConfig = {
 
 
   // 7. Episodios anteriores (EJEMPLOS del prototipo local; en la web pública van los reales de YouTube)
-  episodes: import.meta.env.DEV ? [
-    {
-      id: "#13",
-      duration: "32 MIN",
-      title: "Cómo detectar si tasaron mal tu casa solo para captarte en cartera",
-      description: "La práctica destructiva de la sobretasación complaciente: el intermediario promete un valor irreal para conseguir la firma del contrato.",
-      tags: ["TASACIONES", "ALERTA"]
-    },
-    {
-      id: "#12",
-      duration: "28 MIN",
-      title: "Comisiones ocultas, penalidades y cláusulas trampa de exclusividad",
-      description: "Qué auditar línea por línea en autorizaciones de venta: costos de publicidad no pactados, penalidades leoninas y prórrogas tácitas.",
-      tags: ["CONTRATOS", "LEGALES"]
-    },
-    {
-      id: "#11",
-      duration: "41 MIN",
-      title: "De la frustración a la escritura en 45 días: Caso Belgrano auditado",
-      description: "Desarmando un departamento que estuvo frenado 14 meses y cómo se reposicionó con fotografía arquitectónica y tasación rigurosa.",
-      tags: ["CASO REAL", "CIERRE"]
-    }
-  ] : [],   // EJEMPLOS del prototipo: solo en localhost, NO viajan al sitio publicado
 
   // 8. Buzón Confidencial (Quincenal)
   consultation: {
@@ -179,11 +143,6 @@ export const siteConfig = {
 
 
   // 9. Métricas de Impacto
-  stats: import.meta.env.DEV ? [
-    { value: "24+", label: "EPISODIOS" },
-    { value: "120k", label: "OYENTES" },
-    { value: "180+", label: "CASOS DESTRABADOS", highlight: true }
-  ] : [],   // EJEMPLOS del prototipo: solo en localhost, NO viajan al sitio publicado
 
   // 10. Datos de Contacto y Footer
   contact: {
@@ -286,15 +245,24 @@ function LogoEspacioNegativoVectorial() {
    COMPONENTE PRINCIPAL DE LA LANDING
 ========================================================================== */
 export default function DetrasDelCartelLanding() {
-  const { sitio, sections, brand, channels, featuredEpisode, myth, hosts, hostsTogether, episodes, consultation, stats, contact } = siteConfig;
+  const { sitio, sections, brand, channels, myth, hosts, hostsTogether, consultation, contact } = siteConfig;
+
+  // Sitio publicado = solo logo + barra "en construcción" (si sitio.publicarCompleto es false).
+  // En localhost se ve el prototipo completo; ?produccion=1 muestra la vista en construcción.
+  const construccion = import.meta.env.DEV
+    ? new URLSearchParams(window.location.search).has('produccion')
+    : !sitio.publicarCompleto;
 
   const [theme, toggleTheme] = useTheme();
-  const [isPlaying, setIsPlaying] = useState(false);
-  // Sitio publicado = solo logo + barra "en construcción". En localhost se ve el prototipo completo;
-  // para previsualizar lo público en local: agregar ?produccion=1 a la URL.
-  const construccion = import.meta.env.DEV
-    ? new URLSearchParams(window.location.search).has('produccion')   // en localhost: ?produccion=1 muestra la vista en construcción
-    : !sitio.publicarCompleto;
+  const { estado, episodios } = useEpisodios(!construccion);      // lee el canal de YouTube (solo si se muestra la landing completa)
+  const [elegidoId, setElegidoId] = useState(null);
+  const activo = episodios.find((e) => e.id === elegidoId) || episodios[0] || null;
+  const canalYoutube = (channels.find((c) => c.id === 'youtube') || {}).url;
+  const elegirEpisodio = (id) => {
+    setElegidoId(id);
+    const el = document.getElementById('episodio');
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
   if (construccion) return <Construccion logoUrl={brand.customLogoImageUrl} title={brand.title} theme={theme} onToggleTheme={toggleTheme} />;
 
   return (
@@ -411,110 +379,9 @@ export default function DetrasDelCartelLanding() {
           </section>
         )}
 
-        {/* ─── 4. REPRODUCTOR HI-FI / EXPEDIENTE DESTACADO ─── */}
-        {sections.featuredPlayer && !sitio.hayEpisodios && (
-          <section id="episodio" className="rounded-3xl bg-card2 border border-amber-500/20 p-6 md:p-8 text-center space-y-3 shadow-2xl">
-            <span className="text-[10px] md:text-xs font-mono text-accent font-bold uppercase tracking-widest block">
-              ÚLTIMO EPISODIO
-            </span>
-            <h2 className="text-xl md:text-2xl font-black text-fg">Muy pronto: el primer episodio</h2>
-            <p className="text-xs md:text-sm text-soft max-w-md mx-auto leading-relaxed">
-              Lo vas a encontrar acá y en nuestro canal de YouTube apenas esté publicado.
-            </p>
-            <a href="https://www.youtube.com/@detrasdelcartelpodcast" target="_blank" rel="noopener noreferrer" className="inline-flex items-center space-x-1.5 px-4 py-2 rounded-full bg-amber-400 hover:bg-amber-300 text-[#07090E] font-extrabold text-xs md:text-sm transition active:scale-95">
-              <span>Ir al canal de YouTube</span>
-              <ChevronRight className="w-4 h-4" />
-            </a>
-          </section>
-        )}
-
-        {sections.featuredPlayer && sitio.hayEpisodios && (
-          <section id="episodio" className="rounded-3xl bg-card2 border border-amber-500/20 p-5 md:p-8 shadow-2xl space-y-5">
-            <div className="flex items-center justify-between text-[10px] md:text-xs font-mono">
-              <span className="text-accent font-bold uppercase flex items-center gap-1.5">
-                <span className="w-2 h-2 rounded-full bg-amber-400 animate-ping" />
-                EXPEDIENTE EN REPRODUCCIÓN {featuredEpisode.number}
-              </span>
-              <span className="px-2.5 py-0.5 rounded bg-amber-400 text-[#07090E] font-bold">
-                Hi-Fi Audio
-              </span>
-            </div>
-
-            {/* Cabina / Foto del Estudio */}
-            <div className="relative rounded-2xl overflow-hidden border border-line/10 aspect-video md:aspect-[21/9] flex flex-col justify-end p-4 shadow-inner group">
-              <img 
-                src={featuredEpisode.studioImageUrl} 
-                alt="Estudio Detrás del Cartel" 
-                className="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:scale-102 transition duration-500" 
-              />
-              {/* Degradé oscuro fijo (no cambia con el modo día/noche): las etiquetas de abajo van sobre la foto */}
-              <div className="absolute inset-0 bg-gradient-to-t from-[#0A0D15] via-transparent to-black/30" />
-              
-              <div className="relative z-10 flex items-center justify-between text-[9px] md:text-xs font-mono">
-                <span className="bg-black/80 px-2.5 py-1 rounded text-amber-400 border border-white/10 flex items-center gap-1">
-                  <Volume2 className="w-3.5 h-3.5" /> {featuredEpisode.badgeFormat}
-                </span>
-                <span className="bg-rose-500/20 text-rose-300 px-2.5 py-1 rounded border border-rose-500/30 font-bold">
-                  {featuredEpisode.badgeStatus}
-                </span>
-              </div>
-            </div>
-
-            {/* Título e info */}
-            <div>
-              <span className="text-[10px] md:text-xs font-mono text-muted uppercase tracking-wider font-bold">
-                AUDITORÍA DE TRINCHERA • {featuredEpisode.season}
-              </span>
-              <h3 className="text-base md:text-xl font-bold text-fg mt-1 leading-snug">
-                {featuredEpisode.title}
-              </h3>
-              <p className="text-xs md:text-sm text-soft mt-1.5 leading-relaxed">
-                {featuredEpisode.description}
-              </p>
-            </div>
-
-            {/* Onda sonora */}
-            <div className="space-y-2 bg-inset p-3.5 rounded-2xl border border-line/5">
-              <div className="flex items-center justify-center space-x-1 md:space-x-1.5 h-7">
-                {[40, 65, 30, 90, 100, 75, 45, 80, 20, 35, 60, 85, 30, 65, 40, 90, 70, 50, 30, 60, 80].map((h, i) => (
-                  <span 
-                    key={i} 
-                    className={`w-1 md:w-1.5 rounded-full transition-all duration-300 ${isPlaying ? 'bg-amber-400 animate-pulse' : 'bg-track'}`} 
-                    style={{ height: `${h}%` }} 
-                  />
-                ))}
-              </div>
-              <div className="flex justify-between text-[10px] md:text-xs font-mono text-muted">
-                <span>{featuredEpisode.currentTime}</span>
-                <span className="text-accent/80 font-semibold">{featuredEpisode.blockInfo}</span>
-                <span>{featuredEpisode.totalDuration}</span>
-              </div>
-            </div>
-
-            {/* Controles del Reproductor */}
-            <div className="flex items-center justify-between pt-1">
-              <span className="text-[10px] font-mono text-muted bg-line/5 px-2.5 py-1 rounded">
-                1.0x
-              </span>
-              <div className="flex items-center space-x-5">
-                <button className="text-muted hover:text-fg transition">
-                  <RotateCcw className="w-5 h-5" />
-                </button>
-                <button 
-                  onClick={() => setIsPlaying(!isPlaying)}
-                  className="w-12 h-12 md:w-14 md:h-14 rounded-full bg-amber-400 hover:bg-amber-300 text-[#07090E] flex items-center justify-center shadow-lg shadow-amber-500/25 transition active:scale-95"
-                >
-                  {isPlaying ? <Pause className="w-5 h-5 md:w-6 md:h-6 fill-current" /> : <Play className="w-5 h-5 md:w-6 md:h-6 fill-current ml-0.5" />}
-                </button>
-                <button className="text-muted hover:text-fg transition">
-                  <RotateCw className="w-5 h-5" />
-                </button>
-              </div>
-              <button className="text-muted hover:text-fg transition">
-                <Share2 className="w-5 h-5" />
-              </button>
-            </div>
-          </section>
+        {/* ─── 4. ÚLTIMO EPISODIO (automático desde YouTube) ─── */}
+        {sections.featuredPlayer && (
+          <UltimoEpisodio estado={estado} episodios={episodios} activo={activo} canalUrl={canalYoutube} />
         )}
 
         {/* ─── 5. MITO PATRIMONIAL AUDITADO ─── */}
@@ -609,42 +476,9 @@ export default function DetrasDelCartelLanding() {
           </section>
         )}
 
-        {/* ─── 7. EPISODIOS ANTERIORES ─── */}
-        {sections.recentCases && import.meta.env.DEV && (
-          <section className="space-y-4">
-            <div className="flex justify-between items-end">
-              <div>
-                <h2 className="text-xl md:text-2xl font-black text-fg">Episodios anteriores</h2>
-              </div>
-            </div>
-
-            <div className="space-y-3">
-              {episodes.map((ep, idx) => (
-                <div key={idx} className="p-4 md:p-5 rounded-2xl bg-card border border-line/5 space-y-2.5 hover:border-line/20 transition">
-                  <div className="flex justify-between text-[10px] md:text-xs font-mono text-muted">
-                    <span className="text-accent font-bold">EXPEDIENTE {ep.id}</span>
-                    <span className="flex items-center gap-1"><Clock className="w-3.5 h-3.5" /> {ep.duration}</span>
-                  </div>
-                  <h4 className="text-sm md:text-base font-bold text-fg leading-snug">{ep.title}</h4>
-                  <p className="text-xs md:text-sm text-muted leading-relaxed">{ep.description}</p>
-                  
-                  <div className="flex items-center justify-between pt-2 border-t border-line/5">
-                    <div className="flex space-x-1.5">
-                      {ep.tags.map((t, i) => (
-                        <span key={i} className="text-[8px] md:text-[9px] font-mono text-muted bg-line/5 px-2.5 py-0.5 rounded">
-                          {t}
-                        </span>
-                      ))}
-                    </div>
-                    <button className="text-[11px] md:text-xs font-mono text-accent hover:text-accent font-bold flex items-center gap-1.5">
-                      <span>Reproducir</span>
-                      <Play className="w-3.5 h-3.5 fill-current" />
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </section>
+        {/* ─── 7. EPISODIOS ANTERIORES (automático; se muestra desde el 2.º video) ─── */}
+        {sections.recentCases && (
+          <EpisodiosAnteriores episodios={episodios} activo={activo} onElegir={elegirEpisodio} />
         )}
 
         {/* ─── 8. BUZÓN DE CASOS (QUINCENAL & ANÓNIMO) ─── */}
@@ -676,22 +510,6 @@ export default function DetrasDelCartelLanding() {
                 {consultation.note} <span className="text-soft font-semibold select-all">{consultation.email}</span>.
               </p>
             </div>
-          </section>
-        )}
-
-        {/* ─── 9. MÉTRICAS ─── */}
-        {sections.metrics && (
-          <section className="grid grid-cols-3 gap-3 text-center py-5 border-y border-line/5">
-            {stats.map((st, idx) => (
-              <div key={idx} className="p-2">
-                <span className={`text-2xl md:text-4xl font-black font-mono block ${st.highlight ? 'text-accent' : 'text-fg'}`}>
-                  {st.value}
-                </span>
-                <span className="text-[10px] md:text-xs font-mono text-muted uppercase tracking-tight">
-                  {st.label}
-                </span>
-              </div>
-            ))}
           </section>
         )}
 

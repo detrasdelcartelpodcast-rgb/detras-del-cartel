@@ -44,6 +44,7 @@
 ## 🎯 OBJETIVO Y CRITERIOS (decisiones de Vic)
 - **Landing de un PODCAST con el MÍNIMO mantenimiento posible.** Todo lo que cambia solo (episodios, contador, fechas) se lee de YouTube; lo escrito a mano es lo mínimo (textos fijos + el "Mito").
 - **Esta web INFORMA, no ofrece servicios.** Los servicios de Vic y Daniel viven en sus propias webs. Nada de "te acompaño / te ayudo / auditoría gratuita". Evitar "tasar/tasación", "avisos" (decir "oferta"), "gratis" (decir "sin costo"), acusaciones o alusiones a colegas ("hay de todo" va implícito).
+- **Ancho / formato (Vic, 21-09): UNA sola columna centrada de ~900 px (`max-w-4xl`) en celular, tablet y computadora. NO hacer un formato distinto para escritorio** (es lo habitual en webs de podcasts y lo más simple de mantener). Ya se evaluó y se descartó reorganizar para pantallas grandes.
 - **Voz:** segunda persona, voseo, cálida, sin títulos colgados. Los conductores son contadores analíticos; matiz: Daniel = mercado y datos (además corredor inmobiliario), Víctor = negociación y finanzas (consultor inmobiliario). Las dos bios deben ocupar el MISMO espacio (2 líneas + 2 de destacado).
 - **Idea rectora:** una casa no es un producto de consumo masivo; se decide con emoción y se justifica con razón. **"Detrás del cartel" = el lado B del mercado inmobiliario.**
 - **Oyente tipo:** quien va a vender (familia que crece / que se achica), quien invierte y teme dejarse llevar, herederos que no saben si vender o alquilar; en todos, desconfianza hacia el mercado. Los oyentes proponen temas y se desarrollan en episodios.

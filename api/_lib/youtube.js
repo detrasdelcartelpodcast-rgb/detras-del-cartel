@@ -77,18 +77,91 @@ export function parsearFeed(xml) {
   return episodios.slice(0, MAX_EPISODIOS);
 }
 
-export async function obtenerEpisodios(env = process.env, fetchFn = fetch) {
-  const canal = canalId(env);
-  const url = `https://www.youtube.com/feeds/videos.xml?channel_id=${canal}`;
+// Pedido con tiempo máximo, tamaño máximo y sin redirecciones. Devuelve el texto de la respuesta.
+async function pedir(fetchFn, url, headers = {}) {
   const ctl = new AbortController();
   const timer = setTimeout(() => ctl.abort(), TIMEOUT_MS);
   try {
-    const r = await fetchFn(url, { signal: ctl.signal, redirect: 'error', headers: { 'User-Agent': 'DetrasDelCartel-Web/1.0' } });
-    if (!r.ok) throw new Error(`YouTube respondió ${r.status}`);
+    const r = await fetchFn(url, { signal: ctl.signal, redirect: 'error', headers: { 'User-Agent': 'DetrasDelCartel-Web/1.0', ...headers } });
+    if (!r.ok) throw new Error(`YouTube respondió ${r.status}`); // mensaje sin la URL: la clave nunca sale en un error
     const buf = await r.arrayBuffer();
     if (buf.byteLength > MAX_BYTES) throw new Error('respuesta demasiado grande');
-    return { ok: true, episodios: parsearFeed(new TextDecoder('utf-8').decode(buf)) };
+    return new TextDecoder('utf-8').decode(buf);
   } finally {
     clearTimeout(timer);
   }
+}
+
+// ---------------------------------------------------------------- Vía 1 (principal): API oficial YouTube Data API v3
+// Necesita la variable YOUTUBE_API_KEY (solo en Vercel). Se envía por HEADER (x-goog-api-key), no por la URL,
+// para que no quede en registros. Trae SOLO videos públicos e insertables, con su duración.
+const CLAVE_OK = /^[A-Za-z0-9_-]{30,60}$/;
+
+export function duracionSegundos(iso) {
+  const m = /^P(?:(\d{1,3})D)?(?:T(?:(\d{1,3})H)?(?:(\d{1,3})M)?(?:(\d{1,3})S)?)?$/.exec(String(iso || ''));
+  if (!m) return null;
+  const [, d = 0, h = 0, mi = 0, s = 0] = m;
+  return Number(d) * 86400 + Number(h) * 3600 + Number(mi) * 60 + Number(s);
+}
+
+export function parsearApi(subidas, videos) {
+  const items = Array.isArray(videos && videos.items) ? videos.items : [];
+  const orden = new Map(); // videoId -> posición en la lista de subidas
+  (Array.isArray(subidas && subidas.items) ? subidas.items : []).forEach((it, i) => {
+    const vid = it && it.contentDetails && it.contentDetails.videoId;
+    if (typeof vid === 'string') orden.set(vid, i);
+  });
+  const episodios = [];
+  for (const v of items) {
+    if (!v || typeof v !== 'object') continue;
+    const id = typeof v.id === 'string' ? v.id.trim() : '';
+    if (!/^[A-Za-z0-9_-]{11}$/.test(id) || !orden.has(id)) continue;
+    const st = v.status || {};
+    if (st.privacyStatus !== 'public' || st.embeddable !== true) continue; // privado / no listado / no insertable → no se muestra
+    const sn = v.snippet || {};
+    const titulo = limpiar(typeof sn.title === 'string' ? sn.title : '', 160);
+    const t = Date.parse(sn.publishedAt);
+    if (!titulo || Number.isNaN(t)) continue;
+    episodios.push({
+      id,
+      titulo,
+      fecha: new Date(t).toISOString(),
+      resumen: resumir(typeof sn.description === 'string' ? sn.description : ''),
+      duracion: duracionSegundos(v.contentDetails && v.contentDetails.duration),
+    });
+  }
+  episodios.sort((a, b) => (a.fecha < b.fecha ? 1 : -1));
+  return episodios.slice(0, MAX_EPISODIOS);
+}
+
+async function episodiosPorApi(canal, clave, fetchFn) {
+  const cab = { 'x-goog-api-key': clave, Accept: 'application/json' };
+  const lista = 'UU' + canal.slice(2); // lista de "subidas" del canal
+  const base = 'https://www.googleapis.com/youtube/v3';
+  const subidas = JSON.parse(await pedir(fetchFn, `${base}/playlistItems?part=contentDetails&playlistId=${lista}&maxResults=${MAX_EPISODIOS}`, cab));
+  const ids = (Array.isArray(subidas.items) ? subidas.items : [])
+    .map((it) => it && it.contentDetails && it.contentDetails.videoId)
+    .filter((x) => typeof x === 'string' && /^[A-Za-z0-9_-]{11}$/.test(x));
+  if (ids.length === 0) return [];
+  const videos = JSON.parse(await pedir(fetchFn, `${base}/videos?part=snippet,contentDetails,status&id=${ids.join(',')}&maxResults=${MAX_EPISODIOS}`, cab));
+  return parsearApi(subidas, videos);
+}
+
+// ---------------------------------------------------------------- Vía 2 (respaldo): feed público (hoy YouTube lo devuelve 404 seguido)
+async function episodiosPorFeed(canal, fetchFn) {
+  const xml = await pedir(fetchFn, `https://www.youtube.com/feeds/videos.xml?channel_id=${canal}`);
+  return parsearFeed(xml);
+}
+
+export async function obtenerEpisodios(env = process.env, fetchFn = fetch) {
+  const canal = canalId(env);
+  const clave = String(env.YOUTUBE_API_KEY || '').trim();
+  if (CLAVE_OK.test(clave)) {
+    try {
+      return { ok: true, episodios: await episodiosPorApi(canal, clave, fetchFn) };
+    } catch {
+      /* la API falló (cuota, red, clave revocada): se intenta el respaldo */
+    }
+  }
+  return { ok: true, episodios: await episodiosPorFeed(canal, fetchFn) };
 }

@@ -66,6 +66,14 @@ function fechaLarga(iso) {
   }
 }
 
+// 630 -> "10:30" · 3723 -> "1:02:03" · 10 -> "0:10". Sin dato (vía de respaldo) no se muestra nada.
+function duracionTexto(seg) {
+  if (!Number.isInteger(seg) || seg < 0 || seg > 86400) return '';
+  const h = Math.floor(seg / 3600), m = Math.floor((seg % 3600) / 60), s = seg % 60;
+  const dos = (n) => String(n).padStart(2, '0');
+  return h ? `${h}:${dos(m)}:${dos(s)}` : `${m}:${dos(s)}`;
+}
+
 export function UltimoEpisodio({ estado, episodios, activo, canalUrl }) {
   if (estado === 'cargando') {
     return (
@@ -118,7 +126,7 @@ export function UltimoEpisodio({ estado, episodios, activo, canalUrl }) {
 
       <div className="space-y-2 px-1">
         <h2 className="text-lg md:text-2xl font-black text-fg leading-snug">{titulo}</h2>
-        <p className="text-[11px] md:text-xs font-mono text-muted">{fechaLarga(activo.fecha)}</p>
+        <p className="text-[11px] md:text-xs font-mono text-muted">{fechaLarga(activo.fecha)}{duracionTexto(activo.duracion) ? ` · ${duracionTexto(activo.duracion)}` : ''}</p>
         {activo.resumen && <p className="text-xs md:text-sm text-soft leading-relaxed">{activo.resumen}</p>}
         <a
           href={`https://www.youtube.com/watch?v=${activo.id}`}
@@ -153,7 +161,7 @@ export function EpisodiosAnteriores({ episodios, activo, onElegir }) {
             >
               <div className="flex items-center justify-between text-[10px] md:text-[11px] font-mono">
                 <span className="text-accent font-bold uppercase">{numero ? `EPISODIO ${numero}` : 'EPISODIO'}</span>
-                <span className="text-muted">{fechaLarga(e.fecha)}</span>
+                <span className="text-muted">{fechaLarga(e.fecha)}{duracionTexto(e.duracion) ? ` · ${duracionTexto(e.duracion)}` : ''}</span>
               </div>
               <h3 className="text-sm md:text-base font-bold text-fg leading-snug">{titulo}</h3>
               {e.resumen && <p className="text-xs text-soft leading-relaxed line-clamp-2">{e.resumen}</p>}

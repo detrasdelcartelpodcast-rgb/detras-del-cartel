@@ -40,7 +40,7 @@ export const siteConfig = {
     hostsSubtitle: "CON DANIEL BRYN & VÍCTOR MIASCOVSKY",
     editionBadge: "EDICIÓN DE COLECCIÓN",
     volTag: "VOL. 02",
-    tagline: "La verdad rigurosa sobre el mercado inmobiliario, sin filtros ni complacencias. Casos reales auditados por dos especialistas de trinchera.",
+    tagline: "Casos reales del mercado inmobiliario, contados en primera persona. Lo que hay detrás del cartel, explicado sin vueltas.",
     ctaHeader: "ESCUCHAR",
     headerSubtitle: "Podcast inmobiliario",
     // Podés poner acá tu imagen subida (URL de S3, Cloudinary o carpeta /public/logo.png).

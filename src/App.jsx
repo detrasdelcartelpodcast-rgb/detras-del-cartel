@@ -28,7 +28,7 @@ export const siteConfig = {
     hosts: true,
     recentCases: true,
     consultationBox: true,
-    metrics: true,
+    metrics: false,       // apagado (Vic, 21-09): eran cifras inventadas; no reemplazar por datos que no existen
     footer: true,
     bottomNav: true       // dock inferior móvil
   },
@@ -40,7 +40,8 @@ export const siteConfig = {
     hostsSubtitle: "CON DANIEL BRYN & VÍCTOR MIASCOVSKY",
     editionBadge: "EDICIÓN DE COLECCIÓN",
     volTag: "VOL. 02",
-    tagline: "Casos reales del mercado inmobiliario, contados en primera persona. Lo que hay detrás del cartel, explicado sin vueltas.",
+    slogan: "EL LADO B DEL MERCADO INMOBILIARIO",
+    tagline: "Tips y casos reales, en primera persona. Lo que hay detrás del cartel, explicado sin vueltas.",
     ctaHeader: "ESCUCHAR",
     headerSubtitle: "Podcast inmobiliario",
     // Podés poner acá tu imagen subida (URL de S3, Cloudinary o carpeta /public/logo.png).
@@ -344,6 +345,12 @@ export default function DetrasDelCartelLanding() {
               alt={brand.title}
               className="w-full max-w-sm md:max-w-md mx-auto h-auto select-none drop-shadow-2xl"
             />
+
+            {sections.heroDetails && (
+            <p className="text-[11px] md:text-xs font-mono font-bold uppercase tracking-[0.22em] text-accent">
+              {brand.slogan}
+            </p>
+            )}
 
             {sections.heroDetails && (
             <p className="text-xs md:text-sm text-soft leading-relaxed max-w-md mx-auto font-sans font-medium">

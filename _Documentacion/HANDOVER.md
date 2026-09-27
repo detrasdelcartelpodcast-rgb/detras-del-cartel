@@ -1,6 +1,6 @@
 # HANDOVER — Detrás del Cartel
 
-> Última actualización: **2026-09-22 (01:20)**. Reescrito completo con el estado real; el deploy del 22-09 ya está hecho y verificado. Falta solo lo de abajo. La bitácora anterior está en el historial de git.
+> Última actualización: **2026-09-27**. Frecuencia: cerrado sin acción (ver pendiente 2). Antes, 22-09 (01:20): reescrito completo con el estado real; el deploy del 22-09 ya está hecho y verificado. La bitácora anterior está en el historial de git.
 > App **INDEPENDIENTE** del ecosistema Inmovalue: no comparte repo, base, cuentas ni credenciales. Solo cumple las mismas reglas de seguridad.
 > Documentos hermanos: `PLATAFORMAS.md` (cada cuenta, IDs y trampas) · `ARQUITECTURA_APP.md` · `SEGURIDAD.md` · `RUNBOOK.md` (operación y día de lanzamiento) · `../src/assets/logos/LEEME.md` (inventario de logos).
 
@@ -90,7 +90,7 @@ El **enlace de Apple no existe todavía**: el número lo asigna Apple **al envia
 ## 🟡 PENDIENTES (por prioridad)
 0. **Deploy 2** (ver arriba): solo el enlace de Apple, cuando exista. (El deploy 1 —crema, fix de la API y enlace de Spotify— ya está hecho.)
 1. **Confirmar la restricción de la clave** de Google Cloud (solo "YouTube Data API v3") y el 2FA de la cuenta de Vercel; sumar un 2.º teléfono de confianza a la cuenta de Apple.
-2. **Decidir la frecuencia** ⚠: la propuesta del podcast (memoria del 17-08) es **quincenal**, 12 episodios en 6 meses, 20-25 min; el banner ("todos los meses"/una versión "cada semana") y la descripción del canal dicen mensual. Alinear banner (regenerable con `tools/componer-banner-youtube.py`), descripción del canal y la del video.
+2. ~~**Decidir la frecuencia**~~ **SIN ACCIÓN (Vic, 27-09-2026).** La frecuencia prevista es **quincenal** (12 episodios en 6 meses, 20-25 min) y **no hay nada que corregir**: la única frase publicada es "Nuevos **episodios** todos los meses" —en el banner del canal y en la última línea de la descripción de YouTube—, que **está en plural y significa "todos los meses hay episodios nuevos"**, no "uno por mes". Es compatible con quincenal. Decisión: **dejarla así**, sin decir "cada 15 días" (el banner es una imagen: comprometer un ritmo por escrito antes de arrancar ata sin necesidad). La web NO menciona frecuencia en ningún lado (verificado). La contradicción "todos los meses"/"cada semana" existe solo en `src/assets/banners/banner-youtube-v2.jpg`, que **no está publicado**; el subido al canal (2560×1440) tiene solo la línea plural.
 3. **Grabar el primer episodio** (recomendado: 2-3 juntos, o un tráiler de 30-60 s). Subir a Spotify (audio; video opcional) y a YouTube (público, 16:9, `#1 · …`, 2 líneas de resumen arriba). Pasar el video de prueba a borrar.
 4. **Enviar el programa a Apple** el mismo día (Connect → Añadir programa → feed RSS de Spotify: Configuración → Disponibilidad → Distribución RSS). Aprobación: días. Pedir el número que asigna Apple y hacer el deploy.
 5. **Daniel debe validar** su bio, "Juntos", el Mito y la franja (hoy son texto redactado por Claude a partir de lo dicho por Vic). Además, su nombre ya figura públicamente en el banner y en Spotify como creador.

@@ -47,7 +47,8 @@
 - Cargado: nombre, banner 2560×1440 (`src/assets/banners/banner-youtube-2560x1440.png`), descripción del canal con el "lado B", descripción predeterminada de videos (texto fijo + Instagram + aviso "informativo"), país Argentina, categoría Educación, palabras clave, "no es para niños".
 - **Video de prueba** `lfogKQdhBMc` ("muy pronto 10s", 11 s, horizontal): sirvió para probar la conexión de la web. **Hoy está en PRIVADO** (a propósito). Se puede borrar o dejar. Miniatura y archivo en `~/Downloads/detras-del-cartel-muy-pronto-*`.
 - **Regla para episodios** (la web los toma sola): 16:9, **Público** (privado y no listado no aparecen), título `#N · Título`, descripción con 2 líneas propias ARRIBA (son el resumen) y el texto fijo DEBAJO.
-- Pendiente: alinear frecuencia (banner y descripción dicen "todos los meses"; propuesta original = quincenal), marca de agua 150×150 (necesita logo simple), tráiler para no suscriptores, foto de perfil 800×800.
+- Frecuencia: **nada que alinear** (Vic, 27-09-2026). Banner y descripción dicen "Nuevos **episodios** todos los meses" —plural: todos los meses hay episodios nuevos—, compatible con el ritmo quincenal previsto. Se deja así.
+- Pendiente: marca de agua 150×150 (necesita logo simple), tráiler para no suscriptores, foto de perfil 800×800.
 
 ## Instagram
 - `@detrasdelcartelpodcast`, hoy **privada** (decisión de Vic hasta lanzar). El botón de la web lleva ahí; para quien no tenga acceso no muestra nada.

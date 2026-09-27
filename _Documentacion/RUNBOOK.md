@@ -31,7 +31,7 @@
 - **Rotar la clave:** ver `SEGURIDAD.md` → "Si se compromete la clave".
 
 ## 🚀 DÍA DE LANZAMIENTO (paso a paso, en este orden)
-**Antes:** definir la frecuencia (quincenal vs mensual) y alinear banner y descripción de YouTube; tener 2-3 episodios (o un tráiler) grabados; Daniel valida bios/"Juntos"/Mito.
+**Antes:** tener 2-3 episodios (o un tráiler) grabados; Daniel valida bios/"Juntos"/Mito.
 1. **Spotify for Creators** (`creators.spotify.com/home` → "Continuar con Google"): subir el/los episodio(s) (audio; video opcional) y publicar (o PROGRAMAR la fecha). El programa se hace público y nace el feed RSS. Sin traducción de Chrome.
 2. **Feed RSS:** https://creators.spotify.com/pod/show/1ksoLOg5L9V1VlKSNnZz2b/podcast/distribution → copiar la dirección del feed.
 3. **Apple Podcasts Connect** (https://podcastsconnect.apple.com/my-podcasts): **Añadir programa → con un feed RSS** → pegar el feed → validar → enviar. Aprobación: unos días. **Anotar el número (Apple ID del programa) que se ve en la página del programa** → enlace `https://podcasts.apple.com/ar/podcast/id<NÚMERO>` (copiar y pegar, no transcribir).

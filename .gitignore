@@ -6,3 +6,6 @@ dist/
 .vercel/
 *.log
 .DS_Store
+
+# Nota del próximo deploy (la escribe Claude; se consume al publicar)
+.deploy-siguiente.json

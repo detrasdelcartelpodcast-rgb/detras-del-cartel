@@ -1,6 +1,6 @@
 import { execFile } from 'node:child_process'
 import { randomUUID } from 'node:crypto'
-import { readFile } from 'node:fs/promises'
+import { readFile, writeFile } from 'node:fs/promises'
 import path from 'node:path'
 
 /* ==========================================================================
@@ -83,7 +83,11 @@ async function estado() {
 async function revisarSecretos(archivos) {
   const hallazgos = []
   for (const archivo of archivos) {
-    if (/(^|\/)\.env/.test(archivo)) {
+    // `.env.example` es la PLANTILLA: solo nombres de variables, sin ningún valor,
+    // y el .gitignore la deja pasar a propósito para que quien retome sepa qué hace
+    // falta configurar. Igual se le revisa el contenido más abajo, como a cualquier otro.
+    const esPlantilla = /(^|\/)\.env\.example$/.test(archivo)
+    if (/(^|\/)\.env/.test(archivo) && !esPlantilla) {
       hallazgos.push(`${archivo}: es un archivo de entorno, no puede subirse`)
       continue
     }
@@ -152,7 +156,18 @@ export default function publicarLocal() {
         if (req.method !== 'POST') return responder(res, 405, { ok: false, error: 'método no permitido' })
         if (!permitido(req)) return responder(res, 403, { ok: false, error: 'sin permiso' })
 
-        const { mensaje, revisionHecha } = await leerCuerpo(req)
+        // El mensaje y la constancia de la revisión NO se le piden a Vic: los deja
+        // escritos Claude en `.deploy-siguiente.json` al terminar cada trabajo.
+        let mensaje = ''
+        let revisionHecha = false
+        try {
+          const nota = JSON.parse(await readFile(path.join(RAIZ, '.deploy-siguiente.json'), 'utf8'))
+          mensaje = nota.mensaje || ''
+          revisionHecha = nota.security_review === true
+        } catch {
+          // Sin archivo: se avisa abajo y no se publica.
+        }
+
         const pasos = []
         const registrar = (titulo, ok, detalle = '') => pasos.push({ titulo, ok, detalle })
         const fallar = (titulo, detalle) => {
@@ -160,7 +175,12 @@ export default function publicarLocal() {
           responder(res, 200, { ok: false, pasos })
         }
 
-        if (!revisionHecha) return fallar('Revisión de seguridad', 'Falta confirmar que se corrió /security-review sobre estos cambios.')
+        if (!revisionHecha) {
+          return fallar(
+            'Revisión de seguridad',
+            'Falta la constancia del /security-review. La deja Claude en `.deploy-siguiente.json` al terminar un trabajo; pedísela antes de publicar.'
+          )
+        }
 
         const est = await estado()
         if (!est.ramaCorrecta) return fallar('Rama', `Estás en "${est.rama}" y solo se publica desde "${RAMA}".`)
@@ -187,7 +207,9 @@ export default function publicarLocal() {
 
         if (est.cambios.length) {
           const texto = (mensaje || '').trim()
-          if (texto.length < 8) return fallar('Mensaje', 'Escribí una descripción del cambio (mínimo 8 caracteres).')
+          if (texto.length < 8) {
+            return fallar('Mensaje', 'Falta el texto del cambio en `.deploy-siguiente.json`. Lo escribe Claude al cerrar el trabajo.')
+          }
           const add = await correr('git', ['add', '-A'])
           if (!add.ok) return fallar('Preparar el commit', add.salida)
           const commit = await correr('git', ['commit', '-m', texto])
@@ -208,6 +230,12 @@ export default function publicarLocal() {
             enVivo ? `${WEB} ya sirve esta versión` : 'Vercel todavía no publicó esta versión (puede tardar). Revisá el panel de Vercel.'
           )
         }
+
+        // La nota se consume: una constancia vieja no sirve para el próximo deploy.
+        await writeFile(
+          path.join(RAIZ, '.deploy-siguiente.json'),
+          JSON.stringify({ mensaje: '', security_review: false, publicado_en: new Date().toISOString() }, null, 2)
+        )
 
         responder(res, 200, { ok: pasos.every((p) => p.ok), pasos, web: WEB })
       })

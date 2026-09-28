@@ -119,7 +119,7 @@ Auditoría del 27-09 (`/security-review` + pruebas contra Postgres y contra la b
 |---|---|
 | Leer las consultas con la clave pública (la que está en el JS publicado) | Devuelve **vacío** |
 | Escribir o borrar directo con la clave pública | **Rechazado** por RLS |
-| Entrar con **otra cuenta de Google** y ver la lista | **0 consultas, 0 anotaciones, 0 autorizados** |
+| Entrar con **otra cuenta de Google** y ver la lista | **0 consultas, 0 anotaciones, 0 autorizados** — y desde el 27-09 se le muestra "esta cuenta no tiene acceso" en vez del buzón vacío |
 | Un desconocido agregándose a `autorizados` | **Rechazado** |
 | Un desconocido modificando o borrando consultas | **Rechazado** |
 | Un autorizado anotando **firmando como otro** | **Rechazado** |
@@ -140,6 +140,13 @@ la base lo impide con la restricción `mail_sin_trucos` (`sql/03_mail_sin_trucos
 **La lección, que vale para todo lo que venga:** un dato que viene de afuera y termina dentro
 de una dirección (`mailto:`, `https://`, `tel:`) hay que codificarlo, aunque "ya esté
 validado". La validación de un mail no alcanza para meterlo en una URL.
+
+### Una cuenta ajena no ve un buzón vacío: ve que no tiene acceso
+Vic probó entrar con otra cuenta de Google y llegaba a la pantalla del buzón, vacía. No había
+fuga (la base no le daba ninguna fila), pero era confuso: parecía "todavía no llegó ninguna
+consulta". Desde el 27-09, al entrar se le pregunta a la base si esa dirección está en
+`autorizados`; si no está, se muestra un cartel claro con la dirección usada y un botón para
+salir. **La comprobación se le hace a la base, no a una lista escrita en el navegador.**
 
 ### 🟡 Deuda anotada (no es un agujero hoy)
 Las políticas se apoyan en el **mail** de la sesión (`auth.jwt() ->> 'email'`) y no en el

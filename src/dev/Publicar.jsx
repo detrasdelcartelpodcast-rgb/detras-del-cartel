@@ -33,8 +33,11 @@ export default function Publicar() {
       });
       const resultado = await r.json();
       if (resultado.ok) {
+        // El cambio ya está en GitHub y Vercel arrancó solo: acá el trabajo está hecho.
+        // La confirmación de que la web ya sirve la versión nueva la sigue el servidor,
+        // así que podés cerrar la pestaña sin que el deploy se corte.
         setEstado('ok');
-        setTimeout(() => setEstado('listo'), 8000);
+        mirarSiSePublico();
       } else {
         const fallo = resultado.pasos?.find((p) => !p.ok);
         setEstado('error');
@@ -43,6 +46,24 @@ export default function Publicar() {
     } catch (e) {
       setEstado('error');
       setMotivo(String(e.message || e));
+    }
+  }
+
+  /** Si la pestaña sigue abierta, avisa cuándo la web ya está sirviendo la versión nueva. */
+  async function mirarSiSePublico() {
+    for (let i = 0; i < 40; i++) {
+      await new Promise((r) => setTimeout(r, 6000));
+      try {
+        const r = await fetch('/__publicar/ultimo', { headers: { 'x-publicar-token': TOKEN } });
+        const { ultimo } = await r.json();
+        if (ultimo?.estado === 'publicado') return setEstado('listo');
+        if (ultimo?.estado === 'sin_confirmar') {
+          setEstado('error');
+          return setMotivo(ultimo.detalle);
+        }
+      } catch {
+        return; // si el servidor se apagó, el deploy ya está hecho igual
+      }
     }
   }
 

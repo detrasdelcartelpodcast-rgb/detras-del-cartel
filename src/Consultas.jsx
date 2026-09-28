@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { Star, Trash2, RotateCcw, Download, LogOut, Loader2, MessageSquare, Phone, Mail, Send, AlarmClock } from 'lucide-react';
+import { Star, Trash2, RotateCcw, Download, LogOut, Loader2, MessageSquare, Phone, Mail, Send, AlarmClock, Lock } from 'lucide-react';
 import { supabase, hayConfiguracion, entrarConGoogle, salir } from './lib/supabase';
 import { descargarExcel } from './lib/excel';
 import ThemeToggle from './ThemeToggle';
@@ -7,9 +7,12 @@ import ThemeToggle from './ThemeToggle';
 /* ==========================================================================
    /consultas — EL BUZÓN
 
-   Pantalla privada. Quien la abra sin una dirección autorizada ve un botón de
-   entrar y, si entra con otra cuenta de Google, la lista le aparece vacía: no
-   porque se la escondamos, sino porque la base no le entrega ninguna fila.
+   Pantalla privada. Quien la abra ve un botón de entrar. Si entra con una
+   cuenta que NO está en la tabla `autorizados`, se le dice claramente que esa
+   cuenta no tiene acceso: antes veía el buzón vacío y parecía que no había
+   consultas (Vic, 27-09). La comprobación se le hace a la BASE, no a una lista
+   escrita en el navegador, y aunque alguien la saltee no hay nada que ver: RLS
+   no le entrega ninguna fila.
 
    NO se indexa (ver el efecto de más abajo, public/robots.txt y vercel.json).
 ========================================================================== */
@@ -78,6 +81,21 @@ export default function Consultas() {
     return () => data.subscription.unsubscribe();
   }, []);
 
+  // Entrar con Google no alcanza: la dirección tiene que estar en `autorizados`.
+  // Se le pregunta a la BASE (no a una lista escrita en el navegador): si no está,
+  // la consulta devuelve cero filas y se muestra "esta cuenta no tiene acceso".
+  // Antes, una cuenta ajena veía el buzón vacío y parecía que no había consultas.
+  const [autorizado, setAutorizado] = useState(null); // null = averiguando
+
+  useEffect(() => {
+    if (!sesion) return setAutorizado(null);
+    supabase
+      .from('autorizados')
+      .select('email')
+      .limit(1)
+      .then(({ data }) => setAutorizado((data ?? []).length > 0));
+  }, [sesion]);
+
   const traer = useCallback(async () => {
     setCargando(true);
     const [{ data, error }, { data: anotaciones }] = await Promise.all([
@@ -108,8 +126,8 @@ export default function Consultas() {
   }
 
   useEffect(() => {
-    if (sesion) traer();
-  }, [sesion, traer]);
+    if (sesion && autorizado) traer();
+  }, [sesion, autorizado, traer]);
 
   async function guardar(id, cambios) {
     setConsultas((cs) => cs.map((c) => (c.id === id ? { ...c, ...cambios } : c)));
@@ -242,6 +260,38 @@ export default function Consultas() {
             <br />
             Si entrás con otra cuenta, la lista te va a aparecer vacía.
           </p>
+        </div>
+      </Marco>
+    );
+  }
+
+  if (autorizado === null) {
+    return (
+      <Marco>
+        <Loader2 className="animate-spin text-accent mx-auto" />
+      </Marco>
+    );
+  }
+
+  if (autorizado === false) {
+    return (
+      <Marco>
+        <div className="text-center space-y-4">
+          <div className="w-11 h-11 rounded-full bg-red-500/15 text-red-400 grid place-items-center mx-auto">
+            <Lock size={20} />
+          </div>
+          <div>
+            <h1 className="text-base font-black text-fg">Esta cuenta no tiene acceso</h1>
+            <p className="text-[12.5px] text-muted mt-2 leading-relaxed">
+              Entraste con <b className="text-soft">{sesion.user.email}</b>, que no está habilitada para ver el buzón.
+            </p>
+          </div>
+          <button
+            onClick={salir}
+            className="inline-flex items-center gap-2 bg-card2 border border-line/10 rounded-xl px-4 py-2.5 text-xs font-semibold hover:border-accent/40 transition"
+          >
+            <LogOut size={13} /> Salir y probar con otra cuenta
+          </button>
         </div>
       </Marco>
     );

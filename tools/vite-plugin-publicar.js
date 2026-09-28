@@ -22,6 +22,10 @@ import path from 'node:path'
 ========================================================================== */
 
 const TOKEN = randomUUID()
+
+// Resultado del último deploy. La verificación en vivo sigue corriendo en el
+// servidor aunque Vic cierre la pestaña: el deploy NO depende del navegador.
+let ultimoDeploy = null
 const RAIZ = process.cwd()
 const RAMA = 'main'
 const WEB = 'https://detras-del-cartel.vercel.app'
@@ -152,6 +156,11 @@ export default function publicarLocal() {
         responder(res, 200, { ok: true, ...(await estado()) })
       })
 
+      server.middlewares.use('/__publicar/ultimo', async (req, res) => {
+        if (!permitido(req)) return responder(res, 403, { ok: false, error: 'sin permiso' })
+        responder(res, 200, { ok: true, ultimo: ultimoDeploy })
+      })
+
       server.middlewares.use('/__publicar/ejecutar', async (req, res) => {
         if (req.method !== 'POST') return responder(res, 405, { ok: false, error: 'método no permitido' })
         if (!permitido(req)) return responder(res, 403, { ok: false, error: 'sin permiso' })
@@ -221,14 +230,25 @@ export default function publicarLocal() {
         if (!push.ok) return fallar('Subir a GitHub', push.salida)
         registrar('Subir a GitHub', true, 'Vercel arranca el despliegue solo')
 
+        // Se contesta ACÁ, apenas el cambio está en GitHub y Vercel arrancó solo.
+        // La verificación en vivo sigue por su cuenta: si Vic cierra la pestaña,
+        // el deploy se completa igual.
         const huella = await huellaCompilado()
+        ultimoDeploy = { estado: 'verificando', desde: new Date().toISOString(), pasos }
         if (huella) {
-          const enVivo = await esperarEnVivo(huella)
-          registrar(
-            'Verificación en vivo',
-            enVivo,
-            enVivo ? `${WEB} ya sirve esta versión` : 'Vercel todavía no publicó esta versión (puede tardar). Revisá el panel de Vercel.'
-          )
+          esperarEnVivo(huella).then((enVivo) => {
+            ultimoDeploy = {
+              estado: enVivo ? 'publicado' : 'sin_confirmar',
+              desde: ultimoDeploy.desde,
+              hasta: new Date().toISOString(),
+              detalle: enVivo
+                ? `${WEB} ya sirve esta versión`
+                : 'Vercel todavía no publicó esta versión. Revisá el panel de Vercel.',
+              pasos,
+            }
+          })
+        } else {
+          ultimoDeploy = { estado: 'publicado', pasos }
         }
 
         // La nota se consume: una constancia vieja no sirve para el próximo deploy.

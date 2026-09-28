@@ -546,6 +546,10 @@ export default function DetrasDelCartelLanding() {
                   <p className="whitespace-nowrap">
                     <a href={`mailto:${contact.email}`} className="hover:text-accent transition">{contact.email}</a>
                   </p>
+                  {/* Obligatorio desde que el formulario guarda datos de personas (27-09-2026). */}
+                  <p className="mt-2">
+                    <a href="/privacidad" className="hover:text-accent transition">Política de privacidad</a>
+                  </p>
                 </div>
               </div>
             </div>

@@ -236,7 +236,9 @@ export default function Formulario({ config }) {
       </button>
 
       <p className="text-[11.5px] text-faint text-center leading-relaxed">
-        Lo leemos nosotros dos, no hay nadie más atrás. No lo compartimos con nadie y no te vamos a escribir para ofrecerte nada.
+        Lo leemos nosotros dos, no hay nadie más atrás. No lo compartimos con nadie y no te vamos a escribir para
+        ofrecerte nada.{' '}
+        <a href="/privacidad" className="underline hover:text-accent transition">Qué hacemos con tus datos</a>.
       </p>
     </form>
   );

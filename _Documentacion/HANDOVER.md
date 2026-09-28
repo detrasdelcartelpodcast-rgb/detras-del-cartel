@@ -54,7 +54,8 @@ El **enlace de Apple no existe todavía**: el número lo asigna Apple **al envia
 | Los Conductores: fotos, bios, franja y "Juntos" | ✅ (Daniel debe validar) |
 | Episodios anteriores (automático desde el 2.º video) | ✅ sin datos reales todavía |
 | **Escribinos**: formulario con 3 caminos (programa / privada / anónima) que guarda en base | ✅ 27-09, sin publicar (ver `MODULO_CONSULTAS.md`) |
-| **`/consultas`**: buzón privado con login de Google, bitácora, filtros, papelera y Excel | ✅ 27-09, sin publicar |
+| **`/consultas`**: buzón privado con login de Google, bitácora, filtros, papelera y Excel | ✅ 27-09, publicado |
+| **`/privacidad`**: política de privacidad, enlazada desde el pie y desde el formulario | ✅ 27-09 |
 | Pie · Barra inferior del celular · Modo día/noche · `noindex` · Headers de seguridad | ✅ |
 
 **Localhost:** mismo código + barra flotante de dispositivos (solo dev) + `?demo=1` (episodios de ejemplo) + `?produccion=1` (vista "en construcción").

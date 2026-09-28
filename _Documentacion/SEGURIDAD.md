@@ -32,7 +32,7 @@ camino formulario → base → buzón, y los Security Advisors de Supabase entra
 | Headers (`vercel.json`) | ✅ CSP (`default-src 'self'`, `script-src 'self'`, `connect-src 'self'`, `frame-src https://www.youtube-nocookie.com`, `object-src 'none'`, `frame-ancestors 'none'`…), HSTS, `nosniff`, `X-Frame-Options: DENY`, Referrer-Policy, Permissions-Policy, `X-Robots-Tag: noindex…`. Verificados en vivo: 0 violaciones de CSP |
 | Recursos de terceros | ✅ Solo el reproductor `youtube-nocookie.com` (versión sin cookies hasta reproducir). Imágenes y fuentes son propias |
 | Enlaces externos | ✅ `target="_blank"` con `rel="noopener noreferrer"`; todos salen de constantes de `siteConfig` |
-| Datos personales | 🟢 Desde el 27-09 se recolectan por el formulario, **con las defensas puestas**: validación y escritura solo en el servidor, RLS cerrado, antirrobots (campo trampa + tiempo mínimo), freno de avalancha sin guardar IP, consentimiento explícito para usar el caso al aire, y anonimato garantizado por la base. Detalle y pruebas: `MODULO_CONSULTAS.md`. 🟡 Falta **política de privacidad** en la web antes de lanzar en serio |
+| Datos personales | 🟢 Desde el 27-09 se recolectan por el formulario, **con las defensas puestas**: validación y escritura solo en el servidor, RLS cerrado, antirrobots (campo trampa + tiempo mínimo), freno de avalancha sin guardar IP, consentimiento explícito para usar el caso al aire, y anonimato garantizado por la base. Detalle y pruebas: `MODULO_CONSULTAS.md`. ✅ **Política de privacidad** publicada en `/privacidad` (27-09), enlazada desde el pie y desde el formulario |
 | Claves de Supabase | ✅ La `secret` solo en el servidor (verificado: no aparece en `dist/` ni en el historial de git). La `publishable` viaja al navegador a propósito y no sirve sin sesión autorizada (probado: devuelve vacío) |
 | Acceso al buzón `/consultas` | ✅ Login de Google + lista de autorizados en la base. **Probado con otra cuenta: ve 0 consultas, 0 anotaciones, 0 autorizados**, y no puede agregarse a la lista ni modificar nada |
 | `npm audit` | ✅ 0 en producción · 🟡 2 en desarrollo (esbuild/vite; solo servidor local; fix = subir Vite, cambio mayor) |
@@ -74,11 +74,11 @@ mail, pasar las políticas a `auth.uid()` antes.**
 
 ## Antes de lanzar en serio (checklist)
 - [ ] Confirmar restricción de la clave y 2FA de Vercel
-- [ ] Quitar `noindex` (3 capas) y hacer pública la cuenta de Instagram
+- [ ] Quitar `noindex` (3 capas) y hacer pública la cuenta de Instagram. **`/privacidad` debe quedar indexable; `/consultas` NO.**
 - [ ] Repetir `/security-review` con el contenido final
 - [ ] Conectar el dominio (DNS) y revisar que HTTPS/HSTS funcionen en `detrasdelcartel.com`
 - [ ] Revisar promesas públicas (frecuencia de episodios)
 - [ ] `git ls-files` sin `.env`, claves ni datos personales
-- [ ] **Política de privacidad** en la web (ya se recolectan datos personales)
+- [x] **Política de privacidad** en la web (hecha el 27-09; mantenerla al día si se agrega analítica o newsletter)
 - [ ] Apagar "Allow new users to sign up" en Supabase, después del primer login de cada uno
 - [ ] Revisar los **Security Advisors** de Supabase

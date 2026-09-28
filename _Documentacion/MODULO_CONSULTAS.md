@@ -184,6 +184,29 @@ principal y tienen su filtro. Todo se puede bajar a Excel (`.xlsx` de verdad, co
 
 ---
 
+## La política de privacidad (`/privacidad`)
+
+Obligatoria desde que la web guarda datos de personas: la Ley 25.326 exige informar, en el
+momento de pedirlos, para qué se usan, quién es el responsable, qué es obligatorio y cómo
+ejercer los derechos de acceso, rectificación y supresión. Nadie la controla de oficio (la
+AAIP actúa por denuncia), pero **Meta y Google la exigen** el día que haya pauta hacia la web.
+
+Vive en `src/Privacidad.jsx`, se enlaza desde el pie ("Política de privacidad") y desde abajo
+del formulario ("Qué hacemos con tus datos"), que es donde legalmente corresponde avisar.
+
+🔴 **Regla:** esa página describe lo que el código REALMENTE hace. Hoy dice que no hay
+analítica, ni píxeles, ni cookies de seguimiento, y eso está verificado. **El día que se
+agregue analítica, un píxel, una newsletter o se comparta algo con un tercero, se actualiza la
+página en el mismo movimiento.** Una política que dice algo que no es cierto es peor que no
+tenerla.
+
+Al lanzar: `/privacidad` **sí debe quedar indexable** cuando se saque el `noindex` general
+(a diferencia de `/consultas`, que nunca lo es).
+
+⚠️ No la revisó un abogado. Cubre lo que la ley pide informar y describe el sistema con
+precisión, pero la inscripción de bases de datos ante la AAIP conviene confirmarla con un
+profesional.
+
 ## Pendientes de este módulo
 - [ ] Correr `sql/03_mail_sin_trucos.sql` en Supabase (la corrección ya está en el código).
 - [ ] Cargar las tres variables en Vercel antes del deploy.
@@ -193,3 +216,4 @@ principal y tienen su filtro. Todo se puede bajar a Excel (`.xlsx` de verdad, co
 - [ ] Al conectar el dominio: cambiar la **Site URL** de Supabase a `https://detrasdelcartel.com`
       y dejar la de Vercel en Redirect URLs. **Si no se hace, el login rebota.**
 - [ ] Revisar los **Security Advisors** de Supabase cada tanto (panel → Advisors).
+- [ ] Confirmar con un abogado la inscripción de la base ante la AAIP.

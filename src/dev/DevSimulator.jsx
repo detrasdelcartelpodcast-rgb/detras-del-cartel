@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Monitor, Smartphone, Tablet, RotateCcw, GripVertical } from 'lucide-react';
+import Publicar from './Publicar.jsx';
 
 /* ==========================================================================
    SIMULADOR DE DISPOSITIVOS — SOLO DESARROLLO (localhost)
@@ -75,6 +76,8 @@ function Toolbar({ device, setDevice, landscape, setLandscape }) {
       >
         <RotateCcw size={18} className={landscape ? 'rotate-90 transition-transform' : 'transition-transform'} />
       </button>
+      <div className="w-px h-8 bg-gray-700" />
+      <Publicar />
     </div>
   );
 }

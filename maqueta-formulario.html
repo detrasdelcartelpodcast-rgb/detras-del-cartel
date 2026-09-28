@@ -1,0 +1,266 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="robots" content="noindex, nofollow" />
+<title>Maqueta · Proponé un tema</title>
+<!--
+  MAQUETA PARA DECIDIR — NO ES CÓDIGO DEL SITIO.
+  Archivo suelto en la raíz: Vite no lo incluye en el build (solo compila index.html),
+  así que no llega a Vercel. Se mira en http://localhost:5173/maqueta-formulario.html
+  Cuando se apruebe el diseño, se implementa en React dentro de src/ y este archivo se borra.
+  Los colores son los mismos tokens del sitio (src/index.css), en modo noche y modo día.
+-->
+<style>
+  :root {
+    --page: 6 9 14; --card: 13 17 26; --card2: 15 20 34; --input: 7 9 14;
+    --fg: 255 255 255; --soft: 203 213 225; --muted: 148 163 184; --faint: 71 85 105;
+    --line: 255 255 255; --accent: 251 191 36; --inset: rgba(0,0,0,.4);
+  }
+  html.light {
+    --page: 232 230 222; --card: 255 255 255; --card2: 240 237 228; --input: 255 255 255;
+    --fg: 15 23 42; --soft: 51 65 85; --muted: 71 85 105; --faint: 148 163 184;
+    --line: 15 23 42; --accent: 161 98 7; --inset: rgba(15,23,42,.05);
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 32px 16px 64px;
+    background: rgb(var(--page)); color: rgb(var(--fg));
+    font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  .envoltorio { max-width: 900px; margin: 0 auto; }
+
+  .barra {
+    display: flex; justify-content: space-between; align-items: center; gap: 12px;
+    margin-bottom: 28px; font-size: 12px; color: rgb(var(--muted));
+  }
+  .barra button {
+    background: rgb(var(--card2)); color: rgb(var(--fg)); border: 1px solid rgb(var(--line) / .12);
+    padding: 7px 14px; border-radius: 999px; font-size: 12px; cursor: pointer; font-weight: 600;
+  }
+
+  .seccion { text-align: center; margin-bottom: 20px; }
+  .etiqueta {
+    font-size: 11px; font-weight: 700; letter-spacing: .22em; text-transform: uppercase;
+    color: rgb(var(--accent)); font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
+  h1 { font-size: 26px; line-height: 1.2; margin: 10px 0 8px; font-weight: 800; }
+  .bajada { font-size: 14px; color: rgb(var(--soft)); margin: 0 auto; max-width: 560px; line-height: 1.6; }
+
+  .tarjeta {
+    background: rgb(var(--card)); border: 1px solid rgb(var(--line) / .08);
+    border-radius: 24px; padding: 24px; margin-top: 22px;
+    box-shadow: 0 20px 50px rgba(0,0,0,.25);
+  }
+
+  .pregunta { font-size: 13px; font-weight: 700; margin: 0 0 12px; }
+  .opciones { display: grid; gap: 10px; }
+  @media (min-width: 720px) { .opciones { grid-template-columns: repeat(3, 1fr); } }
+
+  .opcion {
+    display: block; cursor: pointer; text-align: left;
+    background: rgb(var(--card2)); border: 1px solid rgb(var(--line) / .1);
+    border-radius: 16px; padding: 14px; transition: .15s;
+  }
+  .opcion:hover { border-color: rgb(var(--accent) / .5); }
+  .opcion input { position: absolute; opacity: 0; pointer-events: none; }
+  .opcion .titulo { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 700; }
+  .opcion .punto {
+    width: 15px; height: 15px; border-radius: 50%; flex: none;
+    border: 2px solid rgb(var(--faint)); position: relative;
+  }
+  .opcion input:checked ~ .titulo .punto { border-color: rgb(var(--accent)); }
+  .opcion input:checked ~ .titulo .punto::after {
+    content: ""; position: absolute; inset: 2px; border-radius: 50%; background: rgb(var(--accent));
+  }
+  .opcion:has(input:checked) { border-color: rgb(var(--accent)); background: rgb(var(--accent) / .07); }
+  .opcion .ayuda { font-size: 11.5px; color: rgb(var(--muted)); margin: 7px 0 0; line-height: 1.5; }
+
+  .campos { margin-top: 20px; display: grid; gap: 14px; }
+  .campo label { display: block; font-size: 12.5px; font-weight: 600; margin-bottom: 6px; }
+  .campo .opcional { color: rgb(var(--faint)); font-weight: 500; }
+  input[type=text], input[type=email], textarea, select {
+    width: 100%; background: rgb(var(--input)); color: rgb(var(--fg));
+    border: 1px solid rgb(var(--line) / .12); border-radius: 12px;
+    padding: 11px 13px; font-size: 14px; font-family: inherit; resize: vertical;
+  }
+  input::placeholder, textarea::placeholder { color: rgb(var(--faint)); }
+  input:focus, textarea:focus, select:focus { outline: none; border-color: rgb(var(--accent)); }
+  .par { display: grid; gap: 14px; }
+  @media (min-width: 720px) { .par { grid-template-columns: 1fr 1fr; } }
+
+  .permiso {
+    display: flex; gap: 10px; align-items: flex-start; margin-top: 4px;
+    font-size: 12.5px; color: rgb(var(--soft)); line-height: 1.5; cursor: pointer;
+  }
+  .permiso input { margin-top: 2px; accent-color: rgb(var(--accent)); width: 16px; height: 16px; flex: none; }
+
+  .aviso {
+    margin-top: 16px; background: var(--inset); border: 1px dashed rgb(var(--line) / .15);
+    border-radius: 12px; padding: 12px 14px; font-size: 12px; color: rgb(var(--muted)); line-height: 1.55;
+  }
+
+  .enviar {
+    margin-top: 20px; width: 100%; padding: 14px; border: 0; border-radius: 14px;
+    background: rgb(var(--accent)); color: #10131a; font-size: 14px; font-weight: 800; cursor: pointer;
+    font-family: inherit;
+  }
+  html.light .enviar { color: #fff; }
+  .pie { margin-top: 12px; font-size: 11.5px; color: rgb(var(--faint)); text-align: center; line-height: 1.5; }
+
+  .nota {
+    max-width: 900px; margin: 34px auto 0; font-size: 12px; color: rgb(var(--muted));
+    border-top: 1px solid rgb(var(--line) / .1); padding-top: 16px; line-height: 1.7;
+  }
+  .nota b { color: rgb(var(--fg)); }
+  .oculto { display: none !important; }
+</style>
+</head>
+<body>
+<div class="envoltorio">
+
+  <div class="barra">
+    <span>MAQUETA · no es el sitio · probá las tres opciones</span>
+    <button onclick="document.documentElement.classList.toggle('light')">Cambiar día / noche</button>
+  </div>
+
+  <div class="seccion">
+    <p class="etiqueta">ACÁ EMPIEZAN LOS EPISODIOS</p>
+    <h1>¿De qué querés que hablemos?</h1>
+    <p class="bajada">Los episodios salen de lo que nos llega por acá. No hace falta que lo sepas explicar bien ni que tengas nada resuelto: contalo como te salga. Lo leemos los dos, siempre.</p>
+  </div>
+
+  <div class="tarjeta" id="gracias" style="display:none; text-align:center">
+    <p class="etiqueta">LLEGÓ</p>
+    <h1 style="font-size:22px">Gracias por confiarnos esto.</h1>
+    <p class="bajada" id="graciasTexto"></p>
+    <p class="pie" style="margin-top:18px"><a href="" onclick="location.reload()" style="color:rgb(var(--accent))">Volver al formulario (maqueta)</a></p>
+  </div>
+
+  <form class="tarjeta" id="formulario" onsubmit="event.preventDefault(); agradecer();">
+
+    <p class="pregunta">¿Cómo preferís que lo tratemos?</p>
+    <div class="opciones">
+      <label class="opcion">
+        <input type="radio" name="destino" value="programa" checked onchange="pintar()" />
+        <span class="titulo"><span class="punto"></span> Háblenlo en el programa</span>
+        <p class="ayuda">Entra en la lista de temas que estamos preparando.</p>
+      </label>
+      <label class="opcion">
+        <input type="radio" name="destino" value="privado" onchange="pintar()" />
+        <span class="titulo"><span class="punto"></span> Prefiero que me contesten a mí</span>
+        <p class="ayuda">Te escribimos por mail. No sale al aire.</p>
+      </label>
+      <label class="opcion">
+        <input type="radio" name="destino" value="anonimo" onchange="pintar()" />
+        <span class="titulo"><span class="punto"></span> Prefiero no dar mi nombre</span>
+        <p class="ayuda">No te pedimos ningún dato. Ni sabemos quién sos.</p>
+      </label>
+    </div>
+
+    <div class="campos">
+      <div class="campo">
+        <label for="tema">¿Qué te está pasando, o qué te gustaría entender?</label>
+        <input type="text" id="tema" placeholder="Ej.: heredamos con mis hermanos y no sabemos por dónde empezar" required />
+      </div>
+
+      <div class="campo">
+        <label for="caso">Si querés, contanos un poco más <span class="opcional">(opcional)</span></label>
+        <textarea id="caso" rows="4" placeholder="Como te salga. Cuanto más nos cuentes, mejor te lo podemos contestar."></textarea>
+      </div>
+
+      <div class="campo" id="nombreCampo">
+        <label for="nombre">Cómo querés que te llamemos <span class="opcional">(opcional)</span></label>
+        <input type="text" id="nombre" placeholder="Tu nombre o un apodo" />
+      </div>
+
+      <div id="contacto">
+        <p class="pregunta" id="tituloContacto" style="margin-bottom:8px">¿Por dónde te contestamos? <span class="opcional" style="font-weight:500">Con uno alcanza.</span></p>
+        <div class="par">
+          <div class="campo">
+            <label for="mail">Mail</label>
+            <input type="email" id="mail" placeholder="tunombre@mail.com" />
+          </div>
+          <div class="campo">
+            <label for="tel">WhatsApp o teléfono</label>
+            <input type="text" id="tel" placeholder="11 5555 5555" />
+          </div>
+        </div>
+        <p class="pie" id="avisoContacto" style="text-align:left; margin-top:8px">Lo usamos solo para contestarte esto. No te agregamos a ninguna lista ni te llamamos para ofrecerte nada.</p>
+      </div>
+
+      <div class="campo" id="zonaCampo">
+        <label for="zona">Zona o barrio <span class="opcional">(opcional)</span></label>
+        <input type="text" id="zona" placeholder="Belgrano, Pilar, Vicente López…" />
+      </div>
+
+      <label class="permiso" id="permiso">
+        <input type="checkbox" />
+        <span>Si les sirve, pueden contar mi caso en el programa — sin mi nombre ni mi dirección.</span>
+      </label>
+    </div>
+
+    <div class="aviso" id="avisoAnonimo" style="display:none">
+      <b style="color:rgb(var(--accent))">Anónimo de verdad:</b> no te pedimos nombre ni mail, y tampoco guardamos de dónde llegaste. Queda solo lo que escribas. Si querés que te contestemos, elegí la opción del medio.
+    </div>
+
+    <button class="enviar" type="submit">Mandanos tu caso</button>
+    <p class="pie">Lo leemos nosotros dos, no hay nadie más atrás. No lo compartimos con nadie y no te vamos a escribir para ofrecerte nada.</p>
+  </form>
+
+  <div class="nota">
+    <b>Lo que cambia según la opción elegida</b><br />
+    · <b>Tratarlo en el programa</b> — nombre, mail y zona quedan opcionales.<br />
+    · <b>Prefiero que me contesten a mí</b> — hay que dejar <b>mail o WhatsApp</b> (con uno alcanza; sin ninguno no hay forma de contestar) y la casilla de permiso desaparece: no se usa al aire.<br />
+    · <b>Prefiero no dar mi nombre</b> — se ocultan nombre, contacto y zona, y no se guarda nada que identifique. Solo el texto.
+  </div>
+</div>
+
+<script>
+  function pintar() {
+    const destino = document.querySelector('input[name=destino]:checked').value;
+    const anonimo = destino === 'anonimo';
+    const privado = destino === 'privado';
+    document.getElementById('nombreCampo').classList.toggle('oculto', anonimo);
+    document.getElementById('contacto').classList.toggle('oculto', anonimo);
+    document.getElementById('zonaCampo').classList.toggle('oculto', anonimo);
+    document.getElementById('permiso').classList.toggle('oculto', anonimo || privado);
+    document.getElementById('avisoAnonimo').style.display = anonimo ? 'block' : 'none';
+    // Si pidió respuesta, hace falta al menos una forma de contacto (mail o teléfono).
+    document.getElementById('tituloContacto').innerHTML = privado
+      ? '¿Por dónde te contestamos? <span class="opcional" style="font-weight:500">Dejanos al menos uno.</span>'
+      : '¿Querés que te contestemos? <span class="opcional" style="font-weight:500">Opcional: dejanos mail o WhatsApp.</span>';
+    validarContacto();
+  }
+
+  // "Al menos uno de los dos": se valida en el momento, sin mensajes de error rojos de golpe.
+  function validarContacto() {
+    const privado = document.querySelector('input[name=destino]:checked').value === 'privado';
+    const mail = document.getElementById('mail');
+    const tel = document.getElementById('tel');
+    const falta = privado && !mail.value.trim() && !tel.value.trim();
+    mail.setCustomValidity(falta ? 'Dejanos un mail o un WhatsApp para poder contestarte.' : '');
+    tel.setCustomValidity('');
+  }
+  document.getElementById('mail').addEventListener('input', validarContacto);
+  document.getElementById('tel').addEventListener('input', validarContacto);
+  pintar();
+
+  // Pantalla de gracias: cambia según lo que haya elegido.
+  function agradecer() {
+    const destino = document.querySelector('input[name=destino]:checked').value;
+    const textos = {
+      programa: 'Lo leemos los dos. Si da para un episodio, lo vas a escuchar — contado sin tu nombre. Los temas más repetidos son los que salen primero.',
+      privado: 'Te escribimos nosotros por donde nos dejaste. Puede tardar unos días: somos dos y contestamos uno por uno.',
+      anonimo: 'No sabemos quién sos y así queda. Lo leemos igual, y si sirve para un episodio lo vamos a contar.',
+    };
+    document.getElementById('graciasTexto').textContent = textos[destino];
+    document.getElementById('formulario').style.display = 'none';
+    document.getElementById('gracias').style.display = 'block';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+</script>
+</body>
+</html>

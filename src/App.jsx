@@ -47,6 +47,10 @@ export const siteConfig = {
     editionBadge: "EDICIÓN DE COLECCIÓN",
     volTag: "VOL. 02",
     slogan: "EL LADO B DEL MERCADO INMOBILIARIO",
+    // Línea de identificación (27-09-2026): va ENTRE el slogan y la tagline. Que el que la lee
+    // se reconozca sin nombrarle la desconfianza ni el miedo (quedan tácitos) y sin usar la
+    // palabra "vender" (este podcast informa y crea comunidad, no vende).
+    intro: "Tu casa no es un producto más. Decidir sobre ella, tampoco.",
     tagline: "Tips y casos reales, en primera persona. Lo que hay detrás del cartel, explicado sin vueltas.",
     ctaHeader: "ESCUCHAR",
     headerSubtitle: "Podcast inmobiliario",
@@ -325,6 +329,12 @@ export default function DetrasDelCartelLanding() {
             {sections.heroDetails && (
             <p className="text-[11px] md:text-xs font-mono font-bold uppercase tracking-[0.22em] text-accent">
               {brand.slogan}
+            </p>
+            )}
+
+            {sections.heroDetails && brand.intro && (
+            <p className="text-base md:text-lg text-fg leading-snug max-w-md mx-auto font-sans font-semibold">
+              {brand.intro}
             </p>
             )}
 

@@ -1,0 +1,513 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="robots" content="noindex, nofollow" />
+<title>Maqueta · Buzón de temas</title>
+<!--
+  MAQUETA DEL BUZÓN — NO ES CÓDIGO DEL SITIO NI HAY BASE DETRÁS.
+  Los datos son inventados y viven en este archivo. Se mira en
+  http://localhost:5173/maqueta-buzon.html y no entra al build (Vite solo compila index.html).
+-->
+<style>
+  :root {
+    --page: 6 9 14; --card: 13 17 26; --card2: 15 20 34; --input: 7 9 14;
+    --fg: 255 255 255; --soft: 203 213 225; --muted: 148 163 184; --faint: 71 85 105;
+    --line: 255 255 255; --accent: 251 191 36; --inset: rgba(0,0,0,.4);
+  }
+  html.light {
+    --page: 232 230 222; --card: 255 255 255; --card2: 240 237 228; --input: 255 255 255;
+    --fg: 15 23 42; --soft: 51 65 85; --muted: 71 85 105; --faint: 148 163 184;
+    --line: 15 23 42; --accent: 161 98 7; --inset: rgba(15,23,42,.05);
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 20px 14px 60px; background: rgb(var(--page)); color: rgb(var(--fg));
+    font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    -webkit-font-smoothing: antialiased; font-size: 14px;
+  }
+  .envoltorio { max-width: 1100px; margin: 0 auto; }
+  a { color: rgb(var(--accent)); }
+
+  /* ── Entrada ── */
+  .entrada { max-width: 420px; margin: 12vh auto; text-align: center; }
+  .entrada .tarjeta { padding: 32px 24px; }
+  .botonGoogle {
+    display: inline-flex; align-items: center; gap: 10px; margin-top: 18px;
+    background: #fff; color: #1f2937; border: 1px solid #dadce0; border-radius: 10px;
+    padding: 11px 18px; font-size: 14px; font-weight: 600; cursor: pointer; font-family: inherit;
+  }
+  .entrada .chico { font-size: 12px; color: rgb(var(--muted)); margin-top: 16px; line-height: 1.6; }
+
+  /* ── Cabecera ── */
+  .cabecera { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between; margin-bottom: 18px; }
+  .cabecera h1 { font-size: 18px; margin: 0; font-weight: 800; }
+  .cabecera .quien { font-size: 12px; color: rgb(var(--muted)); }
+  .cabecera button { background: rgb(var(--card2)); color: rgb(var(--fg)); border: 1px solid rgb(var(--line)/.12); padding: 7px 13px; border-radius: 999px; font-size: 12px; cursor: pointer; font-weight: 600; font-family: inherit; }
+
+  /* ── Resumen ── */
+  .resumen { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 16px; }
+  @media (min-width: 720px) { .resumen { grid-template-columns: repeat(4, 1fr); } }
+  .ficha { background: rgb(var(--card)); border: 1px solid rgb(var(--line)/.08); border-radius: 16px; padding: 13px 15px; }
+  .ficha .n { font-size: 24px; font-weight: 800; line-height: 1; }
+  .ficha .t { font-size: 11px; color: rgb(var(--muted)); margin-top: 6px; text-transform: uppercase; letter-spacing: .08em; }
+  .ficha.urgente { border-color: rgb(239 68 68 / .5); }
+  .ficha.urgente .n { color: rgb(248 113 113); }
+
+  /* ── Filtros ── */
+  .filtros { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; align-items: center; }
+  .filtros input[type=search] {
+    flex: 1 1 200px; background: rgb(var(--input)); color: rgb(var(--fg));
+    border: 1px solid rgb(var(--line)/.12); border-radius: 10px; padding: 9px 12px; font-size: 13px; font-family: inherit;
+  }
+  .chip {
+    background: rgb(var(--card2)); border: 1px solid rgb(var(--line)/.1); color: rgb(var(--soft));
+    padding: 7px 12px; border-radius: 999px; font-size: 12px; cursor: pointer; font-weight: 600; font-family: inherit;
+  }
+  .chip.activo { background: rgb(var(--accent)/.15); border-color: rgb(var(--accent)); color: rgb(var(--accent)); }
+
+  /* ── Lista ── */
+  .fila {
+    background: rgb(var(--card)); border: 1px solid rgb(var(--line)/.08); border-radius: 16px;
+    padding: 13px 15px; margin-bottom: 9px; cursor: pointer; transition: .12s;
+  }
+  .fila:hover { border-color: rgb(var(--accent)/.4); }
+  .fila.sinResponder { border-left: 3px solid rgb(248 113 113); }
+  .linea1 { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; font-size: 11.5px; color: rgb(var(--muted)); }
+  .id { font-family: ui-monospace, Menlo, monospace; color: rgb(var(--accent)); font-weight: 700; }
+  .tema { font-size: 14px; font-weight: 600; margin: 7px 0 0; line-height: 1.4; }
+  .quienEscribe { font-size: 12px; color: rgb(var(--muted)); margin-top: 5px; }
+
+  .tag { padding: 3px 8px; border-radius: 999px; font-size: 10.5px; font-weight: 700; letter-spacing: .04em; border: 1px solid transparent; }
+  .tag.programa { background: rgb(56 189 248 / .14); color: rgb(56 189 248); }
+  .tag.privado  { background: rgb(248 113 113 / .14); color: rgb(248 113 113); }
+  .tag.anonimo  { background: rgb(148 163 184 / .16); color: rgb(148 163 184); }
+  .estado { padding: 3px 8px; border-radius: 6px; font-size: 10.5px; font-weight: 700; background: rgb(var(--line)/.07); color: rgb(var(--soft)); }
+  .estado.nueva { background: rgb(var(--accent)/.16); color: rgb(var(--accent)); }
+  .estado.usada { background: rgb(52 211 153 / .14); color: rgb(52 211 153); }
+
+  /* ── Detalle ── */
+  .detalle { margin-top: 12px; padding-top: 12px; border-top: 1px dashed rgb(var(--line)/.15); }
+  .detalle p { margin: 0 0 10px; font-size: 13px; color: rgb(var(--soft)); line-height: 1.65; white-space: pre-wrap; }
+  .detalle .datos { display: flex; flex-wrap: wrap; gap: 14px; font-size: 12px; color: rgb(var(--muted)); margin-bottom: 12px; }
+  .detalle .datos b { color: rgb(var(--fg)); font-weight: 600; }
+  .acciones { display: flex; flex-wrap: wrap; gap: 7px; align-items: center; }
+  .acciones select, .acciones input {
+    background: rgb(var(--input)); color: rgb(var(--fg)); border: 1px solid rgb(var(--line)/.12);
+    border-radius: 9px; padding: 7px 10px; font-size: 12px; font-family: inherit;
+  }
+  .acciones .guardar { background: rgb(var(--accent)); color: #10131a; border: 0; font-weight: 700; cursor: pointer; padding: 8px 14px; }
+  html.light .acciones .guardar { color: #fff; }
+
+  /* ── Etiquetas y prioridad ── */
+  .etiq { padding: 3px 8px; border-radius: 6px; font-size: 10.5px; font-weight: 600; background: rgb(var(--line)/.08); color: rgb(var(--soft)); }
+  .estrella { font-size: 15px; line-height: 1; color: rgb(var(--faint)); cursor: pointer; background: none; border: 0; padding: 0 2px; }
+  .estrella.prendida { color: rgb(var(--accent)); }
+  .fila.prioritaria { background: linear-gradient(90deg, rgb(var(--accent)/.06), transparent 40%); }
+  .acciones textarea {
+    background: rgb(var(--input)); color: rgb(var(--fg)); border: 1px solid rgb(var(--line)/.12);
+    border-radius: 9px; padding: 8px 10px; font-size: 12px; font-family: inherit; width: 100%; resize: vertical;
+  }
+  .bloqueAccion { display: grid; gap: 8px; }
+  .filaAccion { display: flex; flex-wrap: wrap; gap: 7px; align-items: center; }
+  .filaAccion label { font-size: 11px; color: rgb(var(--muted)); font-weight: 600; }
+  .exportar { background: rgb(var(--card2)); color: rgb(var(--fg)); border: 1px solid rgb(var(--line)/.12); padding: 9px 14px; border-radius: 10px; font-size: 12px; font-weight: 600; cursor: pointer; font-family: inherit; }
+
+  /* ── Selección y papelera ── */
+  .barraSeleccion {
+    display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: space-between;
+    background: rgb(var(--accent)/.1); border: 1px solid rgb(var(--accent)/.35);
+    border-radius: 12px; padding: 10px 14px; margin-bottom: 12px; font-size: 12.5px; font-weight: 600;
+  }
+  .chip.peligro { background: rgb(239 68 68 / .15); border-color: rgb(239 68 68 / .5); color: rgb(248 113 113); }
+  .casilla { width: 16px; height: 16px; accent-color: rgb(var(--accent)); cursor: pointer; flex: none; }
+  .fila.elegida { border-color: rgb(var(--accent)); background: rgb(var(--accent)/.05); }
+  .fila.borrada { opacity: .6; }
+  .fila.borrada .tema { text-decoration: line-through; }
+
+  .nota { margin-top: 26px; font-size: 12px; color: rgb(var(--muted)); border-top: 1px solid rgb(var(--line)/.1); padding-top: 14px; line-height: 1.75; }
+  .nota b { color: rgb(var(--fg)); }
+  .oculto { display: none !important; }
+</style>
+</head>
+<body>
+
+<!-- ─────────── PANTALLA 1: ENTRAR ─────────── -->
+<div class="envoltorio entrada" id="pantallaEntrada">
+  <div class="ficha tarjeta">
+    <h1 style="font-size:17px; margin:0 0 6px">Buzón de temas</h1>
+    <p style="font-size:13px; color:rgb(var(--muted)); margin:0">Detrás del Cartel</p>
+    <button class="botonGoogle" onclick="entrar()">
+      <svg width="17" height="17" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+      Entrar con Google
+    </button>
+    <p class="chico">Solo entran las direcciones autorizadas.<br />Si entrás con otra cuenta, la tabla te va a aparecer vacía.</p>
+  </div>
+</div>
+
+<!-- ─────────── PANTALLA 2: BUZÓN ─────────── -->
+<div class="envoltorio oculto" id="pantallaBuzon">
+
+  <div class="cabecera">
+    <div>
+      <h1>Buzón de temas</h1>
+      <p class="quien" style="margin:4px 0 0">detrasdelcartelpodcast@gmail.com · <a href="" onclick="salir(); return false;">salir</a></p>
+    </div>
+    <button onclick="document.documentElement.classList.toggle('light')">Cambiar día / noche</button>
+  </div>
+
+  <div class="resumen">
+    <div class="ficha urgente"><div class="n" id="rEsperando">0</div><div class="t">Esperando respuesta</div></div>
+    <div class="ficha"><div class="n" id="rNuevas">0</div><div class="t">Sin abrir</div></div>
+    <div class="ficha"><div class="n" id="rTemaTop" style="font-size:17px; padding-top:5px">—</div><div class="t">Tema más pedido</div></div>
+    <div class="ficha"><div class="n" id="rTotal">0</div><div class="t">Recibidas en total</div></div>
+  </div>
+
+  <div class="filtros">
+    <input type="search" id="buscador" placeholder="Buscar por tema, nombre o texto…" oninput="pintar()" />
+    <button class="chip activo" data-filtro="todas" onclick="filtrar(this)">Todas</button>
+    <button class="chip" data-filtro="privado" onclick="filtrar(this)">Piden respuesta</button>
+    <button class="chip" data-filtro="programa" onclick="filtrar(this)">Para el programa</button>
+    <button class="chip" data-filtro="anonimo" onclick="filtrar(this)">Anónimas</button>
+    <button class="chip" data-filtro="prioritarias" onclick="filtrar(this)">★ Prioritarias</button>
+    <button class="chip" data-filtro="pendientes" onclick="filtrar(this)">Con algo pendiente</button>
+    <button class="chip" data-filtro="papelera" onclick="filtrar(this)" id="chipPapelera">🗑 Papelera</button>
+  </div>
+
+  <div class="barraSeleccion oculto" id="barraSeleccion">
+    <span id="textoSeleccion"></span>
+    <div style="display:flex; gap:7px; flex-wrap:wrap">
+      <button class="chip" onclick="limpiarSeleccion()">Quitar la selección</button>
+      <button class="chip peligro" id="botonBorrar" onclick="borrarSeleccionadas()">Mandar a la papelera</button>
+    </div>
+  </div>
+
+  <div class="filtros" id="filtrosEtiquetas"></div>
+
+  <div class="filtros" style="justify-content:space-between">
+    <span style="font-size:12px; color:rgb(var(--muted))" id="contadorLista"></span>
+    <button class="exportar" onclick="exportar()">⤓ Exportar a Excel</button>
+  </div>
+
+  <div id="lista"></div>
+
+  <div class="nota">
+    <b>Cómo se numeran</b> — cada consulta recibe un número correlativo (#0001, #0002…) en el orden en que llega, más la fecha y la hora de Argentina. El número no se reutiliza aunque borres una: así podés decir "el caso #0007" y siempre es el mismo.<br />
+    <b>El borde rojo</b> marca a los que pidieron respuesta y todavía no la tuvieron. Es lo único urgente de esta pantalla.<br />
+    <b>Las anónimas</b> se guardan sin nombre, sin contacto y sin origen: en la ficha no hay nada que mostrar porque no existe.<br />
+    <b>Datos de esta maqueta: inventados.</b> No hay base detrás todavía.
+  </div>
+</div>
+
+<script>
+  // ── Datos INVENTADOS para ver cómo queda ──
+  const ETIQUETAS = ['Precio', 'Comisiones', 'Herencia', 'Divorcio', 'Papeles', 'Inversión', 'Alquiler', 'Publicación'];
+  const PASOS = ['Sin definir', 'Contestar por mail', 'Llamar / WhatsApp', 'Desarrollar episodio', 'Esperando respuesta de él', 'Cerrado'];
+
+  const CONSULTAS = [
+    { id: 12, fecha: '2026-09-27 09:14', tipo: 'privado', estado: 'Nueva', nombre: 'Prueba 1', contacto: 'WhatsApp 11 4xxx xxxx',
+      tema: 'Tengo una oferta un 12% abajo y no sé si aceptarla',
+      texto: 'Hace cuatro meses que está publicado. Vino una sola oferta y me dicen que la tome. Me da bronca bajar tanto pero tampoco quiero que se caiga.',
+      permiso: true, zona: 'Villa Urquiza', nota: '', etiquetas: ['Precio'], borrada: false, prioritaria: true, paso: 'Llamar / WhatsApp', recordar: '2026-09-28' },
+    { id: 11, fecha: '2026-09-26 21:40', tipo: 'anonimo', estado: 'Para desarrollar', nombre: '', contacto: '',
+      tema: 'Me cobraron comisión los dos lados y no lo sabía',
+      texto: 'Firmé sin leer bien. Cuando pregunté me dijeron que era lo normal. Me gustaría saber qué es lo que corresponde.',
+      permiso: true, zona: '', nota: 'Tema fuerte. Da para un episodio entero sobre honorarios.', etiquetas: ['Comisiones', 'Papeles'], borrada: false, prioritaria: true, paso: 'Desarrollar episodio', recordar: '' },
+    { id: 10, fecha: '2026-09-26 18:02', tipo: 'programa', estado: 'Nueva', nombre: 'Prueba 3', contacto: 'gustavo@mail.com',
+      tema: 'Heredamos con mis hermanos y no nos ponemos de acuerdo',
+      texto: 'Somos tres. Uno quiere vender ya, otro alquilar y yo no sé. La casa está vacía hace un año.',
+      permiso: true, zona: 'Caballito', nota: '', etiquetas: ['Herencia'], borrada: false, prioritaria: false, paso: 'Sin definir', recordar: '' },
+    { id: 9, fecha: '2026-09-25 11:27', tipo: 'privado', estado: 'Respondida', nombre: 'Prueba 4', contacto: 'laura@mail.com',
+      tema: '¿Conviene arreglar la cocina antes de poner la casa?',
+      texto: 'Me dicen que invierta en la cocina pero no sé si lo recupero.',
+      permiso: false, zona: 'Olivos', nota: 'Contestado el 25/9. Quedó en mandar fotos.', etiquetas: ['Publicación'], borrada: false, prioritaria: false, paso: 'Esperando respuesta de él', recordar: '2026-10-02' },
+    { id: 8, fecha: '2026-09-24 20:15', tipo: 'programa', estado: 'Usada (ep. 2)', nombre: 'Prueba 5', contacto: '',
+      tema: 'Cuánto tarda en salir la escritura y qué puede trabarla',
+      texto: 'Nos frenaron una operación por un problema de plano. Nadie nos avisó antes.',
+      permiso: true, zona: 'San Isidro', nota: 'Salió en el episodio 2, sin nombre.', etiquetas: ['Papeles'], borrada: false, prioritaria: false, paso: 'Cerrado', recordar: '' },
+    { id: 7, fecha: '2026-09-24 08:51', tipo: 'anonimo', estado: 'Nueva', nombre: '', contacto: '',
+      tema: 'Nos separamos y ninguno quiere vender primero',
+      texto: 'Seguimos viviendo los dos en la casa. Es insostenible pero nadie quiere ceder.',
+      permiso: true, zona: '', nota: '', etiquetas: ['Divorcio'], borrada: false, prioritaria: false, paso: 'Sin definir', recordar: '' },
+    { id: 6, fecha: '2026-09-23 16:33', tipo: 'programa', estado: 'Para desarrollar', nombre: 'Prueba 6', contacto: 'silvia@mail.com',
+      tema: '¿Por qué mi departamento no lo viene a ver nadie?',
+      texto: 'Está publicado hace dos meses en tres inmobiliarias y nadie pregunta.',
+      permiso: true, zona: 'Belgrano', nota: 'Encaja con el mito del precio alto.', etiquetas: ['Precio', 'Publicación'], borrada: false, prioritaria: false, paso: 'Desarrollar episodio', recordar: '' },
+    { id: 5, fecha: '2026-09-22 19:05', tipo: 'privado', estado: 'Nueva', nombre: 'Prueba 7', contacto: 'WhatsApp 11 3xxx xxxx',
+      tema: 'Me pidieron firmar una exclusiva por seis meses',
+      texto: 'No entiendo qué pasa si no funciona. ¿Puedo salir antes?',
+      permiso: false, zona: 'Pilar', nota: '', etiquetas: ['Comisiones', 'Papeles'], borrada: false, prioritaria: false, paso: 'Contestar por mail', recordar: '' },
+  ];
+
+  let filtroActual = 'todas';
+  let etiquetaActual = null;
+  let abierta = null;
+  const elegidas = new Set();
+
+  function entrar() {
+    document.getElementById('pantallaEntrada').classList.add('oculto');
+    document.getElementById('pantallaBuzon').classList.remove('oculto');
+    pintar();
+  }
+  function salir() {
+    document.getElementById('pantallaBuzon').classList.add('oculto');
+    document.getElementById('pantallaEntrada').classList.remove('oculto');
+  }
+  function filtrar(boton) {
+    document.querySelectorAll('.chip').forEach((c) => c.classList.remove('activo'));
+    boton.classList.add('activo');
+    filtroActual = boton.dataset.filtro;
+    pintar();
+  }
+
+  const num = (n) => '#' + String(n).padStart(4, '0');
+  const rotulo = { programa: 'PARA EL PROGRAMA', privado: 'PIDE RESPUESTA', anonimo: 'ANÓNIMA' };
+
+  function pintar() {
+    const busca = document.getElementById('buscador').value.toLowerCase();
+    const enPapelera = filtroActual === 'papelera';
+    const visibles = CONSULTAS.filter((c) => {
+      // La papelera es una vista aparte: las borradas no aparecen en ninguna otra.
+      if (!!c.borrada !== enPapelera) return false;
+      if (filtroActual === 'prioritarias' && !c.prioritaria) return false;
+      if (filtroActual === 'pendientes' && ['Sin definir', 'Cerrado'].includes(c.paso)) return false;
+      if (!['todas', 'prioritarias', 'pendientes', 'papelera'].includes(filtroActual) && c.tipo !== filtroActual) return false;
+      if (etiquetaActual && !c.etiquetas.includes(etiquetaActual)) return false;
+      if (!busca) return true;
+      return (c.tema + c.texto + c.nombre + c.zona + c.nota).toLowerCase().includes(busca);
+    });
+
+    // Etiquetas con la cantidad de consultas de cada una: el tema más repetido salta a la vista.
+    // Las borradas no cuentan para nada: ni resumen, ni etiquetas, ni exportación.
+    const vivas = CONSULTAS.filter((c) => !c.borrada);
+    const cuenta = {};
+    vivas.forEach((c) => c.etiquetas.forEach((e) => (cuenta[e] = (cuenta[e] || 0) + 1)));
+    document.getElementById('filtrosEtiquetas').innerHTML =
+      '<span style="font-size:11px; color:rgb(var(--muted)); font-weight:600">TEMAS:</span> ' +
+      ETIQUETAS.filter((e) => cuenta[e])
+        .sort((a, b) => cuenta[b] - cuenta[a])
+        .map((e) => `<button class="chip ${etiquetaActual === e ? 'activo' : ''}" onclick="porEtiqueta('${e}')">${e} <b style="opacity:.6">${cuenta[e]}</b></button>`)
+        .join('');
+    document.getElementById('contadorLista').textContent = `${visibles.length} de ${CONSULTAS.length} consultas`;
+
+    document.getElementById('rEsperando').textContent = vivas.filter((c) => c.tipo === 'privado' && c.estado !== 'Respondida').length;
+    document.getElementById('rNuevas').textContent = vivas.filter((c) => c.estado === 'Nueva').length;
+    const top = Object.entries(cuenta).sort((a, b) => b[1] - a[1])[0];
+    document.getElementById('rTemaTop').textContent = top ? `${top[0]} (${top[1]})` : '—';
+    document.getElementById('rTotal').textContent = vivas.length;
+
+    const borradas = CONSULTAS.length - vivas.length;
+    document.getElementById('chipPapelera').innerHTML = `🗑 Papelera${borradas ? ` <b style="opacity:.6">${borradas}</b>` : ''}`;
+    pintarSeleccion();
+
+    document.getElementById('lista').innerHTML = visibles.map((c) => {
+      const sinResponder = c.tipo === 'privado' && c.estado !== 'Respondida';
+      const claseEstado = c.estado === 'Nueva' ? 'nueva' : c.estado.startsWith('Usada') ? 'usada' : '';
+      const quien = c.tipo === 'anonimo'
+        ? 'Anónima · no se guardó ningún dato'
+        : [c.nombre || 'Sin nombre', c.contacto || 'sin contacto', c.zona || ''].filter(Boolean).join(' · ');
+
+      const detalle = abierta === c.id ? `
+        <div class="detalle" onclick="event.stopPropagation()">
+          <div class="datos">
+            <span><b>Recibida:</b> ${c.fecha} h</span>
+            ${c.tipo !== 'anonimo' && c.contacto ? `<span><b>Contacto:</b> ${c.contacto}</span>` : ''}
+            <span><b>Permiso para contarlo:</b> ${c.tipo === 'privado' ? 'no corresponde (es privada)' : c.permiso ? 'sí, sin nombre' : 'no'}</span>
+          </div>
+          <p>${c.texto}</p>
+          <div class="bloqueAccion">
+            <div class="filaAccion">
+              <label>Temas</label>
+              ${ETIQUETAS.map((e) => `<button class="chip ${c.etiquetas.includes(e) ? 'activo' : ''}" onclick="alternarEtiqueta(${c.id}, '${e}')">${e}</button>`).join('')}
+            </div>
+            <div class="filaAccion">
+              <label>Estado</label>
+              <select>${['Nueva', 'Para desarrollar', 'Respondida', 'Usada (ep. 2)', 'Descartada'].map((e) => `<option ${e === c.estado ? 'selected' : ''}>${e}</option>`).join('')}</select>
+              <label>Próximo paso</label>
+              <select>${PASOS.map((p) => `<option ${p === c.paso ? 'selected' : ''}>${p}</option>`).join('')}</select>
+              <label>Recordar el</label>
+              <input type="date" value="${c.recordar}" />
+            </div>
+            <textarea rows="2" placeholder="Observaciones nuestras (no las ve nadie de afuera)">${c.nota}</textarea>
+            <div class="filaAccion">
+              <button class="guardar" onclick="alert('Maqueta: acá se guardaría el cambio.')">Guardar</button>
+              ${c.contacto.includes('WhatsApp') ? '<button class="exportar" onclick="alert(\'Maqueta: abriría WhatsApp con ese número.\')">Abrir WhatsApp</button>' : ''}
+              ${c.contacto.includes('@') ? '<button class="exportar" onclick="alert(\'Maqueta: abriría el mail con la respuesta empezada.\')">Responder por mail</button>' : ''}
+            </div>
+          </div>
+        </div>` : '';
+
+      return `
+        <div class="fila ${sinResponder ? 'sinResponder' : ''} ${c.prioritaria ? 'prioritaria' : ''} ${elegidas.has(c.id) ? 'elegida' : ''} ${c.borrada ? 'borrada' : ''}" onclick="abrir(${c.id})">
+          <div class="linea1">
+            <input type="checkbox" class="casilla" ${elegidas.has(c.id) ? 'checked' : ''} onclick="event.stopPropagation(); elegir(${c.id})" title="Seleccionar" />
+            ${c.borrada ? `<button class="chip" onclick="event.stopPropagation(); restaurar(${c.id})">↩ Restaurar</button>` : `<button class="estrella ${c.prioritaria ? 'prendida' : ''}" onclick="event.stopPropagation(); marcar(${c.id})" title="Prioritaria">${c.prioritaria ? '★' : '☆'}</button>`}
+            <span class="id">${num(c.id)}</span>
+            <span>${c.fecha} h</span>
+            <span class="tag ${c.tipo}">${rotulo[c.tipo]}</span>
+            <span class="estado ${claseEstado}">${c.estado}</span>
+            ${c.etiquetas.map((e) => `<span class="etiq">${e}</span>`).join('')}
+            ${c.paso !== 'Sin definir' && c.paso !== 'Cerrado' ? `<span class="etiq" style="background:rgb(var(--accent)/.14); color:rgb(var(--accent))">→ ${c.paso}${c.recordar ? ' · ' + c.recordar : ''}</span>` : ''}
+          </div>
+          <p class="tema">${c.tema}</p>
+          <p class="quienEscribe">${quien}</p>
+          ${c.nota && abierta !== c.id ? `<p class="quienEscribe" style="font-style:italic">✎ ${c.nota}</p>` : ''}
+          ${detalle}
+        </div>`;
+    }).join('') || '<p style="color:rgb(var(--muted)); font-size:13px">No hay consultas con ese filtro.</p>';
+  }
+
+  function abrir(id) { abierta = abierta === id ? null : id; pintar(); }
+  function marcar(id) { const c = CONSULTAS.find((x) => x.id === id); c.prioritaria = !c.prioritaria; pintar(); }
+
+  /* ── Selección y papelera ──────────────────────────────────────────────
+     Nada se borra de verdad: se marca como borrada y se va a la papelera,
+     de donde se puede traer de vuelta. Antes de mandar algo ahí se muestra
+     exactamente qué se está por mover.
+  ─────────────────────────────────────────────────────────────────────── */
+  function elegir(id) { elegidas.has(id) ? elegidas.delete(id) : elegidas.add(id); pintar(); }
+  function limpiarSeleccion() { elegidas.clear(); pintar(); }
+
+  function pintarSeleccion() {
+    const barra = document.getElementById('barraSeleccion');
+    barra.classList.toggle('oculto', elegidas.size === 0);
+    if (!elegidas.size) return;
+    const enPapelera = filtroActual === 'papelera';
+    document.getElementById('textoSeleccion').textContent =
+      `${elegidas.size} ${elegidas.size === 1 ? 'consulta elegida' : 'consultas elegidas'}`;
+    document.getElementById('botonBorrar').textContent = enPapelera ? 'Restaurar las elegidas' : 'Mandar a la papelera';
+  }
+
+  function borrarSeleccionadas() {
+    const enPapelera = filtroActual === 'papelera';
+    const afectadas = CONSULTAS.filter((c) => elegidas.has(c.id));
+    const detalle = afectadas.map((c) => `${num(c.id)} — ${c.tema}`).join('\n');
+    const pregunta = enPapelera
+      ? `¿Traer de vuelta ${afectadas.length === 1 ? 'esta consulta' : 'estas consultas'}?\n\n${detalle}`
+      : `Se van a la papelera (no se borran: se pueden recuperar):\n\n${detalle}`;
+    if (!confirm(pregunta)) return;
+    afectadas.forEach((c) => (c.borrada = !enPapelera));
+    elegidas.clear();
+    pintar();
+  }
+
+  function restaurar(id) { const c = CONSULTAS.find((x) => x.id === id); c.borrada = false; elegidas.delete(id); pintar(); }
+  function porEtiqueta(e) { etiquetaActual = etiquetaActual === e ? null : e; pintar(); }
+  function alternarEtiqueta(id, e) {
+    const c = CONSULTAS.find((x) => x.id === id);
+    c.etiquetas = c.etiquetas.includes(e) ? c.etiquetas.filter((x) => x !== e) : [...c.etiquetas, e];
+    pintar();
+  }
+
+  /* ── Exportar a Excel (.xlsx de verdad) ───────────────────────────────────
+     Un .xlsx es un ZIP con varios XML adentro. Se arma a mano, sin ninguna
+     librería de afuera: así no hay que cargar nada de un servidor ajeno ni
+     sumar dependencias al sitio. Las anónimas salen sin datos de contacto,
+     porque no existen.
+  ────────────────────────────────────────────────────────────────────────── */
+
+  const COLUMNAS = [
+    ['Nº', 8], ['Fecha y hora', 17], ['Tipo', 17], ['Estado', 16], ['Prioritaria', 11],
+    ['Temas', 22], ['Próximo paso', 22], ['Recordar', 12], ['Consulta', 46], ['Detalle', 60],
+    ['Nombre', 16], ['Contacto', 24], ['Zona', 16], ['Permiso', 18], ['Observaciones', 40],
+  ];
+
+  const filaDe = (c) => [
+    num(c.id), c.fecha, rotulo[c.tipo], c.estado, c.prioritaria ? 'Sí' : '',
+    c.etiquetas.join(', '), c.paso, c.recordar, c.tema, c.texto,
+    c.nombre, c.contacto, c.zona,
+    c.tipo === 'privado' ? 'no corresponde' : c.permiso ? 'sí, sin nombre' : 'no', c.nota,
+  ];
+
+  const escaparXml = (v) => String(v ?? '').replace(/[<>&"']/g, (s) => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;', '"': '&quot;', "'": '&apos;' }[s]));
+  const letraColumna = (i) => { let s = ''; i++; while (i > 0) { const r = (i - 1) % 26; s = String.fromCharCode(65 + r) + s; i = (i - r - 1) / 26; } return s; };
+
+  function hojaXml(filas) {
+    const cols = COLUMNAS.map(([, ancho], i) => `<col min="${i + 1}" max="${i + 1}" width="${ancho}" customWidth="1"/>`).join('');
+    const cuerpo = filas.map((fila, f) => {
+      const celdas = fila.map((valor, c) =>
+        `<c r="${letraColumna(c)}${f + 1}" t="inlineStr" s="${f === 0 ? 1 : 0}"><is><t xml:space="preserve">${escaparXml(valor)}</t></is></c>`
+      ).join('');
+      return `<row r="${f + 1}">${celdas}</row>`;
+    }).join('');
+    return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><cols>${cols}</cols><sheetData>${cuerpo}</sheetData></worksheet>`;
+  }
+
+  const ARCHIVOS_FIJOS = {
+    '[Content_Types].xml': `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/></Types>`,
+    '_rels/.rels': `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>`,
+    'xl/workbook.xml': `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets><sheet name="Buzón" sheetId="1" r:id="rId1"/></sheets></workbook>`,
+    'xl/_rels/workbook.xml.rels': `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/><Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>`,
+    'xl/styles.xml': `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><fonts count="2"><font><sz val="11"/><name val="Calibri"/></font><font><b/><sz val="11"/><name val="Calibri"/></font></fonts><fills count="2"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill></fills><borders count="1"><border><left/><right/><top/><bottom/><diagonal/></border></borders><cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs><cellXfs count="2"><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0" applyAlignment="1"><alignment vertical="top" wrapText="1"/></xf><xf numFmtId="0" fontId="1" fillId="0" borderId="0" xfId="0" applyFont="1"/></cellXfs><cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles></styleSheet>`,
+  };
+
+  // ── Mini-ZIP (sin compresión): suficiente para un archivo de texto chico ──
+  const TABLA_CRC = (() => {
+    const t = new Uint32Array(256);
+    for (let n = 0; n < 256; n++) { let c = n; for (let k = 0; k < 8; k++) c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1; t[n] = c >>> 0; }
+    return t;
+  })();
+  const crc32 = (bytes) => {
+    let c = 0xffffffff;
+    for (let i = 0; i < bytes.length; i++) c = TABLA_CRC[(c ^ bytes[i]) & 0xff] ^ (c >>> 8);
+    return (c ^ 0xffffffff) >>> 0;
+  };
+
+  function armarZip(archivos) {
+    const codificador = new TextEncoder();
+    const partes = [];
+    const central = [];
+    let desplazamiento = 0;
+
+    const escribir = (n, bytes) => { const a = []; for (let i = 0; i < bytes; i++) a.push((n >>> (i * 8)) & 0xff); return a; };
+
+    for (const [nombre, contenido] of Object.entries(archivos)) {
+      const datos = codificador.encode(contenido);
+      const nom = codificador.encode(nombre);
+      const crc = crc32(datos);
+      const cabecera = [
+        ...escribir(0x04034b50, 4), ...escribir(20, 2), ...escribir(0, 2), ...escribir(0, 2),
+        ...escribir(0, 2), ...escribir(0, 2), ...escribir(crc, 4),
+        ...escribir(datos.length, 4), ...escribir(datos.length, 4),
+        ...escribir(nom.length, 2), ...escribir(0, 2),
+      ];
+      partes.push(new Uint8Array(cabecera), nom, datos);
+      central.push([
+        ...escribir(0x02014b50, 4), ...escribir(20, 2), ...escribir(20, 2), ...escribir(0, 2),
+        ...escribir(0, 2), ...escribir(0, 2), ...escribir(0, 2), ...escribir(crc, 4),
+        ...escribir(datos.length, 4), ...escribir(datos.length, 4),
+        ...escribir(nom.length, 2), ...escribir(0, 2), ...escribir(0, 2), ...escribir(0, 2),
+        ...escribir(0, 2), ...escribir(0, 4), ...escribir(desplazamiento, 4),
+        ...Array.from(nom),
+      ]);
+      desplazamiento += cabecera.length + nom.length + datos.length;
+    }
+
+    const directorio = new Uint8Array(central.flat());
+    const fin = new Uint8Array([
+      ...escribir(0x06054b50, 4), ...escribir(0, 2), ...escribir(0, 2),
+      ...escribir(central.length, 2), ...escribir(central.length, 2),
+      ...escribir(directorio.length, 4), ...escribir(desplazamiento, 4), ...escribir(0, 2),
+    ]);
+    return new Blob([...partes, directorio, fin], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+  }
+
+  function exportar() {
+    // Lo que está en la papelera no se exporta.
+    const filas = [COLUMNAS.map(([nombre]) => nombre), ...CONSULTAS.filter((c) => !c.borrada).map(filaDe)];
+    const blob = armarZip({ ...ARCHIVOS_FIJOS, 'xl/worksheets/sheet1.xml': hojaXml(filas) });
+    const enlace = document.createElement('a');
+    enlace.href = URL.createObjectURL(blob);
+    enlace.download = `buzon-detras-del-cartel-${new Date().toISOString().slice(0, 10)}.xlsx`;
+    enlace.click();
+  }
+</script>
+</body>
+</html>

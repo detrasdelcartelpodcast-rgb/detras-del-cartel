@@ -1,5 +1,6 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
+import publicarLocal from './tools/vite-plugin-publicar.js'
 
 // Al compilar, descarta las imágenes que NINGÚN código publicado usa.
 // Motivo: mientras el sitio esté "en construcción", las fotos de los conductores
@@ -45,5 +46,5 @@ function apiLocal() {
 }
 
 export default defineConfig({
-  plugins: [react(), purgarImagenesSinUso(), apiLocal()],
+  plugins: [react(), purgarImagenesSinUso(), apiLocal(), publicarLocal()],
 })

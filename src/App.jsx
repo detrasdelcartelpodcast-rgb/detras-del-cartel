@@ -5,6 +5,7 @@ import Construccion from './Construccion';
 import ThemeToggle from './ThemeToggle';
 import { useEpisodios, UltimoEpisodio, EpisodiosAnteriores } from './Episodios';
 import MiniMark from './MiniMark';
+import Formulario from './Formulario';
 import { useTheme } from './theme';
 import fotoDaniel from './assets/hosts/daniel-bryn.jpg';
 import fotoVictor from './assets/hosts/victor-miascovsky.jpg';
@@ -135,10 +136,10 @@ export const siteConfig = {
 
   // 8. Buzón Confidencial (Quincenal)
   consultation: {
-    tag: "PROPONÉ UN TEMA",
-    title: "¿Qué querés que hablemos en el podcast?",
-    subtitle: "Contanos qué te preocupa o qué te pasó con tu propiedad. Elegimos los temas más pedidos para los próximos episodios. Si usamos tu caso, lo contamos sin nombres ni direcciones.",
-    button: "Contanos tu caso",
+    tag: "ESCRIBINOS",
+    title: "Proponé un tema o hacenos tu consulta",
+    subtitle: "Tus consultas nos ayudan a decidir de qué hablamos. No hace falta que lo sepas explicar bien ni que tengas nada resuelto: contalo como te salga. Lo leemos los dos, siempre.",
+    button: "Mandanos tu caso",
     email: "detrasdelcartelpodcast@gmail.com",
     subject: "Tema para Detrás del Cartel",
     body: "Tema que me interesa:\n\n\nMi caso (opcional):\n\n\nAcepto que mi caso se use en el programa, sin nombres ni direcciones.",
@@ -508,18 +509,9 @@ export default function DetrasDelCartelLanding() {
               </p>
             </div>
 
-            <div className="space-y-3">
-              <a
-                href={`mailto:${consultation.email}?subject=${encodeURIComponent(consultation.subject)}&body=${encodeURIComponent(consultation.body)}`}
-                className="inline-flex items-center space-x-2 px-6 py-3.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-[#07090E] font-black text-xs md:text-sm uppercase tracking-wider shadow-lg shadow-amber-500/20 transition active:scale-95"
-              >
-                <span>{consultation.button}</span>
-                <Send className="w-4 h-4" />
-              </a>
-              <p className="text-[11px] md:text-xs text-muted leading-relaxed">
-                {consultation.note} <span className="text-soft font-semibold select-all">{consultation.email}</span>.
-              </p>
-            </div>
+            {/* El formulario reemplazó al mailto (27-09-2026): lo que se escribe acá
+                queda guardado en la base del podcast y se sigue desde /consultas. */}
+            <Formulario config={consultation} />
           </section>
         )}
 
@@ -584,7 +576,7 @@ export default function DetrasDelCartelLanding() {
         </a>
         <a href="#buzon" className="flex flex-col items-center text-muted hover:text-fg transition">
           <HelpCircle className="w-4 h-4" />
-          <span className="text-[9px] font-mono mt-1">Temas</span>
+          <span className="text-[9px] font-mono mt-1">Escribinos</span>
         </a>
       </nav>
       )}

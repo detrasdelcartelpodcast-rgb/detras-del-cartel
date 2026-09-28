@@ -1,4 +1,4 @@
-import { defineConfig } from 'vite'
+import { defineConfig, loadEnv } from 'vite'
 import react from '@vitejs/plugin-react'
 import publicarLocal from './tools/vite-plugin-publicar.js'
 
@@ -45,6 +45,42 @@ function apiLocal() {
   }
 }
 
+// SOLO en localhost: hace de "función de Vercel" para POST /api/consulta,
+// con el mismo código que corre en producción (api/_lib/consultas.js).
+function apiConsultaLocal() {
+  return {
+    name: 'api-local-consulta',
+    apply: 'serve',
+    configureServer(server) {
+      // Vite solo expone al navegador las variables VITE_*; acá, del lado del
+      // servidor, hacen falta todas (incluida la clave secreta de Supabase).
+      Object.assign(process.env, loadEnv('development', process.cwd(), ''))
+
+      server.middlewares.use('/api/consulta', async (req, res) => {
+        res.setHeader('Content-Type', 'application/json; charset=utf-8')
+        res.setHeader('Cache-Control', 'no-store')
+        if (req.method !== 'POST') {
+          res.statusCode = 405
+          return res.end(JSON.stringify({ ok: false, error: 'Método no permitido.' }))
+        }
+        try {
+          const trozos = []
+          for await (const t of req) trozos.push(t)
+          const cuerpo = JSON.parse(Buffer.concat(trozos).toString() || '{}')
+          const { guardarConsulta } = await server.ssrLoadModule('/api/_lib/consultas.js')
+          const resultado = await guardarConsulta(cuerpo)
+          res.statusCode = resultado.estado
+          res.end(JSON.stringify(resultado.ok ? { ok: true, id: resultado.id } : { ok: false, error: resultado.error }))
+        } catch (e) {
+          console.error('Error guardando la consulta:', e)
+          res.statusCode = 500
+          res.end(JSON.stringify({ ok: false, error: 'No pudimos guardarlo. Probá de nuevo en un rato.' }))
+        }
+      })
+    },
+  }
+}
+
 export default defineConfig({
-  plugins: [react(), purgarImagenesSinUso(), apiLocal(), publicarLocal()],
+  plugins: [react(), purgarImagenesSinUso(), apiLocal(), apiConsultaLocal(), publicarLocal()],
 })

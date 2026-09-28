@@ -58,3 +58,10 @@ Cuota de la API: 2 unidades por consulta; cuota gratuita por defecto 10.000/día
 ## Modos de la web publicada
 - `sitio.publicarCompleto = true` (hoy): landing completa.
 - `sitio.publicarCompleto = false`: solo logo + barra roja "SITIO EN CONSTRUCCIÓN" (volver a esto si hace falta ocultar todo rápido: cambiar el valor y hacer push).
+
+## Módulo de consultas (27-09-2026)
+La landing dejó de ser 100 % estática: ahora hay **base de datos propia** (Supabase), una
+función `POST /api/consulta` que recibe el formulario y una segunda página, `/consultas`, con
+login de Google. El ruteo es mínimo (`src/main.jsx`: si la dirección es `/consultas` se carga
+el buzón, si no la landing) y el buzón viaja en un archivo aparte que solo descarga quien
+entra ahí. Arquitectura, tablas, permisos y seguridad: **`MODULO_CONSULTAS.md`**.

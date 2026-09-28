@@ -26,9 +26,22 @@
 6. Para sacar uno de la web: pasarlo a **Privado** o No listado (tarda hasta ~5 min).
 
 ## Cuentas y variables
-- **GitHub** `detrasdelcartelpodcast-rgb` (SSH `github-cartel`), **Vercel** equipo `detrasdelcartel`, **Google Cloud** proyecto `detras-del-cartel`.
-- Variable en Vercel: `YOUTUBE_API_KEY` (Production). Cambiarla: Settings → Environment Variables → editar → **Redeploy** (solo aplica a despliegues nuevos).
-- **Rotar la clave:** ver `SEGURIDAD.md` → "Si se compromete la clave".
+- **GitHub** `detrasdelcartelpodcast-rgb` (SSH `github-cartel`), **Vercel** equipo `detrasdelcartel`, **Google Cloud** proyecto `detras-del-cartel`, **Supabase** proyecto `detras-del-cartel` (`wdvvsrikmyorfiimqrkk`).
+- Variables en Vercel (Production): `YOUTUBE_API_KEY`, `VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY` y `SUPABASE_SECRET_KEY`. Cambiar alguna: Settings → Environment Variables → editar → **Redeploy** (solo aplica a despliegues nuevos).
+- En la Mac, las mismas viven en `.env.local` (ignorado por git). Plantilla: `.env.example`.
+
+## Publicar el sitio — botón (27-09-2026)
+En `localhost:5173`, la barra flotante de desarrollo tiene un botón 🚀 que hace todo: comprueba
+la rama, busca claves y archivos prohibidos en lo que se va a subir, corre las 33 pruebas,
+compila, revisa el paquete compilado, hace el commit con el mensaje que escribas, sube a
+GitHub y **verifica en vivo** que Vercel ya sirva esa versión. Frena en el primer problema sin
+publicar nada. Pide tildar que se corrió `/security-review`: **eso no lo reemplaza el botón**.
+
+## El buzón de consultas
+Operación, variables, seguridad y pendientes: **`MODULO_CONSULTAS.md`**. Lo mínimo:
+`/consultas` con el Gmail del podcast; el borde rojo son los que esperan respuesta; ⏰ Vencidas
+son los que tienen fecha pasada; nada se borra (papelera con restaurar); todo se baja a Excel.
+- **Rotar una clave:** ver `SEGURIDAD.md` → "Si se compromete la clave", y `MODULO_CONSULTAS.md` para las de Supabase.
 
 ## 🚀 DÍA DE LANZAMIENTO (paso a paso, en este orden)
 **Antes:** tener 2-3 episodios (o un tráiler) grabados; Daniel valida bios/"Juntos"/Mito.
@@ -45,6 +58,7 @@
 1. Vercel → proyecto → Settings → Domains → agregar `detrasdelcartel.com` (y `www`). Vercel muestra los registros DNS exactos.
 2. Hostinger → Dominios → DNS / zona DNS: reemplazar los registros del "dominio estacionado" (A del dominio y CNAME de `www`) por los que indicó Vercel. El dominio no tiene MX (no se corta ningún correo).
 3. Esperar la propagación (minutos a horas) y verificar HTTPS. Los headers de `vercel.json` aplican igual.
+4. 🔴 **Supabase → Authentication → URL Configuration:** cambiar **Site URL** a `https://detrasdelcartel.com` y dejar la de Vercel en **Redirect URLs**. Si no se hace, el login del buzón rebota.
 
 ## Regenerar el banner de YouTube
 `python3 tools/componer-banner-youtube.py` (editar la ruta de la imagen fuente dentro del script). Salida 2560×1440 con todo el contenido dentro de la zona segura de 1546×423.

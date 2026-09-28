@@ -1,2 +1,8 @@
+# Hoy el sitio entero está cerrado a los buscadores (todavía no se lanzó).
 User-agent: *
 Disallow: /
+
+# AL LANZAR: se borra el "Disallow: /" de arriba, pero ESTAS DOS LÍNEAS QUEDAN.
+# El buzón tiene consultas de personas y nunca se indexa.
+Disallow: /consultas
+Disallow: /api/

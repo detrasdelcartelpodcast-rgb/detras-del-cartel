@@ -1,14 +1,16 @@
 # HANDOVER — Detrás del Cartel
 
-> Última actualización: **2026-09-27**. Frecuencia: cerrado sin acción (ver pendiente 2). Antes, 22-09 (01:20): reescrito completo con el estado real; el deploy del 22-09 ya está hecho y verificado. La bitácora anterior está en el historial de git.
+> Última actualización: **2026-09-27 (noche)**. Se sumó el **módulo de consultas** (formulario que guarda en base + buzón privado `/consultas`): ver `MODULO_CONSULTAS.md`. Frecuencia: cerrado sin acción (pendiente 2). La bitácora anterior está en el historial de git.
 > App **INDEPENDIENTE** del ecosistema Inmovalue: no comparte repo, base, cuentas ni credenciales. Solo cumple las mismas reglas de seguridad.
-> Documentos hermanos: `PLATAFORMAS.md` (cada cuenta, IDs y trampas) · `ARQUITECTURA_APP.md` · `SEGURIDAD.md` · `RUNBOOK.md` (operación y día de lanzamiento) · `../src/assets/logos/LEEME.md` (inventario de logos).
+> Documentos hermanos: `MODULO_CONSULTAS.md` (formulario + buzón + su seguridad) · `PLATAFORMAS.md` (cada cuenta, IDs y trampas) · `ARQUITECTURA_APP.md` · `SEGURIDAD.md` · `RUNBOOK.md` (operación y día de lanzamiento) · `../src/assets/logos/LEEME.md` (inventario de logos).
 
 ## 🚨 ZONA PROHIBIDA
 - **Directorio prohibido de iCloud (carpeta "C"):** ningún proceso lo toca (regla global de Vic).
 - **NO usar las cuentas del ecosistema** (GitHub/Vercel/Supabase de Inmovalue) ni las personales de Vic para esta app. Cuentas propias del podcast (ver `PLATAFORMAS.md`).
 - **NO conectar esta app a ninguna base de datos de otros proyectos.** Si necesita base, una propia.
 - Nunca subir `.env`, claves, tokens ni datos de personas al repo. **La clave de YouTube vive SOLO en Vercel.**
+- 🔴 **La clave SECRETA de Supabase (`SUPABASE_SECRET_KEY`) saltea todos los permisos de la base.** Solo en Vercel y en `.env.local` (que está en `.gitignore`). Nunca al navegador, nunca al repo, nunca a un chat. La `publishable` sí puede andar suelta.
+- 🔴 **`/consultas` y la base tienen datos de personas** (nombre, mail, teléfono, y casos: herencias, divorcios). Antes de tocar cualquier cosa de ese módulo, leer `MODULO_CONSULTAS.md`.
 - **`/security-review` antes de CADA deploy** (regla fija de Vic). Hecho 5 veces (la última el 22-09, antes del deploy del pie `dd4fe38`, sin hallazgos).
 - **No modificar código ni publicar sin OK de Vic.** Proponer primero, mostrar en `localhost:5173`, recién ahí publicar. Lección del 20-09: cuando Vic pidió cambiar un TEXTO, se rediseñó el bloque por iniciativa propia y hubo que deshacerlo.
 - **NUNCA transcribir IDs o enlaces desde una captura de pantalla** (Lección del 21-09: al copiar a mano el ID de Spotify confundí una "l" minúscula con una "I" mayúscula; el botón de la web habría quedado roto incluso con el programa publicado). Pedir siempre que Vic **copie y pegue el texto**, y comparar carácter por carácter.
@@ -17,6 +19,14 @@
 
 ### Producción = local (deploy 1 el 22-09 a las 01:14 ART; corrección del pie a las ~01:25)
 Producción (`https://detras-del-cartel.vercel.app`) está al día con `main`; último cambio de código: **`dd4fe38`** (pie corregido). Antes, el deploy 1 fue `e8aacba`. Se subieron: fondo **crema** de la tarjeta de portada en modo día · corrección **404 → lista vacía** en la API · enlace de **Spotify** activo · documentación. **Verificado en vivo:** página HTTP 200 · `/api/episodios` → **HTTP 200 `{"ok":true,"episodios":[]}`** (antes daba 502: **el fix quedó confirmado**) · CSP/HSTS/`noindex` presentes · 0 violaciones de CSP y 0 recursos rotos en modo día y noche · sin desborde a 1280 px · el JS publicado contiene el enlace de Spotify correcto y 0 ejemplos/0 claves · el CSS publicado tiene la regla del crema. Tarjeta de Spotify **activa** (lleva a "no encontrado" hasta publicar el 1.er episodio); tarjeta de Apple "Próximamente".
+
+### 🆕 MÓDULO DE CONSULTAS (27-09-2026) — hecho y probado en local, SIN PUBLICAR
+El `mailto:` de "Proponé un tema" se reemplazó por un **formulario que guarda en una base
+propia del podcast** (Supabase `detras-del-cartel`, proyecto `wdvvsrikmyorfiimqrkk`), y se
+sumó **`/consultas`**: el buzón privado con login de Google, seguimiento por situación y
+próximo paso, bitácora por consulta, etiquetas de tema, papelera y exportación a Excel.
+Detalle completo, decisiones y pruebas de seguridad en **`MODULO_CONSULTAS.md`**.
+Falta: correr `sql/03_mail_sin_trucos.sql`, cargar las 3 variables en Vercel y publicar.
 
 ### 🚀 DEPLOY 2 PENDIENTE (solo el enlace de Apple)
 **Cuándo:** cuando se haya publicado el primer episodio y se haya enviado el programa a Apple (Apple asigna el número al enviar). **Qué:** pegar el enlace de Apple en `siteConfig.channels` (`id: "apple"`, campo `url`). **Cómo:** `npm run probar` (33 OK) → `npm run build` → `/security-review` → `git push origin main` → verificar en vivo (tarjeta de Apple activa y enlace correcto; `/api/episodios` con el episodio). Detalle en `RUNBOOK.md` → "Día de lanzamiento".
@@ -43,7 +53,8 @@ El **enlace de Apple no existe todavía**: el número lo asigna Apple **al envia
 | Mito o realidad (texto fijo) | ✅ (redactado por Claude; lo valida Vic) |
 | Los Conductores: fotos, bios, franja y "Juntos" | ✅ (Daniel debe validar) |
 | Episodios anteriores (automático desde el 2.º video) | ✅ sin datos reales todavía |
-| Proponé un tema (`mailto:` al Gmail del proyecto) | ✅ |
+| **Escribinos**: formulario con 3 caminos (programa / privada / anónima) que guarda en base | ✅ 27-09, sin publicar (ver `MODULO_CONSULTAS.md`) |
+| **`/consultas`**: buzón privado con login de Google, bitácora, filtros, papelera y Excel | ✅ 27-09, sin publicar |
 | Pie · Barra inferior del celular · Modo día/noche · `noindex` · Headers de seguridad | ✅ |
 
 **Localhost:** mismo código + barra flotante de dispositivos (solo dev) + `?demo=1` (episodios de ejemplo) + `?produccion=1` (vista "en construcción").
@@ -74,6 +85,9 @@ El **enlace de Apple no existe todavía**: el número lo asigna Apple **al envia
 `Vercel /api/episodios` → YouTube Data API v3 (clave `YOUTUBE_API_KEY`) → caché 5 min → `src/Episodios.jsx`. Muestra videos **públicos e insertables** del canal (máx. 12). Título `#5 · Algo` → "Nº 5". **Resumen = las 2 primeras líneas de la descripción del video** (escribir ARRIBA 2 líneas propias y DEBAJO el texto fijo del canal). Muestra la duración ("fecha · 0:11": es la DURACIÓN, no la hora). Si la API falla o falta la clave, cae al feed público (`videos.xml`), que YouTube rompió el 1-3 sep 2026; si todo falla → "Muy pronto". Un video privado o no listado NO aparece (a propósito). Detalle técnico en `ARQUITECTURA_APP.md`.
 
 ## 🔴 TRAMPAS Y LECCIONES
+- **Un dato de afuera que termina dentro de una dirección hay que CODIFICARLO, aunque "ya esté validado".** El 27-09 la validación del mail dejaba pasar `victima@mail.com?bcc=otro%40evil.com`: al responder desde el buzón, el correo salía con copia oculta a un tercero. Lo encontró `/security-review`, no las pruebas. Vale para `mailto:`, `https://` y `tel:`.
+- **En Supabase, "Allow new users to sign up" hay que dejarlo PRENDIDO hasta el primer ingreso de cada uno**: el usuario se crea recién al entrar la primera vez. Si se apaga antes, te rechaza a vos mismo.
+- **Esconder una dirección no es seguridad.** `/consultas` puede ser adivinable: lo que protege es que la base no le entrega filas a quien no está en `autorizados`. El `noindex` es higiene, no candado.
 - **IDs y enlaces: nunca transcribirlos desde una captura** (I mayúscula / l minúscula / 1 / O / 0 se confunden). Ver "Zona prohibida".
 - **La traducción automática de Chrome rompe los formularios de Spotify y de Apple** (botones "Siguiente"/"Guardar" que no responden o dan "Algo salió mal"). Apagarla ("Mostrar original") y recargar.
 - **Código que entrega Stitch/Gemini "en React/SVG" NO es fiel al diseño** (es una recreación imprecisa). La fuente de verdad es la IMAGEN. En Stitch: Exportar → `.zip` → `screen.png` (1024 px, sin transparencia; siempre se llama igual: renombrar).
@@ -88,6 +102,7 @@ El **enlace de Apple no existe todavía**: el número lo asigna Apple **al envia
 - **No usar el iPhone personal para aceptar términos de Apple** (cambia la cuenta de compras del teléfono).
 
 ## 🟡 PENDIENTES (por prioridad)
+-1. **Publicar el módulo de consultas**: correr `sql/03_mail_sin_trucos.sql`, cargar `VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY` y `SUPABASE_SECRET_KEY` en Vercel, publicar, entrar una vez a `/consultas` en producción y recién ahí apagar los registros nuevos en Supabase. Lista completa en `MODULO_CONSULTAS.md`.
 0. **Deploy 2** (ver arriba): solo el enlace de Apple, cuando exista. (El deploy 1 —crema, fix de la API y enlace de Spotify— ya está hecho.)
 1. **Confirmar la restricción de la clave** de Google Cloud (solo "YouTube Data API v3") y el 2FA de la cuenta de Vercel; sumar un 2.º teléfono de confianza a la cuenta de Apple.
 2. ~~**Decidir la frecuencia**~~ **SIN ACCIÓN (Vic, 27-09-2026).** La frecuencia prevista es **quincenal** (12 episodios en 6 meses, 20-25 min) y **no hay nada que corregir**: la única frase publicada es "Nuevos **episodios** todos los meses" —en el banner del canal y en la última línea de la descripción de YouTube—, que **está en plural y significa "todos los meses hay episodios nuevos"**, no "uno por mes". Es compatible con quincenal. Decisión: **dejarla así**, sin decir "cada 15 días" (el banner es una imagen: comprometer un ritmo por escrito antes de arrancar ata sin necesidad). La web NO menciona frecuencia en ningún lado (verificado). La contradicción "todos los meses"/"cada semana" existe solo en `src/assets/banners/banner-youtube-v2.jpg`, que **no está publicado**; el subido al canal (2560×1440) tiene solo la línea plural.

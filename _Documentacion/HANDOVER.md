@@ -20,13 +20,17 @@
 ### Producción = local (deploy 1 el 22-09 a las 01:14 ART; corrección del pie a las ~01:25)
 Producción (`https://detras-del-cartel.vercel.app`) está al día con `main`; último cambio de código: **`dd4fe38`** (pie corregido). Antes, el deploy 1 fue `e8aacba`. Se subieron: fondo **crema** de la tarjeta de portada en modo día · corrección **404 → lista vacía** en la API · enlace de **Spotify** activo · documentación. **Verificado en vivo:** página HTTP 200 · `/api/episodios` → **HTTP 200 `{"ok":true,"episodios":[]}`** (antes daba 502: **el fix quedó confirmado**) · CSP/HSTS/`noindex` presentes · 0 violaciones de CSP y 0 recursos rotos en modo día y noche · sin desborde a 1280 px · el JS publicado contiene el enlace de Spotify correcto y 0 ejemplos/0 claves · el CSS publicado tiene la regla del crema. Tarjeta de Spotify **activa** (lleva a "no encontrado" hasta publicar el 1.er episodio); tarjeta de Apple "Próximamente".
 
-### 🆕 MÓDULO DE CONSULTAS (27-09-2026) — hecho y probado en local, SIN PUBLICAR
+### 🆕 MÓDULO DE CONSULTAS (27-09-2026) — PUBLICADO Y FUNCIONANDO
 El `mailto:` de "Proponé un tema" se reemplazó por un **formulario que guarda en una base
 propia del podcast** (Supabase `detras-del-cartel`, proyecto `wdvvsrikmyorfiimqrkk`), y se
 sumó **`/consultas`**: el buzón privado con login de Google, seguimiento por situación y
 próximo paso, bitácora por consulta, etiquetas de tema, papelera y exportación a Excel.
 Detalle completo, decisiones y pruebas de seguridad en **`MODULO_CONSULTAS.md`**.
-Falta: correr `sql/03_mail_sin_trucos.sql`, cargar las 3 variables en Vercel y publicar.
+**Publicado y verificado en vivo el 27-09:** el formulario guarda de verdad, `/consultas` entra
+con la cuenta del proyecto y una cuenta ajena ve "esta cuenta no tiene acceso". Base limpia
+(se borraron las consultas de prueba), registros nuevos apagados en Supabase y política de
+privacidad en `/privacidad`. **Los dos entran con la MISMA cuenta** (la del proyecto): no se
+suma a Daniel aparte, con el costo de que la bitácora no distingue quién anotó qué.
 
 ### 🚀 DEPLOY 2 PENDIENTE (solo el enlace de Apple)
 **Cuándo:** cuando se haya publicado el primer episodio y se haya enviado el programa a Apple (Apple asigna el número al enviar). **Qué:** pegar el enlace de Apple en `siteConfig.channels` (`id: "apple"`, campo `url`). **Cómo:** `npm run probar` (33 OK) → `npm run build` → `/security-review` → `git push origin main` → verificar en vivo (tarjeta de Apple activa y enlace correcto; `/api/episodios` con el episodio). Detalle en `RUNBOOK.md` → "Día de lanzamiento".
@@ -103,7 +107,6 @@ El **enlace de Apple no existe todavía**: el número lo asigna Apple **al envia
 - **No usar el iPhone personal para aceptar términos de Apple** (cambia la cuenta de compras del teléfono).
 
 ## 🟡 PENDIENTES (por prioridad)
--1. **Publicar el módulo de consultas**: correr `sql/03_mail_sin_trucos.sql`, cargar `VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY` y `SUPABASE_SECRET_KEY` en Vercel, publicar, entrar una vez a `/consultas` en producción y recién ahí apagar los registros nuevos en Supabase. Lista completa en `MODULO_CONSULTAS.md`.
 0. **Deploy 2** (ver arriba): solo el enlace de Apple, cuando exista. (El deploy 1 —crema, fix de la API y enlace de Spotify— ya está hecho.)
 1. **Confirmar la restricción de la clave** de Google Cloud (solo "YouTube Data API v3") y el 2FA de la cuenta de Vercel; sumar un 2.º teléfono de confianza a la cuenta de Apple.
 2. ~~**Decidir la frecuencia**~~ **SIN ACCIÓN (Vic, 27-09-2026).** La frecuencia prevista es **quincenal** (12 episodios en 6 meses, 20-25 min) y **no hay nada que corregir**: la única frase publicada es "Nuevos **episodios** todos los meses" —en el banner del canal y en la última línea de la descripción de YouTube—, que **está en plural y significa "todos los meses hay episodios nuevos"**, no "uno por mes". Es compatible con quincenal. Decisión: **dejarla así**, sin decir "cada 15 días" (el banner es una imagen: comprometer un ritmo por escrito antes de arrancar ata sin necesidad). La web NO menciona frecuencia en ningún lado (verificado). La contradicción "todos los meses"/"cada semana" existe solo en `src/assets/banners/banner-youtube-v2.jpg`, que **no está publicado**; el subido al canal (2560×1440) tiene solo la línea plural.

@@ -106,8 +106,18 @@ escribió el otro. La última anotación se ve en la lista, con un ✎ adelante.
 Anotar algo pasa la consulta de "nueva" a "en curso" sola.
 
 ### `autorizados`
-Quién puede ver el buzón. Hoy: el Gmail del podcast. **Para sumar a Daniel es una línea**
-(`insert into autorizados …`), sin tocar políticas ni cambiarle la clave a nadie.
+Quién puede ver el buzón. **Decisión de Vic (27-09): los dos entran con la MISMA cuenta, la del
+proyecto (`detrasdelcartelpodcast@gmail.com`), que ya comparten.** No se suma a Daniel como
+usuario aparte.
+
+Qué implica, para tenerlo claro:
+- ✅ Más simple: no hay que prender los registros nuevos para el primer ingreso de nadie, y
+  "Allow new users to sign up" queda apagado para siempre.
+- ⚠️ **La bitácora no distingue quién escribió cada anotación**: todas van firmadas con la
+  dirección del proyecto. El sistema está preparado para firmar por persona (la base impide
+  anotar en nombre de otro), pero con una cuenta compartida esa ventaja no se usa. Si algún día
+  quieren saber quién anotó qué, se agrega la dirección personal de cada uno con una línea
+  (`insert into autorizados …`) y hay que prender los registros nuevos para ese primer ingreso.
 
 ---
 
@@ -208,11 +218,11 @@ precisión, pero la inscripción de bases de datos ante la AAIP conviene confirm
 profesional.
 
 ## Pendientes de este módulo
-- [ ] Correr `sql/03_mail_sin_trucos.sql` en Supabase (la corrección ya está en el código).
-- [ ] Cargar las tres variables en Vercel antes del deploy.
-- [ ] Primer login de Vic (y de Daniel) y **recién después** apagar los registros nuevos.
-- [ ] Borrar las consultas de prueba (`Prueba 1…4`) desde la papelera del buzón.
-- [ ] Sumar a Daniel a `autorizados` cuando corresponda.
+- [x] Correr `sql/03_mail_sin_trucos.sql` en Supabase — hecho el 27-09.
+- [x] Cargar las tres variables en Vercel — hechas (las dos `VITE_` como *Config*, la secreta como *Secret*).
+- [x] Primer login y apagado de los registros nuevos — hecho el 27-09.
+- [x] Borrar las consultas de prueba — hecho el 27-09: la base quedó vacía, lista para las reales.
+- [x] ~~Sumar a Daniel a `autorizados`~~ — no hace falta: entran los dos con la cuenta del proyecto (Vic, 27-09).
 - [ ] Al conectar el dominio: cambiar la **Site URL** de Supabase a `https://detrasdelcartel.com`
       y dejar la de Vercel en Redirect URLs. **Si no se hace, el login rebota.**
 - [ ] Revisar los **Security Advisors** de Supabase cada tanto (panel → Advisors).

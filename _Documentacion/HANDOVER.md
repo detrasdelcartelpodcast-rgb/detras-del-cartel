@@ -141,3 +141,84 @@ El **enlace de Apple no existe todavía**: el número lo asigna Apple **al envia
 | Esta web (código, textos, deploy, YouTube, Spotify, Apple) | Chat abierto en `detras-del-cartel` |
 | Panel de apps (8002) y neurona | `inmovalue-brain-app` |
 | Ecosistema Inmovalue (CRM, webpage, etc.) | Sus propios chats. Esta app no interviene. |
+
+
+---
+
+## 🌐 Acceso remoto desde la MacBook Air y el celular (2026-10-06)
+
+Esta app se abre desde el **menú del ecosistema** (brain-app, puerto 8002), que es el
+punto de entrada único al ecosistema desde afuera:
+
+    http://macbook-pro-de-victor.tail460b3a.ts.net:8002     → botón "▶ Abrir" de esta app
+    (también responde el nombre corto: http://macbook-pro-de-victor:8002)
+
+El menú la levanta si está apagada, espera a que el puerto conteste y redirige solo. La
+app queda en el puerto **5173**, con el mismo host por el que se entró al menú.
+
+### 🔴 Su `start.command` cambió: ya no abre el navegador cuando lo lanza el menú
+
+El script terminaba con `open http://localhost:<puerto>`, y ese `open` corre **en la Mac
+que ejecuta la app**. Al abrirla desde la MacBook Air, la pestaña se abría en la Air (bien)
+y además una de más en el Mac Pro, que no servía a nadie y se acumulaba.
+
+Ahora ese `open` está dentro de `if [ -z "$BRAIN_LAUNCH" ]`:
+
+| Cómo se lanza | ¿Abre navegador en esta Mac? |
+|---|---|
+| Desde el menú del 8002 (pasa `BRAIN_LAUNCH=1`) | **No** — la pestaña se abre donde se apretó |
+| Doble clic desde Finder | **Sí**, igual que siempre |
+
+**No borrar ni "simplificar" esa condición.** Si se saca, vuelven las pestañas sueltas.
+
+### Cómo la levanta el menú
+
+- Ejecuta este `start.command` con `zsh -lc`, **no con `open`**: así no se abre ninguna
+  ventana de Terminal. Lo que antes se veía en esa ventana va a
+  `inmovalue-brain-app/.logs/<app>.log`.
+- **Si la app ya responde en su puerto, el menú NO ejecuta el script.** Importa porque
+  este `start.command` hace `kill -9` del proceso del puerto y lo relanza: sin ese
+  chequeo, apretar "Abrir" sobre una app que estaba funcionando la tiraba abajo.
+- Le pasa un **entorno limpio** (HOME, USER, LOGNAME, PATH, SHELL, LANG, TMPDIR,
+  NODE_ENV, BRAIN_LAUNCH), no el del menú. Heredar el entorno del menú rompía la
+  configuración de las apps: Next no sobrescribe una variable que ya viene del entorno.
+- El puerto sale de `inmovalue-brain-app/neuronas/apps/<app>.md` (campo `puerto:`) y la
+  app tiene que estar en el `COMMAND_MAP` de `api/launch/route.ts`. Sin lo primero no hay
+  link; sin lo segundo, "Abrir" responde *App desconocida*.
+
+### Esta app escucha solo en 127.0.0.1 → va por Tailscale Serve
+
+No está abierta a la red: se publica dentro del tailnet con
+
+    tailscale serve --bg --http=5173 http://127.0.0.1:5173
+
+Ya está configurado y persiste entre reinicios. **Serve responde al NOMBRE del tailnet,
+no a la IP `100.x`**: por IP devuelve `404 page not found` (lo contesta Tailscale, no la
+app, y parece un error de la app). El menú traduce la IP al nombre solo, así que
+entrando por el menú da igual.
+
+### Se puede bajar desde el menú
+
+El botón **⏹** de su tarjeta la detiene: busca quién escucha su puerto con
+`lsof -ti:<puerto>` y le manda SIGTERM. Pide confirmación. Hace falta porque sin
+ventana de Terminal no hay otra forma de pararla.
+
+### 🔴 Vite BLOQUEA los hosts que no conoce (Next solo avisa)
+
+Entrar por Tailscale devolvía `Blocked request. This host (...) is not allowed` en lugar
+del sitio: es la defensa de Vite contra DNS rebinding. **Esta era la única app del
+ecosistema que fallaba al abrirse desde el menú.** Resuelto con `server.allowedHosts`
+en `vite.config.js` — solo afecta al servidor de desarrollo, **no al build ni a Vercel**.
+
+Si cambia el nombre del tailnet, actualizar esa lista. Toda app nueva con Vite necesita
+lo mismo.
+
+### Qué NO cambió
+
+- La app, su código y sus datos: intactos.
+- El doble clic del `start.command` desde Finder: igual que siempre.
+- **Las pestañas son independientes, los datos no.** Lo que se hace desde la Air queda
+  guardado en el Mac que corre la app y se ve desde el Pro al recargar; lo único que no
+  se comparte es la ventana del navegador.
+
+Detalle completo y las trampas de la sesión: `inmovalue-brain-app/_Info Proyecto/HANDOVER.md`.

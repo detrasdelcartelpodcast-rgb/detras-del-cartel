@@ -83,4 +83,17 @@ function apiConsultaLocal() {
 
 export default defineConfig({
   plugins: [react(), purgarImagenesSinUso(), apiLocal(), apiConsultaLocal(), publicarLocal()],
+
+  // SOLO para el servidor de desarrollo (no afecta el build ni lo que corre en Vercel).
+  // Vite rechaza cualquier pedido cuyo Host no reconozca — es su defensa contra DNS
+  // rebinding — y responde "Blocked request. This host is not allowed". Sin esto, entrar
+  // desde la MacBook Air o el celular por Tailscale muestra ese error en vez del sitio.
+  // A diferencia de Next, que solo tira un warning, Vite lo bloquea de verdad.
+  // Si cambia el nombre del tailnet, actualizar esta lista.
+  server: {
+    allowedHosts: [
+      'macbook-pro-de-victor',
+      'macbook-pro-de-victor.tail460b3a.ts.net',
+    ],
+  },
 })

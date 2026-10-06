@@ -67,4 +67,17 @@ son los que tienen fecha pasada; nada se borra (papelera con restaurar); todo se
 Seleccionar la pantalla → Exportar → `.zip` → `screen.png` (1024 px). Renombrar al bajarlo. Pedir **imagen**, no "React/SVG" (ver `HANDOVER.md`, trampas).
 
 ## Backup
-Decisión pendiente de Vic. Hoy: la Mac (Time Machine) + el repo privado de GitHub.
+**Resuelto el 01-10-2026** (antes decía "decisión pendiente"): la app entró al Disaster Recovery
+de iCloud como todas las demás.
+- **ZIP semanal** del código con `node_modules` (sin `.git` ni `.next`) →
+  `Disaster Recovery Backup/detras-del-cartel/detras-del-cartel_app_YYYY-MM-DD.zip`, 3 versiones.
+- **`.env.local`** → dentro de `Secrets/envs_YYYY-MM-DD.tar.gz` (es lo único que no está en GitHub).
+- Lo arma `_scripts/backup_inmovalue.sh`: la app está en la lista única `APPS_BACKUP`.
+- El código además vive en el repo privado de GitHub (`detrasdelcartelpodcast-rgb`).
+
+🔴 **PENDIENTE — la base del buzón de consultas NO tiene backup.** Este proyecto usa su **propio**
+Supabase (`wdvvsrikmyorfiimqrkk`), distinto del de Inmovalue. El dump diario del backup cubre
+sólo la base de `inmovalue-crm`, así que las consultas que entran por `/consultas` (datos de
+personas reales) hoy dependen únicamente de Supabase. Para cubrirlo hace falta la cadena de
+conexión PostgreSQL de ese proyecto (Supabase → Settings → Database → Connection string) en
+`~/.inmovalue_secrets` como `PG_BACKUP_URL_CARTEL`.

@@ -20,7 +20,7 @@
 | Instagram | ✅ cuenta creada, PRIVADA | bio con "lado B", foto de perfil, hacerla pública al lanzar |
 | Spotify for Creators | ✅ programa creado y configurado, **sin publicar** | publicar el 1.er episodio (crea el feed RSS) |
 | Apple Podcasts Connect | ✅ cuenta activa, **sin programa** | enviar el programa con el feed; anotar el número que asigna Apple |
-| Hostinger (dominio) | 🟡 `detrasdelcartel.com` estacionado | apuntar DNS a Vercel |
+| Hostinger (dominio) | ✅ **`detrasdelcartel.com` conectado (11-10-2026)** | — |
 | Gmail del proyecto | ✅ `detrasdelcartelpodcast@gmail.com` | — |
 
 ## GitHub
@@ -84,3 +84,48 @@
 
 ## Gmail del proyecto
 `detrasdelcartelpodcast@gmail.com`: cuenta de Google del canal, de Google Cloud, de Spotify (por Google), de Apple y contacto público de la web ("Proponé un tema" abre un `mailto:` a esta dirección). Alternativa futura: Google Forms.
+
+
+---
+
+## 🌐 EL DOMINIO PROPIO — conectado el 11-10-2026
+
+**La dirección del sitio es `https://detrasdelcartel.com`.** `www` redirige ahí con un 308
+permanente, y `detras-del-cartel.vercel.app` sigue funcionando.
+
+### Cómo quedó armado
+
+| Dónde | Qué |
+|---|---|
+| **Vercel → Domains** | `detrasdelcartel.com` conectado a Production · `www.detrasdelcartel.com` con **Redirect 308** a la corta |
+| **Hostinger → DNS** | `A` `@` → `216.198.79.1` · `CNAME` `www` → `281ef29e7df6e947.vercel-dns-017.com.` · los dos con TTL 300 |
+| **Nameservers** | **Siguen en Hostinger** (`lunar`/`solar.dns-parking.com`). Se cambiaron sólo los registros, para no perder el control del DNS si algún día hace falta correo en el dominio |
+| **Certificado** | Let's Encrypt, emitido solo por Vercel a los ~10 segundos del cambio de DNS |
+
+### 🔴 Las tres trampas de este trámite
+
+1. **El orden entre el apex y el www.** Vercel configuró solo `detrasdelcartel.com` → 308 → `www`,
+   que es al revés de lo que se quería. Para darlo vuelta hay que hacerlo **en este orden**:
+   primero poner el apex en *Connect to an environment → Production*, y **después** poner el www
+   en *Redirect to Another Domain*. Al revés —www apuntando al apex mientras el apex todavía
+   apunta al www— queda un **bucle** y no abre ninguna de las dos.
+2. **El Site URL de Supabase se cambia AL FINAL**, cuando el dominio ya responde. Antes, deja el
+   buzón sin login por ninguna de las dos direcciones.
+3. **Hay que agregar la dirección de Vercel a los Redirect URLs de Supabase.** Hasta ese día
+   funcionaba *porque era el Site URL*, y Supabase lo permite automáticamente. Al cambiar el
+   Site URL al dominio nuevo, la vieja deja de estar permitida y el login por ahí se corta sin
+   que nada lo avise.
+
+### Lo que NO hizo falta tocar
+**Google Cloud.** El login vuelve a `…supabase.co/auth/v1/callback`, no al dominio del sitio, así
+que el cambio no lo afecta. Verificado interceptando el salto a Google desde las dos direcciones.
+
+### Verificado desde afuera el 11-10-2026
+Las 3 páginas y el endpoint en 200 por el dominio nuevo · `www` devuelve 308 a la corta ·
+certificado válido hasta el 9-1-2027 · las 4 cabeceras de seguridad llegan iguales que antes ·
+el botón de Google salta bien **por las dos direcciones**.
+
+### Pendiente
+- `siteConfig.contact.website` y el `WEB` del botón de publicar ya apuntan al dominio nuevo.
+- **El `noindex` se mantiene**: el podcast todavía no lanzó. Al lanzar hay que sacarlo de las
+  tres capas (ver el HANDOVER), dejando `/privacidad` indexable y `/consultas` nunca.

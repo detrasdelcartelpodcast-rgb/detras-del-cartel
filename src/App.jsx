@@ -197,7 +197,7 @@ export const siteConfig = {
   contact: {
     email: "detrasdelcartelpodcast@gmail.com",
     city: "Buenos Aires, Argentina",
-    website: "www.detrasdelcartel.com"
+    website: "detrasdelcartel.com"   // sin www: el www redirige acá (11-10-2026)
   }
 };
 

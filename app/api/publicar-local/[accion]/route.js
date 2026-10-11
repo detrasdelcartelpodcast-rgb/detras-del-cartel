@@ -39,7 +39,10 @@ const EN_PRODUCCION = process.env.NODE_ENV === 'production'
 const TOKEN = randomUUID()
 const RAIZ = process.cwd()
 const RAMA = 'main'
-const WEB = 'https://detras-del-cartel.vercel.app'
+/* 11-10-2026: el dominio propio quedó conectado. Esta dirección es contra la que el botón
+   pregunta, después de publicar, si la web ya está sirviendo la versión nueva. Si quedara la
+   de Vercel, seguiría verificando una dirección que funciona pero que ya no es la del sitio. */
+const WEB = 'https://detrasdelcartel.com'
 // Carpeta aparte para la compilación de control: no puede pisar la que usa el
 // servidor de desarrollo que Vic tiene abierto en el navegador.
 const COMPILADO = '.next-publicar'

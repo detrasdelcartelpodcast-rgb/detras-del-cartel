@@ -23,14 +23,56 @@ const letraColumna = (i) => {
   return s;
 };
 
+/* 🔴 UNA FECHA TIENE QUE SER UNA FECHA, NO UN TEXTO (11-10-2026).
+
+   Hasta hoy todas las celdas se escribían como texto. Una fecha en texto con formato
+   «11/10/2026» se LEE bien pero se ORDENA mal: Excel la compara letra por letra, así que el
+   1 de diciembre le queda antes que el 2 de enero. Como la exportación existe justamente para
+   poder ordenar y filtrar, eso la rompía en lo único que importa.
+
+   Ahora se marcan con `Fecha(...)` y se escriben como número con formato de fecha, que es lo
+   que Excel entiende. Se ven como dd/mm/aaaa y se ordenan de verdad.
+
+   El número es la cantidad de días desde el 31-12-1899, que es la cuenta que usa Excel. */
+export class Fecha {
+  constructor(iso) { this.iso = iso; }
+  get serie() {
+    const v = String(this.iso || '');
+
+    /* 🔴 UNA FECHA SIN HORA NO PASA POR LA ZONA HORARIA. Las fechas tipo «2026-12-01»
+       —el recordatorio, por ejemplo— las interpreta JavaScript como medianoche UTC, que acá
+       es el día ANTERIOR a las 21. Convertidas así, un recordatorio para el 1° aparecía
+       como 30/11. Se toman los números tal como están escritos y listo.
+       (Encontrado el 11-10-2026 probando el archivo generado, no leyendo el código.) */
+    const soloFecha = v.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if (soloFecha) {
+      const [, a, m, d] = soloFecha;
+      return Date.UTC(+a, +m - 1, +d) / 86400000 + 25569;
+    }
+
+    /* Las que SÍ tienen hora se pasan al día local (GMT-3, como todo el ecosistema): una
+       consulta de las 21 h tiene que quedar en su día, no en el siguiente. */
+    const d = new Date(v);
+    if (isNaN(d)) return null;
+    return Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()) / 86400000 + 25569;
+  }
+}
+
 function hojaXml(filas, anchos) {
   const cols = anchos.map((ancho, i) => `<col min="${i + 1}" max="${i + 1}" width="${ancho}" customWidth="1"/>`).join('');
   const cuerpo = filas
     .map((fila, f) => {
       const celdas = fila
         .map(
-          (valor, c) =>
-            `<c r="${letraColumna(c)}${f + 1}" t="inlineStr" s="${f === 0 ? 1 : 0}"><is><t xml:space="preserve">${escaparXml(valor)}</t></is></c>`
+          (valor, c) => {
+            const ref = `${letraColumna(c)}${f + 1}`;
+            if (valor instanceof Fecha) {
+              const n = valor.serie;
+              // Si la fecha no se pudo interpretar, celda vacía antes que un número raro.
+              return n === null ? `<c r="${ref}" s="2"/>` : `<c r="${ref}" s="2"><v>${n}</v></c>`;
+            }
+            return `<c r="${ref}" t="inlineStr" s="${f === 0 ? 1 : 0}"><is><t xml:space="preserve">${escaparXml(valor)}</t></is></c>`;
+          }
         )
         .join('');
       return `<row r="${f + 1}">${celdas}</row>`;
@@ -50,7 +92,7 @@ const ARCHIVOS_FIJOS = {
   'xl/_rels/workbook.xml.rels': `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/><Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>`,
   'xl/styles.xml': `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><fonts count="2"><font><sz val="11"/><name val="Calibri"/></font><font><b/><sz val="11"/><name val="Calibri"/></font></fonts><fills count="2"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill></fills><borders count="1"><border><left/><right/><top/><bottom/><diagonal/></border></borders><cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs><cellXfs count="2"><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0" applyAlignment="1"><alignment vertical="top" wrapText="1"/></xf><xf numFmtId="0" fontId="1" fillId="0" borderId="0" xfId="0" applyFont="1"/></cellXfs><cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles></styleSheet>`,
+<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><numFmts count="1"><numFmt numFmtId="164" formatCode="dd/mm/yyyy"/></numFmts><fonts count="2"><font><sz val="11"/><name val="Calibri"/></font><font><b/><sz val="11"/><name val="Calibri"/></font></fonts><fills count="2"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill></fills><borders count="1"><border><left/><right/><top/><bottom/><diagonal/></border></borders><cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs><cellXfs count="3"><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0" applyAlignment="1"><alignment vertical="top" wrapText="1"/></xf><xf numFmtId="0" fontId="1" fillId="0" borderId="0" xfId="0" applyFont="1"/><xf numFmtId="164" fontId="0" fillId="0" borderId="0" xfId="0" applyNumberFormat="1" applyAlignment="1"><alignment vertical="top"/></xf></cellXfs><cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles></styleSheet>`,
 };
 
 // ── Mini-ZIP sin compresión ──────────────────────────────────────────────────

@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Star, Trash2, RotateCcw, Download, LogOut, Loader2, MessageSquare, Phone, Mail, Send, AlarmClock, Lock } from 'lucide-react';
 import { supabase, hayConfiguracion, entrarConGoogle, salir } from './lib/supabase';
-import { descargarExcel } from './lib/excel';
+import { descargarExcel, Fecha } from './lib/excel';
 import { enlaceWhatsApp } from '../lib/telefono';
 
 /* 🔴 DESDE QUÉ CUENTA SE CONTESTA (Vic, 11-10-2026: «debería enviarse desde esa»).
@@ -54,6 +54,14 @@ const DESENLACES = [
   { id: 'duplicada', texto: 'Duplicada de otra' },
 ];
 
+/* Los dos entran con la MISMA cuenta del proyecto, así que la base no tiene cómo saber quién
+   es quién. Esto se elige a mano. No es para auditar: es para repartirse el trabajo y que no
+   contesten los dos —o ninguno, cada uno suponiendo que el otro ya lo hizo—. */
+const PERSONAS = [
+  { id: 'vic', texto: 'Vic' },
+  { id: 'daniel', texto: 'Dani' },
+];
+
 const ROTULO = { programa: 'PARA EL PROGRAMA', privado: 'PIDE RESPUESTA', anonimo: 'ANÓNIMA' };
 const COLOR_TIPO = {
   programa: 'bg-sky-400/15 text-sky-400',
@@ -77,12 +85,27 @@ export default function Consultas() {
   const [consultas, setConsultas] = useState([]);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState('');
-  const [filtro, setFiltro] = useState('todas');
+  /* 🔴 UN FILTRO POR PREGUNTA, no uno solo (11-10-2026). Antes había un único `filtro` con
+     nueve valores posibles y excluyentes entre sí: elegir "Piden respuesta" apagaba "Vencidas".
+     Con pocas consultas no se notaba; con cincuenta, la pregunta real —«las privadas que están
+     vencidas»— no se podía hacer. Ahora son cuatro preguntas distintas que se SUMAN. */
+  const [fHacer, setFHacer] = useState('todo');     // qué hay que hacer: vencidas o próximo paso
+  const [fEstado, setFEstado] = useState('abiertas'); // nuevas / en curso / cerradas
+  const [fTipo, setFTipo] = useState('todos');      // privado / programa / anonimo
+  const [fPrior, setFPrior] = useState(false);      // sólo las marcadas con estrella
+  const [fQuien, setFQuien] = useState('todos');    // vic / daniel / sin_tomar
+  const [fFin, setFFin] = useState('todos');        // cómo terminó
+  const [fPermiso, setFPermiso] = useState('todos'); // si se puede contar al aire
+  const [enPapelera, setEnPapelera] = useState(false);
   const [etiqueta, setEtiqueta] = useState(null);
   const [busca, setBusca] = useState('');
   const [abierta, setAbierta] = useState(null);
   const [elegidas, setElegidas] = useState(() => new Set());
   const [periodo, setPeriodo] = useState('todo');
+  /* Las dos puntas del rango, cuando se elige «Entre fechas». Van aparte de `periodo`
+     para que elegir «Últimos 7 días» y volver no borre lo que ya se había escrito. */
+  const [desdeF, setDesdeF] = useState('');
+  const [hastaF, setHastaF] = useState('');
   const [notas, setNotas] = useState({}); // { consulta_id: [anotaciones] }
 
   // Esta pantalla no se indexa nunca, ni cuando el resto del sitio se abra a Google.
@@ -154,13 +177,25 @@ export default function Consultas() {
     setConsultas((cs) => cs.map((c) => (c.id === id ? { ...c, ...cambios } : c)));
     const { error } = await supabase.from('consultas').update(cambios).eq('id', id);
     if (error) {
-      setError('No se pudo guardar: ' + error.message);
+      /* 🔴 El aviso de la columna recién creada. Después de agregar una columna, Supabase
+         tarda unos segundos en enterarse y rechaza lo que la usa. No está roto: hay que
+         esperar. Se dice, porque el mensaje crudo —«schema cache»— no se entiende. */
+      const recienCreada = /schema cache|Could not find the/i.test(error.message);
+      setError(
+        recienCreada
+          ? 'Todavía no se puede guardar ese campo: la base acaba de cambiar y tarda unos segundos en enterarse. Probá de nuevo en un momento.'
+          : 'No se pudo guardar: ' + error.message
+      );
       traer();
+    } else {
+      /* 🔴 Y se borra al primer guardado que SÍ funciona. Antes no se borraba nunca: una
+         falla de hace media hora quedaba en pantalla y parecía que nada andaba, aunque todo
+         se estuviera guardando bien. Le pasó a Vic el 11-10-2026. */
+      setError('');
     }
   }
 
   const vivas = useMemo(() => consultas.filter((c) => !c.borrada), [consultas]);
-  const enPapelera = filtro === 'papelera';
 
   const cuenta = useMemo(() => {
     const t = {};
@@ -174,27 +209,89 @@ export default function Consultas() {
 
   const visibles = useMemo(() => {
     const texto = busca.trim().toLowerCase();
-    const desde = { '7dias': 7, '30dias': 30 }[periodo];
-    const corte = desde ? Date.now() - desde * 86400000 : null;
+    const dias = { '7dias': 7, '30dias': 30 }[periodo];
+    const corte = dias ? Date.now() - dias * 86400000 : null;
 
     return consultas.filter((c) => {
       if (Boolean(c.borrada) !== enPapelera) return false;
       if (corte && new Date(c.creado_en).getTime() < corte) return false;
-      if (filtro === 'prioritarias' && !c.prioritaria) return false;
-      if (filtro === 'vencidas' && !estaVencida(c)) return false;
-      if (filtro === 'pendientes' && (c.situacion === 'cerrada' || !c.proximo_paso)) return false;
-      if (filtro === 'cerradas' && c.situacion !== 'cerrada') return false;
-      if (['programa', 'privado', 'anonimo'].includes(filtro) && c.tipo !== filtro) return false;
-      if (filtro !== 'cerradas' && !enPapelera && c.situacion === 'cerrada') return false;
+      /* El rango se compara por día (los primeros 10 caracteres de la fecha), no por hora:
+         si uno pone «hasta el 11» espera que entren las del 11, no las anteriores a las 00:00
+         del 11. Cada punta es opcional: se puede poner sólo «desde» o sólo «hasta». */
+      if (periodo === 'rango') {
+        const dia = String(c.creado_en).slice(0, 10);
+        if (desdeF && dia < desdeF) return false;
+        if (hastaF && dia > hastaF) return false;
+      }
+
+      // ── qué hay que hacer ──
+      if (fHacer === 'vencidas' && !estaVencida(c)) return false;
+      if (fHacer === 'sin_definir' && (c.proximo_paso || c.situacion === 'cerrada')) return false;
+      if (fHacer.startsWith('paso:') && c.proximo_paso !== fHacer.slice(5)) return false;
+
+      // ── estado ──
+      if (fEstado === 'abiertas' && c.situacion === 'cerrada') return false;
+      if (fEstado === 'nuevas' && c.situacion !== 'nueva') return false;
+      if (fEstado === 'en_curso' && c.situacion !== 'en_curso') return false;
+      if (fEstado === 'cerradas' && c.situacion !== 'cerrada') return false;
+
+      // ── tipo ──
+      if (fTipo !== 'todos' && c.tipo !== fTipo) return false;
+
+      if (fFin !== 'todos' && c.desenlace !== fFin) return false;
+      /* «Puedo contarlo» mira el permiso que dio la persona al escribir. Las privadas no
+         entran nunca: dijeron que no sale al aire, y el campo está en false justamente por
+         eso (lo fuerza el servidor). Incluirlas acá sería contradecir lo que se les prometió. */
+      if (fPermiso === 'si' && (!c.permiso_uso || c.tipo === 'privado')) return false;
+      if (fPermiso === 'no' && c.permiso_uso && c.tipo !== 'privado') return false;
+      if (fQuien === 'sin_tomar' && c.atendida_por) return false;
+      if (['vic', 'daniel'].includes(fQuien) && c.atendida_por !== fQuien) return false;
+      if (fPrior && !c.prioritaria) return false;
       if (etiqueta && !(c.etiquetas || []).includes(etiqueta)) return false;
       if (!texto) return true;
       const anotaciones = (notas[c.id] || []).map((n) => n.texto).join(' ');
       return [c.tema, c.detalle, c.nombre, c.zona, anotaciones].join(' ').toLowerCase().includes(texto);
     });
-  }, [consultas, filtro, etiqueta, busca, enPapelera, periodo, notas, hoy]);
+  }, [consultas, fHacer, fEstado, fTipo, fPrior, fQuien, fFin, fPermiso, etiqueta, busca, enPapelera, periodo, desdeF, hastaF, notas, hoy]);
 
   const temaTop = Object.entries(cuenta).sort((a, b) => b[1] - a[1])[0];
   const esperando = vivas.filter((c) => c.tipo === 'privado' && c.situacion !== 'cerrada').length;
+  const sinAccionar = vivas.filter((c) => c.situacion === 'nueva').length;
+
+  /* Cuántas caen en cada opción de cada menú. Va al lado de cada una: así se ve dónde está el
+     trabajo sin tener que probar filtro por filtro. Se cuenta sobre las que NO están en la
+     papelera y respetando el período elegido, para que el número no mienta. */
+  const abiertas = vivas.filter((c) => c.situacion !== 'cerrada');
+  const cuantas = {
+    vencidas: vivas.filter(estaVencida).length,
+    sin_definir: abiertas.filter((c) => !c.proximo_paso).length,
+    pasos: Object.fromEntries(PASOS.map((p) => [p.id, abiertas.filter((c) => c.proximo_paso === p.id).length])),
+    nuevas: sinAccionar,
+    en_curso: vivas.filter((c) => c.situacion === 'en_curso').length,
+    cerradas: vivas.filter((c) => c.situacion === 'cerrada').length,
+    abiertas: abiertas.length,
+    tipos: { privado: 0, programa: 0, anonimo: 0 },
+    prioritarias: vivas.filter((c) => c.prioritaria).length,
+    fin: Object.fromEntries(DESENLACES.map((d) => [d.id, vivas.filter((c) => c.desenlace === d.id).length])),
+    puedoContar: vivas.filter((c) => c.permiso_uso && c.tipo !== 'privado').length,
+    quien: {
+      vic: vivas.filter((c) => c.atendida_por === 'vic').length,
+      daniel: vivas.filter((c) => c.atendida_por === 'daniel').length,
+      sin_tomar: abiertas.filter((c) => !c.atendida_por).length,
+    },
+    papelera: consultas.length - vivas.length,
+  };
+  vivas.forEach((c) => { if (cuantas.tipos[c.tipo] !== undefined) cuantas.tipos[c.tipo]++; });
+
+  const sinFiltros =
+    fHacer === 'todo' && fEstado === 'abiertas' && fTipo === 'todos' && !fPrior && fQuien === 'todos' && fFin === 'todos' && fPermiso === 'todos' &&
+    !enPapelera && !etiqueta && periodo === 'todo' && !busca.trim();
+
+  function limpiarFiltros() {
+    setFHacer('todo'); setFEstado('abiertas'); setFTipo('todos'); setFPrior(false); setFQuien('todos'); setFFin('todos'); setFPermiso('todos');
+    setEnPapelera(false); setEtiqueta(null); setPeriodo('todo'); setDesdeF(''); setHastaF(''); setBusca('');
+    setElegidas(new Set());
+  }
   const vencidas = vivas.filter(estaVencida).length;
 
   function alternarElegida(id) {
@@ -216,29 +313,79 @@ export default function Consultas() {
     setElegidas(new Set());
   }
 
+  /* 🔴 LA EXPORTACIÓN SE ARMA SOLA (11-10-2026, pedido de Vic: «dejalo automatizado para que
+     los campos se agreguen automáticamente al Excel»).
+
+     Antes la lista de columnas estaba escrita a mano. Cada vez que se agregaba un campo a la
+     base había que acordarse de sumarlo acá, y no se acordaba nadie: al revisarlo faltaban
+     SEIS, entre ellos `origen` —que se guarda al recibir la consulta y no se veía en ninguna
+     pantalla—, el número de episodio y de cuál es duplicada.
+
+     Ahora funciona al revés: se recorren los campos que REALMENTE traen las consultas. Los que
+     están en COLUMNAS salen con su nombre lindo y su traducción; los que no, salen igual al
+     final, con el nombre crudo de la base. O sea que una columna nueva aparece en el Excel sin
+     tocar este archivo, y cuando alguien quiera ponerle un nombre decente, lo agrega acá. */
+  const COLUMNAS = [
+    ['id', 'Nº', 8, (v) => num(v)],
+    /* Fechas de verdad y sin hora (Vic, 11-10-2026). La hora no se usa para filtrar y
+       ensuciaba la columna; y como FECHA, Excel las ordena bien. */
+    ['creado_en', 'Fecha', 12, (v) => new Fecha(v)],
+    ['tipo', 'Tipo', 17, (v) => ROTULO[v] || v],
+    ['atendida_por', 'Quién la atiende', 15, (v) => PERSONAS.find((x) => x.id === v)?.texto || ''],
+    ['situacion', 'Situación', 13, (v) => ({ nueva: 'Sin abrir', en_curso: 'En curso', cerrada: 'Cerrada' }[v] || v)],
+    ['prioritaria', 'Prioritaria', 11, (v) => (v ? 'Sí' : '')],
+    ['_vencida', 'Vencida', 10, null],
+    ['borrada', 'En la papelera', 13, (v) => (v ? 'Sí' : '')],
+    ['etiquetas', 'Temas', 22, (v) => (v || []).join(', ')],
+    ['proximo_paso', 'Próximo paso', 22, (v) => PASOS.find((x) => x.id === v)?.texto || ''],
+    ['recordar_el', 'Recordar', 12, (v) => (v ? new Fecha(v) : '')],
+    ['desenlace', 'Cómo terminó', 18, (v) => DESENLACES.find((x) => x.id === v)?.texto || ''],
+    ['episodio', 'Nº de episodio', 13, null],
+    ['duplicada_de', 'Duplicada de', 12, (v) => (v ? num(v) : '')],
+    ['tema', 'Consulta', 46, null],
+    ['detalle', 'Detalle', 60, null],
+    ['nombre', 'Nombre', 16, null],
+    ['email', 'Mail', 24, null],
+    ['telefono', 'Teléfono', 18, null],
+    ['zona', 'Zona', 16, null],
+    ['permiso_uso', 'Permiso para contarlo', 20, null], // se arma abajo: depende del tipo
+    ['origen', 'De dónde llegó', 20, null],
+    ['actualizado_en', 'Última modificación', 14, (v) => (v ? new Fecha(v) : '')],
+    ['_anotaciones', 'Anotaciones', 60, null],
+  ];
+
   function exportar() {
+    // Campos que traen las consultas y que NADIE declaró arriba: van al final igual.
+    const declarados = new Set(COLUMNAS.map(([k]) => k));
+    const sueltos = [...new Set(consultas.flatMap((c) => Object.keys(c)))]
+      .filter((k) => !declarados.has(k))
+      .sort();
+
+    const permiso = (c) =>
+      c.tipo === 'privado' ? 'no corresponde'
+        : !c.permiso_uso ? 'no'
+          : c.tipo === 'anonimo' ? 'sí (es anónima: no hay nombre que ocultar)'
+            : 'sí, sin nombre';
+
+    const valor = (c, campo, formato) => {
+      if (campo === '_vencida') return estaVencida(c) ? 'Sí' : '';
+      if (campo === '_anotaciones') {
+        return (notas[c.id] || []).map((n) => `${fechaHora(n.creado_en)} · ${n.autor}: ${n.texto}`).join('\n');
+      }
+      if (campo === 'permiso_uso') return permiso(c);
+      const v = c[campo];
+      if (formato) return formato(v);
+      if (v === null || v === undefined) return '';
+      return typeof v === 'object' ? JSON.stringify(v) : v;
+    };
+
     descargarExcel({
       nombreArchivo: `consultas-detras-del-cartel-${new Date().toISOString().slice(0, 10)}.xlsx`,
-      columnas: [
-        ['Nº', 8], ['Fecha y hora', 17], ['Tipo', 17], ['Situación', 13], ['Prioritaria', 11],
-        ['Temas', 22], ['Próximo paso', 22], ['Recordar', 12], ['Cómo terminó', 18],
-        ['Consulta', 46], ['Detalle', 60], ['Nombre', 16], ['Mail', 24], ['Teléfono', 18],
-        ['Zona', 16], ['Permiso', 16], ['Anotaciones', 60],
-      ],
-      filas: vivas.map((c) => [
-        num(c.id), fechaHora(c.creado_en), ROTULO[c.tipo], c.situacion, c.prioritaria ? 'Sí' : '',
-        (c.etiquetas || []).join(', '),
-        PASOS.find((p) => p.id === c.proximo_paso)?.texto || '', c.recordar_el || '',
-        DESENLACES.find((d) => d.id === c.desenlace)?.texto || '',
-        c.tema, c.detalle, c.nombre, c.email, c.telefono, c.zona,
-        c.tipo === 'privado'
-          ? 'no corresponde'
-          : !c.permiso_uso
-            ? 'no'
-            : c.tipo === 'anonimo'
-              ? 'sí (es anónima: no hay nombre que ocultar)'
-              : 'sí, sin nombre',
-        (notas[c.id] || []).map((n) => `${fechaHora(n.creado_en)} · ${n.autor}: ${n.texto}`).join('\n'),
+      columnas: [...COLUMNAS.map(([, titulo, ancho]) => [titulo, ancho]), ...sueltos.map((k) => [k, 18])],
+      // Van TODAS, incluidas las de la papelera: para eso está la columna que las distingue.
+      filas: consultas.map((c) => [
+        ...COLUMNAS.map(([campo, , , formato]) => valor(c, campo, formato)),
+        ...sueltos.map((k) => valor(c, k, null)),
       ]),
     });
   }
@@ -345,39 +492,130 @@ export default function Consultas() {
           </div>
         </header>
 
+        {/* Los cuatro tableros quedan como estaban: sólo informan (Vic, 11-10-2026).
+            Se probó hacerlos clickeables y se volvió atrás: el número de «Sin abrir» cuenta
+            `situacion = nueva`, que no cambia al abrir la consulta sino al ponerle un estado,
+            así que como FILTRO prometía algo que el dato no sabe. Para filtrar están los
+            menús de abajo, donde cada opción dice exactamente qué mira. */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5 mb-4">
           <Ficha valor={esperando} texto="Esperando respuesta" alerta />
-          <Ficha valor={vivas.filter((c) => c.situacion === 'nueva').length} texto="Sin abrir" />
+          <Ficha valor={sinAccionar} texto="Sin abrir" />
           <Ficha valor={temaTop ? `${temaTop[0]} (${temaTop[1]})` : '—'} texto="Tema más pedido" chico />
           <Ficha valor={vivas.length} texto="Recibidas en total" />
         </div>
 
+        {/* 🔴 CUATRO MENÚS EN UNA LÍNEA, en vez de nueve botones en dos renglones
+            (Vic, 11-10-2026). Dos problemas tenía lo anterior, y el segundo era el grave:
+
+            1. Los nueve botones respondían a CINCO preguntas distintas mezcladas, sin decir
+               cuál. «Vencidas» mira una fecha, «Anónimas» mira el tipo, «Cerradas» mira el
+               estado: todo junto y sin rótulo.
+            2. Eran EXCLUYENTES. Elegir «Piden respuesta» apagaba «Vencidas». Con dos consultas
+               no se nota; con cincuenta, la pregunta que uno se hace —«las privadas que están
+               vencidas»— no se podía hacer.
+
+            Ahora cada menú es una pregunta, se elige una opción por menú y los menús SE SUMAN.
+            Horizontal y no apilado por pedido de Vic: cuatro renglones de botones se comían la
+            pantalla antes de mostrar una sola consulta, y en el celular era peor.
+
+            El número al lado de cada opción dice dónde está el trabajo sin tener que probar
+            filtro por filtro. */}
         <div className="flex flex-wrap gap-2 items-center mb-3">
           <input
             type="search"
             value={busca}
             onChange={(e) => setBusca(e.target.value)}
             placeholder="Buscar por tema, nombre o texto…"
-            className="flex-1 min-w-[200px] bg-input text-fg border border-line/10 rounded-xl px-3 py-2 text-[13px] placeholder:text-faint focus:outline-none focus:border-accent"
+            className="flex-1 min-w-[180px] bg-input text-fg border border-line/10 rounded-xl px-3 py-2 text-[13px] placeholder:text-faint focus:outline-none focus:border-accent"
           />
-          {[
-            ['todas', 'Todas'], ['vencidas', '⏰ Vencidas'], ['privado', 'Piden respuesta'],
-            ['programa', 'Para el programa'], ['anonimo', 'Anónimas'], ['prioritarias', '★ Prioritarias'],
-            ['pendientes', 'Con algo pendiente'], ['cerradas', 'Cerradas'], ['papelera', '🗑 Papelera'],
-          ].map(([id, texto]) => (
-            <button key={id} onClick={() => { setFiltro(id); setElegidas(new Set()); }} className={chip(filtro === id)}>
-              {texto}
-              {id === 'vencidas' && vencidas > 0 && <b className="opacity-60"> {vencidas}</b>}
-              {id === 'papelera' && consultas.length - vivas.length > 0 && <b className="opacity-60"> {consultas.length - vivas.length}</b>}
-            </button>
-          ))}
+
+          <Menu titulo="Qué hacer" valor={fHacer} onChange={setFHacer} activo={fHacer !== 'todo'} opciones={[
+            ['todo', 'Todas'],
+            ['vencidas', `⏰ Vencidas (${cuantas.vencidas})`],
+            ...PASOS.map((p) => [`paso:${p.id}`, `${p.texto} (${cuantas.pasos[p.id]})`]),
+            ['sin_definir', `Sin próximo paso (${cuantas.sin_definir})`],
+          ]} />
+
+          <Menu titulo="Estado" valor={fEstado} onChange={setFEstado} activo={fEstado !== 'abiertas'} opciones={[
+            ['abiertas', `Abiertas (${cuantas.abiertas})`],
+            ['nuevas', `Sin abrir (${cuantas.nuevas})`],
+            ['en_curso', `En curso (${cuantas.en_curso})`],
+            ['cerradas', `Cerradas (${cuantas.cerradas})`],
+            ['todas', 'Todas'],
+          ]} />
+
+          <Menu titulo="Tipo" valor={fTipo} onChange={setFTipo} activo={fTipo !== 'todos'} opciones={[
+            ['todos', 'Todas'],
+            ['privado', `Piden respuesta (${cuantas.tipos.privado})`],
+            ['programa', `Para el programa (${cuantas.tipos.programa})`],
+            ['anonimo', `Anónimas (${cuantas.tipos.anonimo})`],
+          ]} />
+
+          <Menu titulo="Quién" valor={fQuien} onChange={setFQuien} activo={fQuien !== 'todos'} opciones={[
+            ['todos', 'Todas'],
+            ['sin_tomar', `Sin tomar (${cuantas.quien.sin_tomar})`],
+            ...PERSONAS.map((x) => [x.id, `${x.texto} (${cuantas.quien[x.id]})`]),
+          ]} />
+
+          {/* «Cómo terminó» es la pregunta de la revisión: hoy se podían pedir las cerradas,
+              pero no distinguir las que salieron al aire de las que se descartaron. */}
+          <Menu titulo="Cómo terminó" valor={fFin} onChange={(v) => { setFFin(v); if (v !== 'todos') setFEstado('cerradas'); }}
+            activo={fFin !== 'todos'} opciones={[
+              ['todos', 'Todas'],
+              ...DESENLACES.map((d) => [d.id, `${d.texto} (${cuantas.fin[d.id]})`]),
+            ]} />
+
+          {/* «Puedo contarlo» es la pregunta de armar un episodio: cuáles puedo usar. El dato
+              lo da la persona al escribir y no se podía filtrar. */}
+          <Menu titulo="Puedo contarlo" valor={fPermiso} onChange={setFPermiso} activo={fPermiso !== 'todos'}
+            opciones={[
+              ['todos', 'Todas'],
+              ['si', `Sí, puedo contarlo (${cuantas.puedoContar})`],
+              ['no', 'No puedo'],
+            ]} />
+
+          <Menu titulo="Llegó" valor={periodo} onChange={setPeriodo} activo={periodo !== 'todo'} opciones={[
+            ['todo', 'Todas'],
+            ['7dias', 'Últimos 7 días'],
+            ['30dias', 'Último mes'],
+            ['rango', 'Entre fechas…'],
+          ]} />
+
+          {/* Las dos puntas aparecen sólo al elegir «Entre fechas»: ocupar la línea con dos
+              casilleros que casi nunca se usan era peor que el menú de atajos. Cualquiera de
+              las dos puede quedar vacía (sólo desde, o sólo hasta). */}
+          {periodo === 'rango' && (
+            <span className="inline-flex items-center gap-1.5 bg-accent/10 border border-accent/40 rounded-full px-2.5 py-1">
+              <input type="date" value={desdeF} onChange={(e) => setDesdeF(e.target.value)}
+                aria-label="Desde" max={hastaF || undefined}
+                className="bg-transparent text-accent text-xs font-semibold outline-none" />
+              <span className="text-accent/60 text-xs">→</span>
+              <input type="date" value={hastaF} onChange={(e) => setHastaF(e.target.value)}
+                aria-label="Hasta" min={desdeF || undefined}
+                className="bg-transparent text-accent text-xs font-semibold outline-none" />
+            </span>
+          )}
+
+          <button onClick={() => setFPrior(!fPrior)} title="Sólo las marcadas con estrella"
+            className={chip(fPrior)}>★ {cuantas.prioritarias}</button>
+          <button onClick={() => { setEnPapelera(!enPapelera); setElegidas(new Set()); }}
+            title="Papelera" className={chip(enPapelera)}>🗑 {cuantas.papelera}</button>
         </div>
 
-        <div className="flex flex-wrap gap-2 items-center mb-3">
-          <span className="text-[11px] text-muted font-semibold">CUÁNDO LLEGÓ:</span>
-          {[['7dias', 'Últimos 7 días'], ['30dias', 'Último mes'], ['todo', 'Todo']].map(([id, texto]) => (
-            <button key={id} onClick={() => setPeriodo(id)} className={chip(periodo === id)}>{texto}</button>
-          ))}
+        {/* La línea que dice qué está filtrado. Sin esto, con un filtro puesto y olvidado
+            parece que no hay consultas, y uno cree que se perdieron. */}
+        <div className="flex flex-wrap gap-2 items-center mb-3 text-[12px]">
+          <span className="text-muted">
+            Mostrando <b className="text-fg">{visibles.length}</b> de {enPapelera ? cuantas.papelera : vivas.length}
+          </span>
+          {!sinFiltros && (
+            <>
+              <span className="text-faint">·</span>
+              <button onClick={limpiarFiltros} className="text-accent font-semibold hover:underline">
+                Limpiar todo
+              </button>
+            </>
+          )}
         </div>
 
         {Object.keys(cuenta).length > 0 && (
@@ -445,6 +683,31 @@ function Marco({ children }) {
   );
 }
 
+/* Un menú = una pregunta. Se ve el título mientras no hay nada elegido, y la opción elegida
+   cuando sí, para que de un vistazo se sepa qué está filtrado sin abrirlo. */
+function Menu({ titulo, valor, onChange, opciones, activo }) {
+  const elegida = opciones.find(([id]) => id === valor);
+  return (
+    <label className="relative inline-flex items-center">
+      <select
+        value={valor}
+        onChange={(e) => onChange(e.target.value)}
+        aria-label={titulo}
+        className={`appearance-none rounded-full border pl-3 pr-7 py-2 text-xs font-semibold cursor-pointer transition
+          ${activo ? 'bg-accent/15 border-accent/50 text-accent' : 'bg-card2 border-line/10 text-soft hover:border-accent/40'}`}
+      >
+        {opciones.map(([id, texto]) => <option key={id} value={id}>{texto}</option>)}
+      </select>
+      <span className="pointer-events-none absolute right-2.5 text-[9px] opacity-60">▼</span>
+      {!activo && (
+        <span className="pointer-events-none absolute left-3 text-xs font-semibold text-soft bg-card2 pr-1">
+          {titulo}
+        </span>
+      )}
+    </label>
+  );
+}
+
 function Ficha({ valor, texto, alerta, chico }) {
   return (
     <div className={`bg-card border rounded-2xl px-4 py-3 ${alerta && valor > 0 ? 'border-red-500/50' : 'border-line/8'}`}>
@@ -470,6 +733,21 @@ function Fila({ c, abierta, elegida, onAbrir, onElegir, onGuardar, anotaciones, 
         elegida ? 'border-accent bg-accent/5' : 'border-line/8 hover:border-accent/40'
       } ${sinResponder ? 'border-l-[3px] border-l-red-400' : ''} ${c.borrada ? 'opacity-60' : ''}`}
     >
+      {/* 🔴 LA ESTRELLA, SOLA Y ARRIBA A LA DERECHA (Vic, 11-10-2026). Antes era de 14 px,
+          gris, pegada al casillero de selección y con el nombre sólo en el globito al pasar el
+          mouse: había un filtro de prioritarias y ninguna forma visible de marcar una. Acá no
+          compite con nada, es de 20 px y cuando está apagada igual se ve el contorno. */}
+      <button
+        onClick={(e) => { e.stopPropagation(); onGuardar({ prioritaria: !c.prioritaria }); }}
+        title={c.prioritaria ? 'Quitar de prioritarias' : 'Marcar como prioritaria'}
+        aria-pressed={!!c.prioritaria}
+        className={`float-right ml-2 -mt-0.5 p-1 rounded-lg transition ${
+          c.prioritaria ? 'text-accent' : 'text-faint/60 hover:text-accent hover:bg-accent/10'
+        }`}
+      >
+        <Star size={20} strokeWidth={2.2} fill={c.prioritaria ? 'currentColor' : 'none'} />
+      </button>
+
       <div className="flex flex-wrap gap-2 items-center text-[11.5px] text-muted">
         <input
           type="checkbox"
@@ -478,19 +756,17 @@ function Fila({ c, abierta, elegida, onAbrir, onElegir, onGuardar, anotaciones, 
           onChange={() => {}}
           className="w-4 h-4 accent-amber-500 shrink-0 cursor-pointer"
         />
-        <button
-          onClick={(e) => { e.stopPropagation(); onGuardar({ prioritaria: !c.prioritaria }); }}
-          title="Prioritaria"
-          className={c.prioritaria ? 'text-accent' : 'text-faint hover:text-accent'}
-        >
-          <Star size={14} fill={c.prioritaria ? 'currentColor' : 'none'} />
-        </button>
         <span className="font-mono text-accent font-bold">{num(c.id)}</span>
         <span>{fechaHora(c.creado_en)} h</span>
         <span className={`px-2 py-0.5 rounded-full text-[10.5px] font-bold ${COLOR_TIPO[c.tipo]}`}>{ROTULO[c.tipo]}</span>
         <span className="px-2 py-0.5 rounded text-[10.5px] font-bold bg-line/7 text-soft">
           {c.situacion === 'nueva' ? 'Nueva' : c.situacion === 'en_curso' ? 'En curso' : 'Cerrada'}
         </span>
+        {c.atendida_por && (
+          <span className="px-2 py-0.5 rounded text-[10.5px] font-bold bg-accent/14 text-accent">
+            {PERSONAS.find((x) => x.id === c.atendida_por)?.texto}
+          </span>
+        )}
         {etiquetas.map((e) => (
           <span key={e} className="px-2 py-0.5 rounded text-[10.5px] font-semibold bg-line/8 text-soft">{e}</span>
         ))}
@@ -572,6 +848,11 @@ function Bitacora({ anotaciones, onAnotar }) {
 }
 
 function Detalle({ c, onGuardar, etiquetas, anotaciones, onAnotar }) {
+  /* Aviso de «elegí el próximo paso primero». Se apaga solo en cuanto se elige uno.
+     ⚠️ Va acá y no en Fila: los controles de Situación y Próximo paso viven en ESTE
+     componente. Puesto en Fila compilaba igual y reventaba recién al abrir una consulta,
+     con «faltaPaso is not defined». */
+  const [faltaPaso, setFaltaPaso] = useState(false);
   const cerrada = c.situacion === 'cerrada';
 
   function alternarEtiqueta(e) {
@@ -582,6 +863,21 @@ function Detalle({ c, onGuardar, etiquetas, anotaciones, onAnotar }) {
   function cambiarSituacion(situacion) {
     // Al cerrar hace falta decir cómo terminó; al reabrir se limpia el desenlace.
     if (situacion === 'cerrada') return onGuardar({ situacion, desenlace: 'respondida', proximo_paso: null, recordar_el: null });
+
+    /* 🔴 Pasar a «En curso» exige decir qué sigue (11-10-2026). Es el único campo que se
+       obliga además del cierre, y por el mismo motivo: dejarlo vacío no es un olvido, es una
+       contradicción —estás diciendo «la estoy trabajando» y no decís qué—. Sin esto, la
+       consulta desaparece de «Sin accionar» y no aparece en ningún próximo paso: queda en una
+       tierra de nadie donde nadie la vuelve a mirar.
+
+       No se obliga nada más. Un campo obligatorio no produce datos, produce la primera opción
+       de la lista: el filtro deja de estar vacío y pasa a estar MAL, que es peor porque uno le
+       cree. Lo que falta se ve en los menús: «Sin tomar (N)» y «Sin próximo paso (N)». */
+    if (situacion === 'en_curso' && !c.proximo_paso) {
+      setFaltaPaso(true);
+      return;
+    }
+    setFaltaPaso(false);
     onGuardar({ situacion, desenlace: null, episodio: null, duplicada_de: null });
   }
 
@@ -609,6 +905,18 @@ function Detalle({ c, onGuardar, etiquetas, anotaciones, onAnotar }) {
       </div>
 
       <div className="flex flex-wrap gap-2 items-center">
+        {/* Quién se ocupa. Primero de la fila a propósito: es lo que se decide apenas llega
+            la consulta, antes de ponerle estado o próximo paso. */}
+        <span className="text-[11px] text-muted font-semibold">Quién</span>
+        <select
+          value={c.atendida_por || ''}
+          onChange={(e) => onGuardar({ atendida_por: e.target.value || null })}
+          className={`${controlito} ${c.atendida_por ? 'text-accent font-semibold' : ''}`}
+        >
+          <option value="">Sin tomar</option>
+          {PERSONAS.map((x) => <option key={x.id} value={x.id}>{x.texto}</option>)}
+        </select>
+
         <span className="text-[11px] text-muted font-semibold">Situación</span>
         <select value={c.situacion} onChange={(e) => cambiarSituacion(e.target.value)} className={controlito}>
           <option value="nueva">Nueva</option>
@@ -618,14 +926,25 @@ function Detalle({ c, onGuardar, etiquetas, anotaciones, onAnotar }) {
 
         {!cerrada && (
           <>
-            <span className="text-[11px] text-muted font-semibold">Próximo paso</span>
-            <select value={c.proximo_paso || ''} onChange={(e) => onGuardar({ proximo_paso: e.target.value || null })} className={controlito}>
+            <span className={`text-[11px] font-semibold ${faltaPaso ? 'text-red-400' : 'text-muted'}`}>Próximo paso</span>
+            <select
+              value={c.proximo_paso || ''}
+              onChange={(e) => { const v = e.target.value || null; if (v) setFaltaPaso(false); onGuardar({ proximo_paso: v }); }}
+              className={`${controlito} ${faltaPaso ? 'border-red-400 text-red-400' : ''}`}
+            >
               <option value="">Sin definir</option>
               {PASOS.map((p) => <option key={p.id} value={p.id}>{p.texto}</option>)}
             </select>
             <span className="text-[11px] text-muted font-semibold">Recordar el</span>
             <input type="date" value={c.recordar_el || ''} onChange={(e) => onGuardar({ recordar_el: e.target.value || null })} className={controlito} />
+
           </>
+        )}
+
+        {faltaPaso && (
+          <span className="text-[11.5px] text-red-400 font-semibold basis-full">
+            Para ponerla en curso, elegí primero qué sigue.
+          </span>
         )}
 
         {cerrada && (

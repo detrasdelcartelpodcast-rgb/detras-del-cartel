@@ -72,7 +72,15 @@ export default function proxy(request) {
     // Las hojas de estilo sí llevan 'unsafe-inline', igual que hoy en producción:
     // Tailwind y React escriben estilos dentro del HTML y un estilo no ejecuta nada.
     "style-src 'self' 'unsafe-inline'",
-    `script-src 'self' 'nonce-${nonce}'`,
+    /* 🔴 `unsafe-eval` SÓLO trabajando. React lo necesita en modo desarrollo para armar el
+       visor de errores —«React requires eval() in development mode… React will never use
+       eval() in production mode», dice el propio aviso—. Sin esto, cuando hay un error de
+       verdad, en vez del error se ve una queja de seguridad y el error real queda tapado:
+       pasó el 11-10-2026 con un `faltaPaso is not defined`.
+       En la web publicada NO va, y ahí es donde importa. */
+    EN_DESARROLLO
+      ? `script-src 'self' 'unsafe-eval' 'nonce-${nonce}'`
+      : `script-src 'self' 'nonce-${nonce}'`,
     `connect-src 'self' ${SUPABASE}`,
     EN_DESARROLLO
       ? "frame-src 'self' https://www.youtube-nocookie.com"

@@ -335,3 +335,117 @@ completaba campos creyéndolos obligatorios.
 ⚠️ El texto del bloque de contacto **cambia de sentido**: en la consulta privada dice «dejanos al
 menos uno» y ahí NO es opcional, así que ése se queda en gris. El naranja es sólo para lo que de
 verdad se puede saltear.
+
+
+---
+
+## 🔎 LOS FILTROS DEL BUZÓN — rehechos el 11-10-2026
+
+Lo planteó Vic pensando en cuando haya muchas consultas: *«me parece que faltan filtros o como
+que los filtros están desorganizados»*. Al mirarlo, el problema era más de fondo que el orden.
+
+### Qué estaba mal
+
+Había **nueve botones** en dos renglones y respondían a **cinco preguntas distintas** sin decir
+cuál: «Vencidas» mira una fecha, «Anónimas» el tipo, «Cerradas» el estado, todo junto y sin
+rótulo. Y lo grave: **eran excluyentes**. Elegir «Piden respuesta» apagaba «Vencidas», así que
+la pregunta que uno se hace de verdad —*las privadas que están vencidas*— no se podía hacer.
+
+### Cómo quedó
+
+**Siete menús en una línea**, cada uno una pregunta, y **se suman entre sí**:
+
+| Menú | Qué responde |
+|---|---|
+| **Qué hacer** | Vencidas, o por próximo paso, o las que no tienen ninguno |
+| **Estado** | Abiertas · Sin abrir · En curso · Cerradas · Todas |
+| **Tipo** | Piden respuesta · Para el programa · Anónimas |
+| **Quién** | Vic · Dani · Sin tomar |
+| **Cómo terminó** | Salió al aire · Respondida · Descartada · Duplicada |
+| **Puedo contarlo** | Para armar un episodio: cuáles se pueden usar |
+| **Llegó** | Últimos 7 días · Último mes · **Entre fechas** (dos calendarios) |
+
+Más la ★ y la 🗑 al final, y una línea que dice **«Mostrando X de Y»** con «Limpiar todo»: sin
+eso, un filtro puesto y olvidado hace parecer que las consultas se perdieron.
+
+**Cada opción lleva su número.** Se ve dónde está el trabajo sin tener que probar filtro por
+filtro. Y todos los menús dicen **«Todas»** cuando no filtran: antes había cinco formas de decir
+lo mismo («Todo», «Cualquiera», «Como sea», «No importa», «Cuando sea»).
+
+### Lo que NO se tocó, y por qué
+
+**Los cuatro tableros de arriba** siguen sólo informando (Vic). Se probó hacerlos clickeables y
+se volvió atrás: «Sin abrir» cuenta `situacion = nueva`, que **no cambia al abrir la consulta**
+sino al ponerle un estado. Como número está bien; como filtro prometía algo que el dato no sabe.
+
+**La zona queda en el buscador.** Es texto libre que escribe el visitante —«Belgrano», «belgrano»,
+«Belgrano R», «zona norte»—; un menú con esos valores sería un desorden. Escribir «belgrano» en
+el buscador funciona mejor.
+
+## 👤 QUIÉN SE OCUPA DE CADA CONSULTA (`atendida_por`)
+
+Vic y Daniel entran con la **misma cuenta** del proyecto, así que la base no tiene cómo saber
+quién es quién. El riesgo no es de seguridad, es de trabajo: que contesten los dos, o que no
+conteste ninguno porque cada uno supone que el otro ya lo hizo.
+
+Se agregó una columna que se elige a mano (`sql/05_quien_la_atiende.sql`, **corrido el
+11-10-2026**). El selector está **primero** en la fila de cada consulta —es lo que se decide
+apenas llega—, quien la tomó se ve en la lista sin abrirla, y va al Excel.
+
+## ⭐ LA ESTRELLA DE PRIORITARIA
+
+Existía, pero era de 14 px, gris, pegada al casillero de selección y con el nombre sólo en el
+globito al pasar el mouse: **había un filtro de prioritarias y ninguna forma visible de marcar
+una**. Ahora está **sola, arriba a la derecha de cada tarjeta, de 20 px**, y cuando está apagada
+igual se ve el contorno.
+
+## 🔒 EL ÚNICO CAMPO QUE SE VOLVIÓ OBLIGATORIO
+
+Pasar una consulta a **«En curso» exige decir qué sigue**. Dejarlo vacío no es un olvido, es una
+contradicción: estás diciendo «la estoy trabajando» y no decís qué. Sin eso, la consulta
+desaparece de «Sin abrir» y no aparece en ningún próximo paso — queda en una tierra de nadie
+donde nadie la vuelve a mirar.
+
+🔴 **No se obligó nada más, a propósito.** Un campo obligatorio no produce datos, produce la
+primera opción de la lista: el filtro deja de estar vacío y pasa a estar **mal**, que es peor
+porque uno le cree. Lo que falta se ve en los menús: *Sin tomar (N)* y *Sin próximo paso (N)*.
+
+El otro obligatorio ya existía y sigue: al **cerrar** hay que decir cómo terminó, y la base lo
+hace cumplir aunque alguien escriba directo.
+
+## 📊 LA EXPORTACIÓN A EXCEL
+
+**Faltaban seis campos.** La lista de columnas estaba escrita a mano y nadie se acordaba de
+actualizarla. El peor ausente: **`origen`**, que se guarda al recibir la consulta y no se veía
+en ninguna pantalla. También el número de episodio, de cuál es duplicada, la última
+modificación, si está vencida, y las de la papelera.
+
+**Ahora se arma sola.** Recorre los campos que las consultas realmente traen: los declarados
+salen con su nombre lindo y su traducción, y los que no, salen igual al final con el nombre
+crudo de la base. **Una columna nueva en Supabase aparece en el Excel sin tocar el código.**
+
+🔴 **Las fechas son FECHAS, no texto, y sin hora.** No es cosmético: en texto, `01/12` queda
+antes que `02/01` porque Excel compara letra por letra, así que ordenar por fecha daba cualquier
+cosa — justo para lo que se exporta. Se agregó un tipo de celda fecha en `src/lib/excel.js`.
+
+⚠️ **Y un error de un día que encontró la prueba, no la lectura:** una fecha sin hora como
+`2026-12-01` la interpreta JavaScript como medianoche UTC, que en Argentina es el día **anterior**
+a las 21. Un recordatorio para el 1.º salía 30/11. Ahora las fechas sin hora se toman tal como
+están escritas y las que tienen hora se pasan al día local (GMT-3, como todo el ecosistema).
+
+**Cómo se verificó:** generando el archivo de verdad desde Node y abriéndolo con un lector de
+Excel. Abre sin errores, las fechas llegan como fecha, los acentos sobreviven, una fecha
+inválida queda como celda vacía en vez de un número sin sentido, y los seis casos de borde dan
+el día correcto —incluidas las 20:30 y las 23:30, que eran las que se pasaban al día siguiente—.
+
+## 🐛 Dos errores encontrados en el camino
+
+1. **El aviso de error quedaba pegado para siempre.** `guardar()` lo ponía al fallar y no lo
+   sacaba nunca al funcionar: una falla de hace media hora quedaba en pantalla mientras todo se
+   guardaba bien. Eso es peor que no avisar, porque uno desconfía de algo que anda.
+   De paso, el error de «schema cache» —que aparece los primeros segundos después de agregar una
+   columna— ahora se explica en castellano en vez de mostrar el mensaje crudo.
+2. **El visor de errores de Next estaba tapado por la CSP.** React necesita `eval()` en modo
+   desarrollo para armarlo; la regla se lo prohibía, así que en vez del error de verdad se veía
+   una queja de seguridad. Habilitado **sólo en desarrollo** (`proxy.js`); en la web publicada
+   sigue prohibido, verificado en las dos.

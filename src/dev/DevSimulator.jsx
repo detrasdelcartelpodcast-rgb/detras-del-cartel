@@ -85,13 +85,30 @@ function Toolbar({ device, setDevice, landscape, setLandscape }) {
 export default function DevSimulator({ children }) {
   const [device, setDeviceState] = useState('desktop');
   const [landscape, setLandscape] = useState(false);
-  const [vp, setVp] = useState({ w: window.innerWidth, h: window.innerHeight });
+  const [vp, setVp] = useState({ w: 0, h: 0 });
 
+  /* 🔴 11-10-2026, al pasar a Next: `montado` arranca en false y nada de esta barra se dibuja
+     hasta que haya navegador.
+
+     Por qué hace falta. Con Vite la página se armaba SIEMPRE en el navegador, así que `window`
+     estaba garantizado. Next la arma primero en el servidor, donde `window` no existe: leer
+     `window.innerWidth` ahí tiraba la portada con error 500. Y no se notaba al compilar, porque
+     en producción esta barra está apagada y nunca se dibuja — sólo fallaba trabajando, que es
+     justo cuando Vic la abre.
+
+     Además evita el otro problema: si el servidor dibujara una cosa y el navegador otra, React
+     se queja de que no coinciden. Dibujando sólo el contenido en la primera vuelta —igual que el
+     servidor— y la barra después, las dos coinciden. */
+  const [montado, setMontado] = useState(false);
   useEffect(() => {
+    setMontado(true);
+    setVp({ w: window.innerWidth, h: window.innerHeight });
     const onResize = () => setVp({ w: window.innerWidth, h: window.innerHeight });
     window.addEventListener('resize', onResize);
     return () => window.removeEventListener('resize', onResize);
   }, []);
+
+  if (!montado) return <>{children}</>;
 
   // Dentro del iframe simulado: solo el contenido (evita recursión infinita)
   if (new URLSearchParams(window.location.search).get('simulating') === 'true') return <>{children}</>;

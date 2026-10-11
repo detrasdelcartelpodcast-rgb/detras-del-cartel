@@ -1,12 +1,25 @@
 # ARQUITECTURA — Detrás del Cartel
 
-> Verificado contra el código el 2026-09-22. Producción = commit `e8aacba` (igual que el código local).
+> Verificado contra el código el **2026-10-11**, después de migrar de Vite a Next.
+> ⚠️ **Producción NO es igual al código local:** la web en vivo está en `f0e3f25` (28-09) y hay
+> 11 commits locales sin subir, la migración entre ellos. Publicar es decisión de Vic.
 
 ## Qué es
 Landing de una página del podcast "Detrás del Cartel" (Daniel Bryn y Víctor Miascovsky) + una función de servidor que lee los episodios del canal de YouTube. Objetivo: **mantenimiento mínimo**.
 
 ## Stack
-React 18 · Vite 5 · Tailwind 3 (colores por variables CSS, modo día/noche) · lucide-react · función serverless de Vercel (Node). Sin base de datos, sin login, sin formularios.
+**Next 16.4** (App Router) · React 19 · Tailwind 3 (colores por variables CSS, modo día/noche) ·
+lucide-react · Supabase (base propia, ver `MODULO_CONSULTAS.md`) · desplegada en Vercel.
+
+🔴 **Era Vite 5 + React 18 hasta el 11-10-2026.** Se migró a Next para que el HTML salga del
+servidor ya escrito: con Vite, el buscador (y las IA que citan páginas) recibían una página
+vacía que se rellenaba después en el navegador. Medido: de un HTML casi vacío con 1 mención del
+podcast a **30.843 bytes con 2.708 caracteres de texto real y 3 menciones**. El momento se
+eligió por estar la app todavía sin uso (Vic, 11-10-2026): migrarla crecida cuesta más.
+
+**Tailwind sigue en 3 a propósito.** Pasar a 4 se probó y se volvió atrás: compilaba bien pero
+el encabezado crecía 31 px (6,9 % de píxeles distintos) y el parche oficial de compatibilidad
+no alcanzaba, porque la app define los colores de borde a mano. Es una tarea aparte (~2 h).
 
 ## Archivos
 | Archivo | Rol |
@@ -20,21 +33,31 @@ React 18 · Vite 5 · Tailwind 3 (colores por variables CSS, modo día/noche) ·
 | `src/assets/hosts/` | Fotos de los conductores (400 px) |
 | `src/assets/logos/` | Inventario de logos (`LEEME.md`); el que se usa: `12-emblema-cobrizo-final-TRANSPARENTE-764.webp` |
 | `src/assets/banners/`, `src/assets/covers/` | Banner de YouTube 2560×1440 y portadas 3000×3000 (para subir a las plataformas; NO se publican en la web) |
-| `api/episodios.js` | Función `GET /api/episodios`. Caché de CDN 5 min (+ hasta 1 h de dato viejo si falla). 405 si no es GET/HEAD |
-| `api/_lib/youtube.js` | Lógica: API oficial (principal) + feed (respaldo); validación y limpieza de todos los campos |
-| `vite.config.js` | Plugin que descarta del build imágenes sin uso + plugin `apiLocal` (sirve `/api/episodios` en localhost con el mismo código) |
-| `vercel.json` | Headers de seguridad (CSP, HSTS…) y `noindex` |
+| `app/layout.jsx` | El armazón de todas las páginas (reemplaza al `index.html` de Vite): título, `noindex`, hoja de estilos. 🔴 Tiene el `force-dynamic` que hace posible la CSP: ver `proxy.js` |
+| `app/page.jsx` · `app/consultas/page.jsx` · `app/privacidad/page.jsx` | Las tres páginas. Antes el ruteo lo hacía `src/main.jsx` leyendo la dirección en el navegador |
+| `app/api/episodios/route.js` | `GET /api/episodios`. Caché de CDN 5 min (+ hasta 1 h de dato viejo si falla). 405 si no es GET/HEAD |
+| `app/api/consulta/route.js` | `POST /api/consulta`. Ver `MODULO_CONSULTAS.md` |
+| `app/api/publicar-local/[accion]/route.js` | El botón de publicar. **404 en producción.** ⚠️ No renombrarlo con guión bajo adelante: Next ignora esas carpetas y el endpoint desaparece sin dar error |
+| `lib/youtube.js` | Lógica: API oficial (principal) + feed (respaldo); validación y limpieza de todos los campos |
+| `lib/consultas.js` | Validación y guardado de las consultas. Corre sólo en el servidor |
+| `proxy.js` | 🔴 Escribe la `Content-Security-Policy`, que cambia en cada visita. **Leerlo antes de tocar cualquier cabecera.** En Next 16 este archivo se llama `proxy.js`; hasta la 15 era `middleware.js` |
+| `next.config.mjs` | Las otras 6 cabeceras de seguridad, los hosts de Tailscale, la huella de la versión y la carpeta de compilado |
+| `vercel.json` | **Sólo** `framework: nextjs` + `outputDirectory: null`. El motivo, en `LEEME_vercel.json.md` |
 | `tools/probar-episodios.mjs` | `npm run probar` (33 pruebas) |
 | `tools/componer-banner-youtube.py` | Regenera el banner de YouTube desde una imagen de Stitch |
 | `logos-preview.html` | Vista previa de logos, solo dev |
-| `start.command` | Lanzador local (127.0.0.1:5173), usado por el panel 8002 |
+| `start.command` | Lanzador local (127.0.0.1:5173), usado por el panel 8002. ⚠️ No agregarle banderas de puerto: van en el `dev` de `package.json`, y las de Vite (`--strictPort`) rompen Next |
 | `public/` | `logo.png` (vista en construcción), `robots.txt` (Disallow) |
 
 ## Detalles de implementación que conviene saber
 - **Modo día/noche:** variables CSS en `src/index.css` (`:root` = noche, `:root.light` = día) mapeadas a colores de Tailwind (`bg-card`, `text-fg`, `text-muted`, `border-line/10`, `text-accent`…). Clase **`tarjeta-portada`** (portada): en modo día fuerza fondo crema `#FBF8F1` y borde dorado suave (`:root.light .tarjeta-portada`, mayor especificidad que las utilidades de Tailwind); modo noche sin cambios.
 - **Columna única:** `main` con `max-w-4xl` (~896 px) en todos los dispositivos. Decisión de Vic: no hacer un formato distinto para escritorio.
 - **Canales:** `siteConfig.channels[]` con `url`; `url: ""` = tarjeta apagada "PRÓXIMAMENTE" sin enlace; con `url` = enlace activo. El pie lista solo los canales con `url`.
-- **API de episodios (`api/_lib/youtube.js`):** `obtenerEpisodios()` → si hay `YOUTUBE_API_KEY` válida (`^[A-Za-z0-9_-]{30,60}$`) usa la API v3 (`playlistItems` sobre `UU`+canal, luego `videos?part=snippet,contentDetails,status`); un **404 en `playlistItems` (canal sin videos públicos) se toma como lista vacía**; 403/500/timeout/respuesta gigante caen al feed; si el feed también falla, la función lanza y `episodios.js` responde 502 (la web muestra "Muy pronto"). La clave va por header `x-goog-api-key`. Filtro: `privacyStatus=public` y `embeddable=true`. Salida: `{id, titulo, fecha, resumen, duracion}`.
+- 🔴 **El puerto se declara con `-H 127.0.0.1`** en los dos comandos de `package.json`. Vite
+  escuchaba sólo en localhost por su cuenta; **Next, si no se le dice, escucha en todas las
+  interfaces**, y la app quedaría visible para cualquiera en la red donde esté la Mac. Además
+  choca con `tailscale serve`, que ya tiene tomado el 5173 del tailnet.
+- **API de episodios (`lib/youtube.js`):** `obtenerEpisodios()` → si hay `YOUTUBE_API_KEY` válida (`^[A-Za-z0-9_-]{30,60}$`) usa la API v3 (`playlistItems` sobre `UU`+canal, luego `videos?part=snippet,contentDetails,status`); un **404 en `playlistItems` (canal sin videos públicos) se toma como lista vacía**; 403/500/timeout/respuesta gigante caen al feed; si el feed también falla, la función lanza y `episodios.js` responde 502 (la web muestra "Muy pronto"). La clave va por header `x-goog-api-key`. Filtro: `privacyStatus=public` y `embeddable=true`. Salida: `{id, titulo, fecha, resumen, duracion}`.
 
 ## Flujo de los episodios
 ```
@@ -50,7 +73,10 @@ Cuota de la API: 2 unidades por consulta; cuota gratuita por defecto 10.000/día
 
 ## Interacciones y dependencias (relevadas desde el código)
 - **YouTube** (canal `UCRVH9mlcrwMockg7aTbOr-Q`): fuente de episodios y reproductor. Sin YouTube la web sigue en pie mostrando "Muy pronto".
-- **Vercel:** hosting + función + variable `YOUTUBE_API_KEY`. **GitHub:** repo privado; cada push a `main` redespliega.
+- **Vercel:** hosting + funciones + variable `YOUTUBE_API_KEY`. **GitHub:** repo privado (cuenta
+  propia del podcast, con su propio alias de SSH `github-cartel`); cada push a `main` redespliega.
+  🔴 El panel de Vercel **todavía dice framework Vite con salida `dist`**: lo corrige `vercel.json`
+  desde el repo. Ver `LEEME_vercel.json.md`.
 - **Google Cloud:** solo aloja la clave de API.
 - **Nada consume esta app ni ella consume otras del ecosistema.** El panel 8002 solo la lanza en local.
 - **Enlaces salientes:** YouTube, Instagram, `mailto:` al Gmail del proyecto.
@@ -62,6 +88,9 @@ Cuota de la API: 2 unidades por consulta; cuota gratuita por defecto 10.000/día
 ## Módulo de consultas (27-09-2026)
 La landing dejó de ser 100 % estática: ahora hay **base de datos propia** (Supabase), una
 función `POST /api/consulta` que recibe el formulario y una segunda página, `/consultas`, con
-login de Google. El ruteo es mínimo (`src/main.jsx`: si la dirección es `/consultas` se carga
-el buzón, si no la landing) y el buzón viaja en un archivo aparte que solo descarga quien
-entra ahí. Arquitectura, tablas, permisos y seguridad: **`MODULO_CONSULTAS.md`**.
+login de Google. Arquitectura, tablas, permisos y seguridad: **`MODULO_CONSULTAS.md`**.
+
+📌 Actualizado el 11-10-2026: el ruteo ya no lo hace `src/main.jsx` leyendo la dirección, sino
+Next, con una carpeta por página. El buzón sigue viajando en un paquete aparte que sólo descarga
+quien entra ahí, pero ahora **lo separa Next solo**: ya no hace falta el `React.lazy()` que
+estaba escrito a mano.

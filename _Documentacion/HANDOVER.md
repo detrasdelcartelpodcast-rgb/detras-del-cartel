@@ -1,35 +1,111 @@
-## 🟡 11-10-2026 — RELEVADA EN LA AUDITORÍA: ES LA PUBLICADA MÁS ATRASADA
+## 🔴 11-10-2026 — MIGRADA DE VITE A NEXT 16. VERIFICADA, **SIN PUBLICAR**
 
-Sólo se aplicaron **parches compatibles** (`npm audit fix`, sin `--force`) y Supabase → 2.117.3.
-Críticas: 0. Altas: 7 → 6.
-
-### Por qué está atrasada, y por qué no es culpa de Vite
-
-| | Instalado | Último |
+| | Antes | Ahora |
 |---|---|---|
-| **vite** | **5.4.21** | **8.3.4** (3 majors) |
-| react / react-dom | 18.3.1 | 19.3.0 |
-| tailwindcss | 3.4.19 | 4.3.3 |
-| @vitejs/plugin-react | 4.7.0 | 6.1.2 |
-| lucide-react | 0.344.0 | 1.55.0 |
+| Motor | Vite 5.4.21 | **Next 16.4.0** (App Router) |
+| React | 18.3.1 | **19.3.0** |
+| lucide-react | 0.344.0 | **1.55.0** |
+| tailwindcss | 3.4.19 | 3.4.19 — **a propósito** (ver abajo) |
+| Vulnerabilidades críticas | 0 | 0 |
 
-**La elección de Vite fue correcta.** Esta app es *«sin base de datos, sin login, sin formularios»*
-(lo dice su propia `ARQUITECTURA_APP.md`): una sola página con el contenido en `siteConfig` dentro
-de `App.jsx`, más **un** endpoint que le pregunta a YouTube. Next aporta renderizado del lado del
-servidor, regeneración de estáticos, ruteo y rutas de API a escala — **esta app no usa ninguna de
-las cuatro**.
+### Qué se ganó, medido
 
-🔴 **El costo de esa decisión es exactamente lo que se ve: es la única con otro stack, y por eso
-es la que se olvidó.** No se atrasó porque Vite sea peor; se atrasó porque es la rara.
+El HTML que recibe un buscador —o una IA que cita páginas— pasó de una página **vacía** que se
+rellenaba después en el navegador, a **30.843 bytes con 2.708 caracteres de texto real**. Era el
+único motivo de la migración y es verificable: `curl` a la portada y leerla.
 
-**Recomendación: NO migrarla a Next.** Reescribir una landing estática no le cambia nada al
-visitante, cuesta un día y suma riesgo. Lo que corresponde es **meterla en la rutina de
-actualización** para que deje de derivar. El día que necesite base de datos, login o formularios
-—recibir consultas, por ejemplo— ahí Next se gana el lugar y la migración se paga sola.
+### Por qué AHORA, y por qué mi recomendación anterior estaba mal
 
-⚠️ **Queda fuera de la auditoría de seguridad de la base:** usa un **Supabase de otra cuenta**, sin
-acceso desde la sesión. Conviene correrle el mismo chequeo de RLS y de registro cerrado que se le
-hizo a la base del ecosistema.
+Hasta esta misma mañana este archivo decía **«Recomendación: NO migrarla a Next»**. El argumento
+era que la app no usaba nada de lo que Next aporta, y lo sostenía citando su propia
+`ARQUITECTURA_APP.md`: *«sin base de datos, sin login, sin formularios»*.
+
+🔴 **Esa frase estaba vieja y yo la repetí sin verificarla.** Desde el 27-09 la app tiene base de
+datos propia (Supabase), login con Google y un formulario que recibe consultas de personas. Lo
+marcó Vic. Es exactamente el caso que el propio texto daba como condición para migrar — ya se
+había cumplido y nadie lo había actualizado.
+
+**La lección no es «me equivoqué en esta app»:** es que la documentación describe el día en que
+se escribió, y una recomendación que se apoya en ella sin mirar el código hereda su fecha. La
+regla del ecosistema (relevar desde el código, no desde la doc) existe por esto, y acá la violé
+citando un documento que yo mismo tenía a mano para comprobar.
+
+El segundo argumento, el del momento, lo puso Vic: *«la aplicación no está en uso en este
+momento, pero sí lo va a estar, entonces yo creería que el momento es ahora y antes de que
+quizás crezca más»*. Es correcto: migrar cuesta menos cuanto menos hay.
+
+### Tailwind se queda en 3, y no es por olvido
+
+Pasar a 4 se probó y **se volvió atrás**. Compilaba perfecto, pero la comparación píxel a píxel
+mostró el encabezado 31 px más alto (6,9 % de los píxeles distintos), y el parche oficial de
+compatibilidad de bordes no alcanzó porque esta app define los colores de borde a mano. Es una
+tarea aparte, de unas 2 h, con su propia verificación.
+
+### 🔴 CUATRO COSAS QUE COMPILABAN PERFECTO Y NO FUNCIONABAN
+
+Ninguna dio un error. Van anotadas porque son la clase de falla que vuelve:
+
+1. **La CSP dejaba la página muerta.** Next escribe 3 programas DENTRO del HTML. Con la regla que
+   tenía la app (`script-src 'self'`) el navegador los bloquea: **las capturas salían idénticas
+   y la página no respondía a nada.** La salida fácil era permitir programas sin firma
+   (`'unsafe-inline'`), que es el agujero más explotado que existe. En vez de eso, `proxy.js`
+   los firma con un número al azar por visita. Eso obliga a armar la página en cada pedido: de
+   ahí el `force-dynamic` de `app/layout.jsx`. **No borrar ninguna de las dos piezas sin leer la
+   otra.**
+2. **El endpoint del botón de publicar no existía.** Se llamaba `__publicar`, y **Next ignora por
+   completo las carpetas que empiezan con guión bajo.** Compilaba sin una queja y devolvía 404.
+   Ahora es `publicar-local`.
+3. **El atajo de Vic (`start.command`) fallaba al arrancar:** le pasaba a Next banderas de Vite
+   (`--strictPort`, que en Next no existe). El puerto ahora va en el `dev` de `package.json`,
+   en un solo lugar.
+4. **Tailwind buscaba las clases en `./index.html`**, que ya no existe. Una clase usada sólo en
+   `app/` no habría generado estilo, sin ningún error.
+
+### 🔴 Y lo que habría roto la PUBLICACIÓN
+
+El panel de Vercel tiene este proyecto como **framework Vite, salida `dist`**. Next no produce
+`dist`: Vercel habría compilado bien y después no habría encontrado qué publicar — sin un error
+de código en el registro. Lo arregla `vercel.json` desde el repositorio (`framework: nextjs` +
+`outputDirectory: null`), que manda sobre el panel. El detalle: `../LEEME_vercel.json.md`.
+
+### Una de seguridad que la migración traía de regalo
+
+Vite escuchaba sólo en localhost por su cuenta. **Next, si no se le dice, escucha en todas las
+interfaces:** la app habría quedado visible para cualquiera en la red donde esté la Mac, y
+encima choca con el `tailscale serve` que ya tiene tomado el 5173. Los dos comandos llevan
+`-H 127.0.0.1`.
+
+### Cómo se verificó (no es «parece andar»)
+
+- **6 capturas** —portada, buzón y privacidad, en escritorio y celular— contra lo que está
+  publicado hoy: **0 píxeles de diferencia** en las seis.
+- **Las 33 pruebas** del feed de YouTube.
+- `/api/episodios` devuelve **lo mismo que producción**.
+- El **formulario**: guardó una fila real en Supabase y se borró. Los 4 frenos anti-robot siguen
+  puestos (campo trampa, menos de 3 segundos, mail con copia oculta, privada sin contacto).
+- La fila anónima quedó **sin nombre, sin mail, sin teléfono, sin zona y sin origen**.
+- El **login con Google** llega hasta la pantalla de Google con el `client_id` correcto. Apretar
+  el botón y entrar es lo único que queda para Vic.
+- **La prueba que importaba:** que la página despierte. Un botón de verdad despliega el
+  formulario (0 → 11 campos), sin bloqueos de CSP ni errores de JavaScript.
+- Los **candados del botón de publicar**, uno por uno: 404 en producción, 403 sin token, 403 con
+  token y origen ajeno, 403 con token inventado, y se niega a publicar sin la constancia del
+  `/security-review` **sin tocar el repositorio**.
+
+### 🟡 LO QUE FALTA, Y ES DECISIÓN DE VIC
+
+🔴 **Publicar.** Producción está en `f0e3f25` (28-09) y hay **11 commits locales sin subir**,
+incluida la subida de Vite 5→8 / React 18→19 y toda la migración. El botón pide antes la
+constancia del `/security-review`, que hay que correr sobre estos cambios.
+
+Dos cosas más, chicas:
+
+- **`favicon.ico` da 404** — ya daba 404 en producción, no lo trae la migración. Hay un
+  `public/logo.png` que podría servir de icono; cambia lo que se ve en la pestaña, así que se
+  consulta antes.
+- **Las variables en Vercel siguen con los nombres viejos** (`VITE_SUPABASE_*`).
+  `lib/consultas.js` acepta los dos nombres a propósito para que el formulario no quede sin
+  base. Al renombrarlas en el panel, se puede simplificar.
 
 ---
 
@@ -50,9 +126,13 @@ hizo a la base del ecosistema.
 - **No modificar código ni publicar sin OK de Vic.** Proponer primero, mostrar en `localhost:5173`, recién ahí publicar. Lección del 20-09: cuando Vic pidió cambiar un TEXTO, se rediseñó el bloque por iniciativa propia y hubo que deshacerlo.
 - **NUNCA transcribir IDs o enlaces desde una captura de pantalla** (Lección del 21-09: al copiar a mano el ID de Spotify confundí una "l" minúscula con una "I" mayúscula; el botón de la web habría quedado roto incluso con el programa publicado). Pedir siempre que Vic **copie y pegue el texto**, y comparar carácter por carácter.
 
-## 🔴 ESTADO ACTUAL (21-09-2026, noche)
+## ESTADO ACTUAL — histórico (21-09-2026, noche)
 
-### Producción = local (deploy 1 el 22-09 a las 01:14 ART; corrección del pie a las ~01:25)
+> ⚠️ Lo de acá abajo describe el estado de SEPTIEMBRE y se conserva como historia. El estado
+> vigente es el bloque del 11-10-2026, al principio de este archivo. En particular: **ya no es
+> cierto que producción sea igual al código local.**
+
+### Producción = local (era cierto el 22-09; **dejó de serlo**: ver el bloque del 11-10)
 Producción (`https://detras-del-cartel.vercel.app`) está al día con `main`; último cambio de código: **`dd4fe38`** (pie corregido). Antes, el deploy 1 fue `e8aacba`. Se subieron: fondo **crema** de la tarjeta de portada en modo día · corrección **404 → lista vacía** en la API · enlace de **Spotify** activo · documentación. **Verificado en vivo:** página HTTP 200 · `/api/episodios` → **HTTP 200 `{"ok":true,"episodios":[]}`** (antes daba 502: **el fix quedó confirmado**) · CSP/HSTS/`noindex` presentes · 0 violaciones de CSP y 0 recursos rotos en modo día y noche · sin desborde a 1280 px · el JS publicado contiene el enlace de Spotify correcto y 0 ejemplos/0 claves · el CSS publicado tiene la regla del crema. Tarjeta de Spotify **activa** (lleva a "no encontrado" hasta publicar el 1.er episodio); tarjeta de Apple "Próximamente".
 
 ### 🆕 MÓDULO DE CONSULTAS (27-09-2026) — PUBLICADO Y FUNCIONANDO

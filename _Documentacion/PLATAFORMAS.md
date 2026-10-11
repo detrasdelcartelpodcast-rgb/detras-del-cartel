@@ -13,7 +13,7 @@
 ## Resumen
 | Plataforma | Estado | Falta |
 |---|---|---|
-| GitHub | ✅ repo privado, al día con producción (`e8aacba`) | — |
+| GitHub | 🟡 repo privado. **NO está al día con producción**: `origin/main` = `f0e3f25`, y hay 11 commits locales sin subir | publicar (decisión de Vic) |
 | Vercel | ✅ web publicada (noindex) + función + variable de la clave; deploy del 22-09 hecho | conectar dominio; deploy 2 con el enlace de Apple |
 | Google Cloud | ✅ proyecto + clave de YouTube Data API v3 | confirmar restricción de la clave |
 | YouTube | ✅ canal armado; video de prueba en Privado | subir episodios; alinear frecuencia en banner/descripción |
@@ -27,11 +27,20 @@
 - Cuenta `detrasdelcartelpodcast-rgb`; repo privado `detras-del-cartel`, rama `main`.
 - Acceso por **clave SSH dedicada** (`~/.ssh/id_ed25519_cartel`, alias de host `github-cartel` en `~/.ssh/config`, sin passphrase). Remote: `git@github-cartel:detrasdelcartelpodcast-rgb/detras-del-cartel.git`.
 - El repo tiene `credential.helper` vacío e identidad local (email noreply de GitHub) para no heredar las credenciales de la Mac. Cada push a `main` dispara un deploy en Vercel.
-- **Estado del código:** producción y GitHub están en `e8aacba` (deploy del 22-09 01:14 ART).
+- 🔴 **Estado del código (11-10-2026):** producción y GitHub están en **`f0e3f25`** (28-09). El
+  código local tiene **11 commits más**, entre ellos la subida de Vite 5→8 / React 18→19 y la
+  migración completa a Next 16. Todo verificado contra lo publicado (6 capturas, 0 píxeles de
+  diferencia) pero **sin publicar**: el botón exige antes la constancia del `/security-review`.
 
 ## Vercel
 - Equipo `detrasdelcartel` (cuenta nueva, plan Hobby = solo uso NO comercial; si la web promociona servicios o lleva publicidad hace falta Pro). 2FA: confirmar.
-- Proyecto `detras-del-cartel`, framework Vite, build `npm run build`, salida `dist`, funciones en `api/`.
+- Proyecto `detras-del-cartel`. 🔴 **En el panel sigue diciendo framework `Vite`, salida `dist`**,
+  de cuando la app era Vite. Eso ya no corresponde y **habría roto el próximo deploy** (Next no
+  produce `dist`: Vercel compila bien y después no encuentra qué publicar). **No hace falta
+  entrar al panel a arreglarlo:** `vercel.json` declara `framework: nextjs` y
+  `outputDirectory: null`, y lo del repositorio manda sobre lo del panel. El detalle está en
+  `../LEEME_vercel.json.md`.
+- Las funciones ya no están en `api/` sino en `app/api/*/route.js`.
 - URL actual: `https://detras-del-cartel.vercel.app` (con `noindex`).
 - Variable de entorno: **`YOUTUBE_API_KEY`** (Production). Solo aplica a despliegues NUEVOS (hay que redeployar al cambiarla).
 - Headers de seguridad en `vercel.json` (CSP con `frame-src https://www.youtube-nocookie.com`, HSTS, etc.).

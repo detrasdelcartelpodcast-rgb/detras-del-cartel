@@ -29,7 +29,7 @@ camino formulario → base → buzón, y los Security Advisors de Supabase entra
 | SSRF / URLs | ✅ Hosts constantes (`googleapis.com`, `youtube.com`). El ID de canal sale de una variable validada (`^UC[A-Za-z0-9_-]{22}$`). Sin redirecciones, timeout 6 s, tope 1 MB |
 | Privacidad del contenido | ✅ Solo se muestran videos `public` + `embeddable`. **Probado en vivo:** al pasar el video a Privado, la web lo sacó tras renovarse la caché |
 | XXE / parser XML | ✅ El feed de respaldo se procesa con expresiones simples (sin parser XML); DOCTYPE/entidades externas quedan como texto (prueba dedicada) |
-| Headers (`vercel.json`) | ✅ CSP (`default-src 'self'`, `script-src 'self'`, `connect-src 'self'`, `frame-src https://www.youtube-nocookie.com`, `object-src 'none'`, `frame-ancestors 'none'`…), HSTS, `nosniff`, `X-Frame-Options: DENY`, Referrer-Policy, Permissions-Policy, `X-Robots-Tag: noindex…`. Verificados en vivo: 0 violaciones de CSP |
+| Headers (**`next.config.mjs`** + **`proxy.js`**; eran `vercel.json` hasta el 11-10-2026) | ✅ CSP (`default-src 'self'`, `script-src 'self'`, `connect-src 'self'`, `frame-src https://www.youtube-nocookie.com`, `object-src 'none'`, `frame-ancestors 'none'`…), HSTS, `nosniff`, `X-Frame-Options: DENY`, Referrer-Policy, Permissions-Policy, `X-Robots-Tag: noindex…`. Verificados en vivo: 0 violaciones de CSP |
 | Recursos de terceros | ✅ Solo el reproductor `youtube-nocookie.com` (versión sin cookies hasta reproducir). Imágenes y fuentes son propias |
 | Enlaces externos | ✅ `target="_blank"` con `rel="noopener noreferrer"`; todos salen de constantes de `siteConfig` |
 | Datos personales | 🟢 Desde el 27-09 se recolectan por el formulario, **con las defensas puestas**: validación y escritura solo en el servidor, RLS cerrado, antirrobots (campo trampa + tiempo mínimo), freno de avalancha sin guardar IP, consentimiento explícito para usar el caso al aire, y anonimato garantizado por la base. Detalle y pruebas: `MODULO_CONSULTAS.md`. ✅ **Política de privacidad** publicada en `/privacidad` (27-09), enlazada desde el pie y desde el formulario |
@@ -48,6 +48,19 @@ camino formulario → base → buzón, y los Security Advisors de Supabase entra
 ## Revisiones de seguridad hechas (todas: sin hallazgos ≥ 8/10; 5 en total, la última el 22-09 (pie: solo clases de presentación))
 1. **2026-09-19** — manual (el skill no corría sin `origin/HEAD`): archivos a subir, dependencias (177 paquetes de `registry.npmjs.org`), build.
 2. **2026-09-21** — `/security-review` de la landing completa + función `/api/episodios` + CSP con `frame-src`.
+3. 🔴 **2026-10-11 — FALTA.** La migración de Vite a Next está terminada y verificada pero **sin
+   publicar**, y el `/security-review` de estos cambios es el paso que falta (el botón de
+   publicar no deja seguir sin esa constancia). Lo que hay que mirar, concretamente:
+   - **`proxy.js`** — ahora la CSP se arma en cada visita con un número al azar (nonce) en vez de
+     permitir programas sin firma. El `script-src` quedó **igual de restrictivo** que el de
+     septiembre (`'self'` + el nonce de esa visita, sin `'unsafe-inline'`), comprobado comparando
+     cabecera por cabecera contra lo publicado.
+   - **`app/api/publicar-local/[accion]/route.js`** — ⚠️ es lo que más cambió de naturaleza: en
+     Vite el botón de publicar **no se compilaba** (`apply: 'serve'`), y ahora **sí se compila y
+     sube a Vercel**. Lo único que lo vuelve inofensivo es el `NODE_ENV === 'production'` → 404
+     de la primera línea. Verificado en los dos modos. Es el punto a revisar con más cuidado.
+   - Los 6 encabezados de seguridad se mudaron de `vercel.json` a `next.config.mjs`: comparados
+     uno por uno contra producción, **idénticos**.
 3. **2026-09-21** — `/security-review` de la lectura por API oficial (clave por header, filtro de privacidad, duración).
 - **Pruebas automáticas** (`npm run probar`, **33**): feeds y respuestas de API inventados, incluidos hostiles (scripts en título, IDs inyectados, XXE, entidades absurdas, respuestas gigantes, timeouts, canal inválido, clave con formato raro, errores sin la clave, elementos `null`). Una prueba encontró y corrigió un fallo real.
 - **Pruebas en navegador real** con las reglas reales de `vercel.json`: 4 escenarios (con episodios / vacío / API caída / texto hostil): 0 violaciones de CSP, 0 errores de JavaScript, sin desborde horizontal a 390 px.

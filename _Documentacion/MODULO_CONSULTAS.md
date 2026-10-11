@@ -47,7 +47,7 @@ un conteo global por minuto, justamente para no tener que guardarla).
 ```
   Navegador                      Servidor                      Supabase
   ─────────                      ────────                      ────────
-  src/Formulario.jsx  ──POST──►  api/consulta.js          ┌─► consultas
+  src/Formulario.jsx  ──POST──►  app/api/consulta/route.js ┌─► consultas
   (landing, público)             api/_lib/consultas.js ───┤   consulta_notas
                                  (clave SECRETA)          └─► autorizados
                                                                ▲
@@ -66,13 +66,13 @@ un conteo global por minuto, justamente para no tener que guardarla).
 | Archivo | Qué hace |
 |---|---|
 | `src/Formulario.jsx` | El formulario de la landing. Arranca **cerrado** (solo el botón) y se despliega al tocarlo. |
-| `api/consulta.js` | Función de Vercel: `POST /api/consulta`. |
+| `app/api/consulta/route.js` | `POST /api/consulta`. Era `api/consulta.js` hasta el 11-10-2026. |
 | `api/_lib/consultas.js` | Validación y escritura. **Acá vive la clave secreta.** |
 | `src/Consultas.jsx` | La pantalla `/consultas`: login, lista, filtros, bitácora, papelera, exportación. |
 | `src/lib/supabase.js` | Cliente del navegador (clave pública). |
 | `src/lib/excel.js` | Genera el `.xlsx` a mano (sin librerías de afuera: la CSP no permite cargar nada externo). |
 | `src/main.jsx` | Ruteo mínimo: `/consultas` o la landing. El buzón se carga aparte (ver abajo). |
-| `vite.config.js` → `apiConsultaLocal()` | En localhost hace de función de Vercel, con el mismo código. |
+| ~~`vite.config.js` → `apiConsultaLocal()`~~ | **Ya no existe** (11-10-2026). Con Vite había que escribir un plugin para que `/api/consulta` funcionara en localhost con el mismo código que en Vercel. Con Next el endpoint es el mismo archivo en los dos lados: no hay nada que duplicar ni que se pueda desincronizar. |
 | `sql/01_consultas.sql` · `02_bitacora.sql` · `03_mail_sin_trucos.sql` | Esquema, permisos y correcciones. Se corren en el SQL Editor. |
 
 **El buzón se carga aparte a propósito** (`React.lazy`): el cliente de Supabase pesa 251 KB,
@@ -167,7 +167,8 @@ cambiar las políticas a `auth.uid()` antes.**
 ### Al lanzar
 - `/consultas` **nunca se indexa**, ni cuando se saque el `noindex` general del sitio. Está en
   tres capas: etiqueta en la página, `robots.txt` (con un comentario que avisa que esas líneas
-  quedan) y cabecera `X-Robots-Tag` propia en `vercel.json`, más `Cache-Control: no-store`.
+  quedan) y cabecera `X-Robots-Tag` propia en **`next.config.mjs`** (era `vercel.json` hasta el
+  11-10-2026), más `Cache-Control: no-store`.
 - Tras el primer login de cada uno, **apagar "Allow new users to sign up"** en Supabase
   (Authentication → Sign In / Providers). No antes: el usuario se crea en el primer ingreso.
 
@@ -179,8 +180,14 @@ cambiar las políticas a `auth.uid()` antes.**
 
 | Variable | Dónde | Secreta |
 |---|---|---|
-| `VITE_SUPABASE_URL` | navegador y servidor | no |
-| `VITE_SUPABASE_PUBLISHABLE_KEY` | navegador | no (pero solo sirve con sesión autorizada) |
+| `NEXT_PUBLIC_SUPABASE_URL` | navegador y servidor | no |
+| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | navegador | no (pero sólo sirve con sesión autorizada) |
+
+🔴 **Los nombres cambiaron el 11-10-2026** (`VITE_` → `NEXT_PUBLIC_`): el prefijo es lo que le
+dice al compilador cuáles variables puede mandar al navegador, y cada herramienta usa el suyo.
+**En Vercel siguen cargadas con los nombres viejos**, así que `lib/consultas.js` acepta los dos
+a propósito: si se le quitara la red, el formulario quedaría sin base hasta que alguien
+renombre las variables a mano en el panel. Al renombrarlas allá, se puede simplificar.
 | `SUPABASE_SECRET_KEY` | **solo servidor** | 🔴 **sí** — nunca al repo, nunca al navegador, nunca al chat |
 
 **Si se compromete la clave secreta:** Supabase → Settings → API Keys → rotar la secret →

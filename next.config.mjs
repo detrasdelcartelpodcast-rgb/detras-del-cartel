@@ -32,7 +32,37 @@ function huellaDeEstaVersion() {
   }
 }
 
+/* 🔴 EL PUENTE ENTRE LOS NOMBRES VIEJOS Y LOS NUEVOS. Sin esto, el buzón no deja entrar.
+
+   Qué pasó, el 11-10-2026, y sólo se vio una vez publicado. Cada herramienta tiene su propio
+   prefijo para marcar qué variables puede mandar al navegador: Vite usaba `VITE_`, Next usa
+   `NEXT_PUBLIC_`. En el panel de Vercel siguen cargadas con los nombres de Vite, así que al
+   compilar allá `NEXT_PUBLIC_SUPABASE_URL` no existía y `/consultas` mostraba «Falta configurar
+   Supabase» en lugar del botón de Google. **En la Mac funcionaba**, porque el `.env.local` de
+   acá tiene los dos nombres: la falla sólo existía en internet.
+
+   `lib/consultas.js` ya aceptaba los dos nombres, pero eso cubre al servidor. El navegador no
+   puede elegir: recibe lo que se le haya grabado al compilar, y sólo se graban las
+   `NEXT_PUBLIC_`. Por eso el puente va acá, que es donde se compila.
+
+   No hay secreto en juego: la clave `publishable` es pública a propósito (lo explica
+   `src/lib/supabase.js`); lo que impide que sirva para algo es RLS. La secreta nunca pasa
+   por acá.
+
+   📌 LIMPIEZA PENDIENTE: renombrar las dos variables en el panel de Vercel a `NEXT_PUBLIC_…`
+   y borrar este bloque. Requiere entrar con la cuenta del podcast; la herramienta de Vercel de
+   esta Mac está con la cuenta de Inmovalue y no llega a ese equipo. */
+const SUPABASE_PARA_EL_NAVEGADOR = {
+  NEXT_PUBLIC_SUPABASE_URL:
+    process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.VITE_SUPABASE_URL || '',
+  NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY:
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ||
+    process.env.VITE_SUPABASE_PUBLISHABLE_KEY ||
+    '',
+}
+
 export default {
+  env: SUPABASE_PARA_EL_NAVEGADOR,
   generateBuildId: huellaDeEstaVersion,
 
   /* El botón de publicar compila para comprobar que no se rompió nada, y eso no puede pisar

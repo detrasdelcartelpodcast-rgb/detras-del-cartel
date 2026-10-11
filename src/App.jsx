@@ -23,7 +23,7 @@ export const siteConfig = {
   // 0. Estado de publicación
   //  publicarCompleto: true  → el sitio publicado muestra la landing COMPLETA.
   //  publicarCompleto: false → el sitio publicado muestra solo el logo + barra "en construcción".
-  //  Los episodios se leen SOLOS del canal de YouTube (ver src/Episodios.jsx y api/episodios.js): sin videos → "Muy pronto".
+  //  Los episodios se leen SOLOS del canal de YouTube (ver src/Episodios.jsx y app/api/episodios/route.js): sin videos → "Muy pronto".
   sitio: { publicarCompleto: true },
 
   // 1. Control de visibilidad de secciones (true / false)

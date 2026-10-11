@@ -15,7 +15,31 @@ const COMUNES = [
   { key: 'Strict-Transport-Security', value: 'max-age=63072000; includeSubDomains' },
 ]
 
+import { execSync } from 'node:child_process'
+
+/* La "huella" de esta versión. Sirve para una sola cosa, pero importante: después de publicar,
+   el botón pregunta a la web en vivo si ya está sirviendo ESTA versión y no una anterior.
+   Para poder compararlas, el número tiene que ser el mismo acá y en Vercel, así que se usa el
+   identificador del cambio en Git —que Vercel deja en VERCEL_GIT_COMMIT_SHA cuando compila—.
+   Si no se puede saber, se devuelve null y Next inventa uno (la verificación avisa que no pudo
+   confirmar, que es lo correcto: mejor "no sé" que un "listo" falso). */
+function huellaDeEstaVersion() {
+  if (process.env.VERCEL_GIT_COMMIT_SHA) return process.env.VERCEL_GIT_COMMIT_SHA
+  try {
+    return execSync('git rev-parse HEAD', { encoding: 'utf8' }).trim() || null
+  } catch {
+    return null
+  }
+}
+
 export default {
+  generateBuildId: huellaDeEstaVersion,
+
+  /* El botón de publicar compila para comprobar que no se rompió nada, y eso no puede pisar
+     la carpeta que está usando el servidor de desarrollo mientras Vic lo mira en el navegador.
+     Con Vite no pasaba: la salida era `dist/`, aparte. Acá se le pide compilar en otra carpeta. */
+  distDir: process.env.CARPETA_COMPILADO || '.next',
+
   /* 🔴 El equivalente del `server.allowedHosts` que tenía vite.config.js. Sin esto, entrar al
      servidor de desarrollo por el nombre de Tailscale (en vez de localhost) lo hace rechazar
      los pedidos internos del framework y la página queda a medias.

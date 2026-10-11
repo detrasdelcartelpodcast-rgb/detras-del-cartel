@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Rocket, Check, AlertTriangle, Loader2 } from 'lucide-react';
 
 /* ==========================================================================
@@ -11,24 +11,36 @@ import { Rocket, Check, AlertTriangle, Loader2 } from 'lucide-react';
    se los pide a Vic: los deja escritos Claude en `.deploy-siguiente.json` al
    terminar cada trabajo. Si falta esa constancia, el botón no publica.
 
-   Habla con tools/vite-plugin-publicar.js, que no existe en el sitio
-   compilado: nada de esto viaja a Vercel.
-========================================================================== */
+   Habla con app/api/publicar-local/[accion]/route.js, que devuelve 404 en
+   producción: apretarlo desde la web publicada no hace nada.
 
-const TOKEN = typeof window !== 'undefined' ? window.__TOKEN_PUBLICAR__ ?? '' : '';
+   📌 11-10-2026: antes el token venía escrito en la página (`window.__TOKEN_PUBLICAR__`),
+   que era algo que inyectaba Vite. Ahora se pide al servidor. Es lo mismo en la práctica:
+   lo que protege no es que el token sea difícil de encontrar, sino que una pestaña de otro
+   sitio no puede leer una respuesta que no es de su origen.
+========================================================================== */
 
 export default function Publicar() {
   const [estado, setEstado] = useState('listo'); // listo · publicando · ok · error
   const [motivo, setMotivo] = useState('');
+  const token = useRef('');
+
+  // Se pide una vez, al abrir la barra. Vive mientras esté corriendo el servidor.
+  useEffect(() => {
+    fetch('/api/publicar-local/token')
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => { if (d?.token) token.current = d.token; })
+      .catch(() => {});
+  }, []);
 
   async function publicar() {
     if (estado === 'publicando') return;
     setEstado('publicando');
     setMotivo('');
     try {
-      const r = await fetch('/__publicar/ejecutar', {
+      const r = await fetch('/api/publicar-local/ejecutar', {
         method: 'POST',
-        headers: { 'x-publicar-token': TOKEN, 'Content-Type': 'application/json' },
+        headers: { 'x-publicar-token': token.current, 'Content-Type': 'application/json' },
         body: '{}',
       });
       const resultado = await r.json();
@@ -54,7 +66,7 @@ export default function Publicar() {
     for (let i = 0; i < 40; i++) {
       await new Promise((r) => setTimeout(r, 6000));
       try {
-        const r = await fetch('/__publicar/ultimo', { headers: { 'x-publicar-token': TOKEN } });
+        const r = await fetch('/api/publicar-local/ultimo', { headers: { 'x-publicar-token': token.current } });
         const { ultimo } = await r.json();
         if (ultimo?.estado === 'publicado') return setEstado('listo');
         if (ultimo?.estado === 'sin_confirmar') {

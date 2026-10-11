@@ -3,7 +3,7 @@ import { ChevronRight, Play } from 'lucide-react';
 
 /* ==========================================================================
    EPISODIOS AUTOMÁTICOS (desde el canal de YouTube)
-   Los datos llegan de /api/episodios (api/episodios.js), que lee el feed público del canal.
+   Los datos llegan de /api/episodios (app/api/episodios/route.js), que lee el feed público del canal.
    Subís un video a YouTube y aparece acá solo (hasta ~5 min de demora por la caché).
    - "Último episodio": el video más nuevo, con reproductor.
    - "Episodios anteriores": los siguientes (hasta 6). No se muestra si no hay más.

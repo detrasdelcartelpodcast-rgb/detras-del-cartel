@@ -12,7 +12,11 @@ if lsof -ti:$PORT -sTCP:LISTEN >/dev/null; then
 else
     [ -d node_modules ] || npm install
     echo "🎙️  Detrás del Cartel — iniciando en http://localhost:$PORT"
-    nohup npm run dev -- --host 127.0.0.1 --port $PORT --strictPort > "$LOG" 2>&1 &
+    # 11-10-2026: antes se le pasaban acá `--host`, `--port` y `--strictPort`, que eran
+    # banderas de Vite. Next no entiende `--strictPort` y el arranque fallaba. El puerto y
+    # la dirección ya van en el comando `dev` de package.json, que es donde corresponde:
+    # un solo lugar, y así `npm run dev` a mano se comporta igual que este atajo.
+    nohup npm run dev > "$LOG" 2>&1 &
     for i in $(seq 1 30); do curl -s -o /dev/null "http://localhost:$PORT" && break; sleep 1; done
 fi
 # El menú del 8002 lanza esto con BRAIN_LAUNCH=1. En ese caso NO se abre el navegador de

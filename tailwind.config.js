@@ -6,7 +6,10 @@ const tok = (v) => `rgb(var(--${v}) / <alpha-value>)`;
 
 export default {
   content: [
-    "./index.html",
+    // 11-10-2026: antes decía "./index.html", que era la única página de Vite. Ahora las
+    // páginas viven en app/. Si una clase se usa SÓLO ahí y esta carpeta no está listada,
+    // Tailwind no genera el estilo y el elemento aparece sin formato, sin ningún error.
+    "./app/**/*.{js,ts,jsx,tsx}",
     "./src/**/*.{js,ts,jsx,tsx}",
   ],
   theme: {

@@ -1,0 +1,30 @@
+<!-- El ícono de la pestaña del navegador.
+
+     Es la misma IDEA que la marca del encabezado (src/MiniMark.jsx) —cartel con el micrófono
+     detrás— pero NO el mismo dibujo, y eso es a propósito.
+
+     🔴 Por qué no se copió tal cual: en MiniMark el tablero del cartel está dibujado con una
+     línea de 2,6 sobre un lienzo de 64. A 16 px eso son 0,65 px: la línea desaparece y queda
+     un palo con una pelotita. Comprobado renderizándolo. Acá el tablero va RELLENO y todos los
+     trazos engordados, que es lo que hay que hacer para que algo se lea a 16 px.
+
+     Por qué no se usa ninguno de los diez logos de src/assets/logos/: se probaron los diez a
+     16 y 32 px el 11-10-2026. Todos llevan texto, y el texto a ese tamaño no existe: quedan
+     manchas. Un ícono se lee por su silueta, no por lo que dice.
+
+     El color va fijo (#b45309, el dorado de marca) porque el favicon no hereda el modo
+     día/noche: lo dibuja el navegador en su barra. Ese tono se lee sobre pestaña clara y
+     oscura, verificado contra las dos. -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <g fill="#b45309">
+    <!-- micrófono asomando por detrás -->
+    <rect x="30" y="4" width="11" height="16" rx="5.5" />
+    <rect x="33.5" y="19" width="4" height="5" />
+    <!-- poste -->
+    <rect x="10" y="12" width="8" height="48" rx="1.5" />
+    <!-- travesaño -->
+    <rect x="10" y="20" width="42" height="7" rx="1.5" />
+    <!-- tablero colgado, RELLENO: es lo único que sobrevive a 16 px -->
+    <rect x="22" y="31" width="28" height="19" rx="2" />
+  </g>
+</svg>

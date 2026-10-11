@@ -330,9 +330,10 @@ export default function DetrasDelCartelLanding() {
       {sections.header && (
       <header className="sticky top-0 z-50 backdrop-blur-md bg-page/90 border-b border-line/5 px-4 md:px-8 py-3 flex items-center justify-between transition-all">
         <div className="flex items-center space-x-3">
-          <div className="w-9 h-9 rounded-xl bg-card2 border border-amber-500/30 flex items-center justify-center text-accent shadow-inner">
-            <MiniMark className="w-6 h-6" />
-          </div>
+          {/* PRUEBA 11-10: el emblema en vez de la marca mínima. Sin la cajita de antes:
+              el emblema ya es redondo y tiene su propio aro, meterlo en un cuadrado con borde
+              le pone un marco arriba de otro. 44 px en celular, 52 en escritorio. */}
+          <img src={emblema.src} alt="" className="w-11 h-11 md:w-[52px] md:h-[52px] shrink-0" />
           <div>
             <span className="block text-[12px] md:text-[13px] font-black uppercase tracking-wider text-fg leading-tight">
               {brand.title}

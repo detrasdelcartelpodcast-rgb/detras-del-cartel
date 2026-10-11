@@ -1,23 +1,33 @@
 import React from 'react';
 
-// Marca mínima (cartel + micrófono) para el menú y tamaños chicos. Vector simple, nítido a 32 px.
-// BORRADOR: el diseño fino se define después; se reemplaza por el logo definitivo simplificado.
-// Toma el color de `currentColor` (en la web, el dorado de marca que cambia con el modo día/noche).
+/* Marca mínima (cartel + micrófono) para el encabezado, el pie y cualquier tamaño chico.
+
+   🔴 Es EL MISMO dibujo que `app/icon.svg`, el ícono de la pestaña, a propósito: una sola
+   marca en los dos lados. Si se cambia acá, cambiarlo allá (y al revés).
+
+   Engordada el 11-10-2026. Antes el tablero del cartel era una línea de 2,6 sobre un lienzo
+   de 64: a 16 px eso son 0,65 px, la línea desaparecía y quedaba un palo con una pelotita.
+   Ahora va relleno y todos los trazos más gruesos, que es lo que hace falta para que algo se
+   lea chico.
+
+   Por qué no se usa el emblema cobrizo acá: se probó renderizándolo a 16, 24, 32, 48 y 64 px.
+   Abajo de 48 es una mancha — la cinta con "DETRÁS DEL CARTEL" no se lee—. Lo mismo con los
+   otros nueve logos de src/assets/logos/: todos llevan texto, y el texto a 24 px no existe.
+   Un ícono se lee por su silueta.
+
+   Toma el color de `currentColor`: en la web, el dorado de marca, que cambia con día/noche. */
 export default function MiniMark({ className = 'w-6 h-6' }) {
   return (
     <svg viewBox="0 0 64 64" className={className} fill="currentColor" aria-hidden="true">
-      {/* micrófono */}
-      <rect x="31" y="5" width="8" height="13" rx="4" />
-      <path d="M28.5 13a6.5 6.5 0 0 0 13 0" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-      <rect x="34" y="18" width="2" height="3" />
-      {/* poste y travesaño del cartel */}
-      <rect x="13" y="16" width="5" height="42" rx="1" />
-      <path d="M13 16l2.5-3 2.5 3z" />
-      <rect x="13" y="21" width="36" height="4.5" rx="1" />
-      {/* tablero colgado */}
-      <rect x="25" y="28" width="22" height="15" rx="1.5" fill="none" stroke="currentColor" strokeWidth="2.6" />
-      <rect x="28" y="25" width="1.8" height="3" />
-      <rect x="42.5" y="25" width="1.8" height="3" />
+      {/* micrófono asomando por detrás */}
+      <rect x="30" y="4" width="11" height="16" rx="5.5" />
+      <rect x="33.5" y="19" width="4" height="5" />
+      {/* poste */}
+      <rect x="10" y="12" width="8" height="48" rx="1.5" />
+      {/* travesaño */}
+      <rect x="10" y="20" width="42" height="7" rx="1.5" />
+      {/* tablero colgado, RELLENO: es lo único que sobrevive a 16 px */}
+      <rect x="22" y="31" width="28" height="19" rx="2" />
     </svg>
   );
 }

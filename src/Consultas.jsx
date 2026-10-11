@@ -54,6 +54,14 @@ const DESENLACES = [
   { id: 'duplicada', texto: 'Duplicada de otra' },
 ];
 
+/* Los dos entran con la MISMA cuenta del proyecto, así que la base no tiene cómo saber quién
+   es quién. Esto se elige a mano. No es para auditar: es para repartirse el trabajo y que no
+   contesten los dos —o ninguno, cada uno suponiendo que el otro ya lo hizo—. */
+const PERSONAS = [
+  { id: 'vic', texto: 'Vic' },
+  { id: 'daniel', texto: 'Dani' },
+];
+
 const ROTULO = { programa: 'PARA EL PROGRAMA', privado: 'PIDE RESPUESTA', anonimo: 'ANÓNIMA' };
 const COLOR_TIPO = {
   programa: 'bg-sky-400/15 text-sky-400',
@@ -85,12 +93,19 @@ export default function Consultas() {
   const [fEstado, setFEstado] = useState('abiertas'); // nuevas / en curso / cerradas
   const [fTipo, setFTipo] = useState('todos');      // privado / programa / anonimo
   const [fPrior, setFPrior] = useState(false);      // sólo las marcadas con estrella
+  const [fQuien, setFQuien] = useState('todos');    // vic / daniel / sin_tomar
+  const [fFin, setFFin] = useState('todos');        // cómo terminó
+  const [fPermiso, setFPermiso] = useState('todos'); // si se puede contar al aire
   const [enPapelera, setEnPapelera] = useState(false);
   const [etiqueta, setEtiqueta] = useState(null);
   const [busca, setBusca] = useState('');
   const [abierta, setAbierta] = useState(null);
   const [elegidas, setElegidas] = useState(() => new Set());
   const [periodo, setPeriodo] = useState('todo');
+  /* Las dos puntas del rango, cuando se elige «Entre fechas». Van aparte de `periodo`
+     para que elegir «Últimos 7 días» y volver no borre lo que ya se había escrito. */
+  const [desdeF, setDesdeF] = useState('');
+  const [hastaF, setHastaF] = useState('');
   const [notas, setNotas] = useState({}); // { consulta_id: [anotaciones] }
 
   // Esta pantalla no se indexa nunca, ni cuando el resto del sitio se abra a Google.
@@ -181,12 +196,20 @@ export default function Consultas() {
 
   const visibles = useMemo(() => {
     const texto = busca.trim().toLowerCase();
-    const desde = { '7dias': 7, '30dias': 30 }[periodo];
-    const corte = desde ? Date.now() - desde * 86400000 : null;
+    const dias = { '7dias': 7, '30dias': 30 }[periodo];
+    const corte = dias ? Date.now() - dias * 86400000 : null;
 
     return consultas.filter((c) => {
       if (Boolean(c.borrada) !== enPapelera) return false;
       if (corte && new Date(c.creado_en).getTime() < corte) return false;
+      /* El rango se compara por día (los primeros 10 caracteres de la fecha), no por hora:
+         si uno pone «hasta el 11» espera que entren las del 11, no las anteriores a las 00:00
+         del 11. Cada punta es opcional: se puede poner sólo «desde» o sólo «hasta». */
+      if (periodo === 'rango') {
+        const dia = String(c.creado_en).slice(0, 10);
+        if (desdeF && dia < desdeF) return false;
+        if (hastaF && dia > hastaF) return false;
+      }
 
       // ── qué hay que hacer ──
       if (fHacer === 'vencidas' && !estaVencida(c)) return false;
@@ -202,13 +225,21 @@ export default function Consultas() {
       // ── tipo ──
       if (fTipo !== 'todos' && c.tipo !== fTipo) return false;
 
+      if (fFin !== 'todos' && c.desenlace !== fFin) return false;
+      /* «Puedo contarlo» mira el permiso que dio la persona al escribir. Las privadas no
+         entran nunca: dijeron que no sale al aire, y el campo está en false justamente por
+         eso (lo fuerza el servidor). Incluirlas acá sería contradecir lo que se les prometió. */
+      if (fPermiso === 'si' && (!c.permiso_uso || c.tipo === 'privado')) return false;
+      if (fPermiso === 'no' && c.permiso_uso && c.tipo !== 'privado') return false;
+      if (fQuien === 'sin_tomar' && c.atendida_por) return false;
+      if (['vic', 'daniel'].includes(fQuien) && c.atendida_por !== fQuien) return false;
       if (fPrior && !c.prioritaria) return false;
       if (etiqueta && !(c.etiquetas || []).includes(etiqueta)) return false;
       if (!texto) return true;
       const anotaciones = (notas[c.id] || []).map((n) => n.texto).join(' ');
       return [c.tema, c.detalle, c.nombre, c.zona, anotaciones].join(' ').toLowerCase().includes(texto);
     });
-  }, [consultas, fHacer, fEstado, fTipo, fPrior, etiqueta, busca, enPapelera, periodo, notas, hoy]);
+  }, [consultas, fHacer, fEstado, fTipo, fPrior, fQuien, fFin, fPermiso, etiqueta, busca, enPapelera, periodo, desdeF, hastaF, notas, hoy]);
 
   const temaTop = Object.entries(cuenta).sort((a, b) => b[1] - a[1])[0];
   const esperando = vivas.filter((c) => c.tipo === 'privado' && c.situacion !== 'cerrada').length;
@@ -228,17 +259,24 @@ export default function Consultas() {
     abiertas: abiertas.length,
     tipos: { privado: 0, programa: 0, anonimo: 0 },
     prioritarias: vivas.filter((c) => c.prioritaria).length,
+    fin: Object.fromEntries(DESENLACES.map((d) => [d.id, vivas.filter((c) => c.desenlace === d.id).length])),
+    puedoContar: vivas.filter((c) => c.permiso_uso && c.tipo !== 'privado').length,
+    quien: {
+      vic: vivas.filter((c) => c.atendida_por === 'vic').length,
+      daniel: vivas.filter((c) => c.atendida_por === 'daniel').length,
+      sin_tomar: abiertas.filter((c) => !c.atendida_por).length,
+    },
     papelera: consultas.length - vivas.length,
   };
   vivas.forEach((c) => { if (cuantas.tipos[c.tipo] !== undefined) cuantas.tipos[c.tipo]++; });
 
   const sinFiltros =
-    fHacer === 'todo' && fEstado === 'abiertas' && fTipo === 'todos' && !fPrior &&
+    fHacer === 'todo' && fEstado === 'abiertas' && fTipo === 'todos' && !fPrior && fQuien === 'todos' && fFin === 'todos' && fPermiso === 'todos' &&
     !enPapelera && !etiqueta && periodo === 'todo' && !busca.trim();
 
   function limpiarFiltros() {
-    setFHacer('todo'); setFEstado('abiertas'); setFTipo('todos'); setFPrior(false);
-    setEnPapelera(false); setEtiqueta(null); setPeriodo('todo'); setBusca('');
+    setFHacer('todo'); setFEstado('abiertas'); setFTipo('todos'); setFPrior(false); setFQuien('todos'); setFFin('todos'); setFPermiso('todos');
+    setEnPapelera(false); setEtiqueta(null); setPeriodo('todo'); setDesdeF(''); setHastaF(''); setBusca('');
     setElegidas(new Set());
   }
   const vencidas = vivas.filter(estaVencida).length;
@@ -266,13 +304,14 @@ export default function Consultas() {
     descargarExcel({
       nombreArchivo: `consultas-detras-del-cartel-${new Date().toISOString().slice(0, 10)}.xlsx`,
       columnas: [
-        ['Nº', 8], ['Fecha y hora', 17], ['Tipo', 17], ['Situación', 13], ['Prioritaria', 11],
+        ['Nº', 8], ['Fecha y hora', 17], ['Tipo', 17], ['Quién', 10], ['Situación', 13], ['Prioritaria', 11],
         ['Temas', 22], ['Próximo paso', 22], ['Recordar', 12], ['Cómo terminó', 18],
         ['Consulta', 46], ['Detalle', 60], ['Nombre', 16], ['Mail', 24], ['Teléfono', 18],
         ['Zona', 16], ['Permiso', 16], ['Anotaciones', 60],
       ],
       filas: vivas.map((c) => [
-        num(c.id), fechaHora(c.creado_en), ROTULO[c.tipo], c.situacion, c.prioritaria ? 'Sí' : '',
+        num(c.id), fechaHora(c.creado_en), ROTULO[c.tipo],
+        PERSONAS.find((x) => x.id === c.atendida_por)?.texto || '', c.situacion, c.prioritaria ? 'Sí' : '',
         (c.etiquetas || []).join(', '),
         PASOS.find((p) => p.id === c.proximo_paso)?.texto || '', c.recordar_el || '',
         DESENLACES.find((d) => d.id === c.desenlace)?.texto || '',
@@ -429,7 +468,7 @@ export default function Consultas() {
           />
 
           <Menu titulo="Qué hacer" valor={fHacer} onChange={setFHacer} activo={fHacer !== 'todo'} opciones={[
-            ['todo', 'Todo'],
+            ['todo', 'Todas'],
             ['vencidas', `⏰ Vencidas (${cuantas.vencidas})`],
             ...PASOS.map((p) => [`paso:${p.id}`, `${p.texto} (${cuantas.pasos[p.id]})`]),
             ['sin_definir', `Sin próximo paso (${cuantas.sin_definir})`],
@@ -444,17 +483,56 @@ export default function Consultas() {
           ]} />
 
           <Menu titulo="Tipo" valor={fTipo} onChange={setFTipo} activo={fTipo !== 'todos'} opciones={[
-            ['todos', 'Todos'],
+            ['todos', 'Todas'],
             ['privado', `Piden respuesta (${cuantas.tipos.privado})`],
             ['programa', `Para el programa (${cuantas.tipos.programa})`],
             ['anonimo', `Anónimas (${cuantas.tipos.anonimo})`],
           ]} />
 
+          <Menu titulo="Quién" valor={fQuien} onChange={setFQuien} activo={fQuien !== 'todos'} opciones={[
+            ['todos', 'Todas'],
+            ['sin_tomar', `Sin tomar (${cuantas.quien.sin_tomar})`],
+            ...PERSONAS.map((x) => [x.id, `${x.texto} (${cuantas.quien[x.id]})`]),
+          ]} />
+
+          {/* «Cómo terminó» es la pregunta de la revisión: hoy se podían pedir las cerradas,
+              pero no distinguir las que salieron al aire de las que se descartaron. */}
+          <Menu titulo="Cómo terminó" valor={fFin} onChange={(v) => { setFFin(v); if (v !== 'todos') setFEstado('cerradas'); }}
+            activo={fFin !== 'todos'} opciones={[
+              ['todos', 'Todas'],
+              ...DESENLACES.map((d) => [d.id, `${d.texto} (${cuantas.fin[d.id]})`]),
+            ]} />
+
+          {/* «Puedo contarlo» es la pregunta de armar un episodio: cuáles puedo usar. El dato
+              lo da la persona al escribir y no se podía filtrar. */}
+          <Menu titulo="Puedo contarlo" valor={fPermiso} onChange={setFPermiso} activo={fPermiso !== 'todos'}
+            opciones={[
+              ['todos', 'Todas'],
+              ['si', `Sí, puedo contarlo (${cuantas.puedoContar})`],
+              ['no', 'No puedo'],
+            ]} />
+
           <Menu titulo="Llegó" valor={periodo} onChange={setPeriodo} activo={periodo !== 'todo'} opciones={[
-            ['todo', 'Cuando sea'],
+            ['todo', 'Todas'],
             ['7dias', 'Últimos 7 días'],
             ['30dias', 'Último mes'],
+            ['rango', 'Entre fechas…'],
           ]} />
+
+          {/* Las dos puntas aparecen sólo al elegir «Entre fechas»: ocupar la línea con dos
+              casilleros que casi nunca se usan era peor que el menú de atajos. Cualquiera de
+              las dos puede quedar vacía (sólo desde, o sólo hasta). */}
+          {periodo === 'rango' && (
+            <span className="inline-flex items-center gap-1.5 bg-accent/10 border border-accent/40 rounded-full px-2.5 py-1">
+              <input type="date" value={desdeF} onChange={(e) => setDesdeF(e.target.value)}
+                aria-label="Desde" max={hastaF || undefined}
+                className="bg-transparent text-accent text-xs font-semibold outline-none" />
+              <span className="text-accent/60 text-xs">→</span>
+              <input type="date" value={hastaF} onChange={(e) => setHastaF(e.target.value)}
+                aria-label="Hasta" min={desdeF || undefined}
+                className="bg-transparent text-accent text-xs font-semibold outline-none" />
+            </span>
+          )}
 
           <button onClick={() => setFPrior(!fPrior)} title="Sólo las marcadas con estrella"
             className={chip(fPrior)}>★ {cuantas.prioritarias}</button>
@@ -622,6 +700,11 @@ function Fila({ c, abierta, elegida, onAbrir, onElegir, onGuardar, anotaciones, 
         <span className="px-2 py-0.5 rounded text-[10.5px] font-bold bg-line/7 text-soft">
           {c.situacion === 'nueva' ? 'Nueva' : c.situacion === 'en_curso' ? 'En curso' : 'Cerrada'}
         </span>
+        {c.atendida_por && (
+          <span className="px-2 py-0.5 rounded text-[10.5px] font-bold bg-accent/14 text-accent">
+            {PERSONAS.find((x) => x.id === c.atendida_por)?.texto}
+          </span>
+        )}
         {etiquetas.map((e) => (
           <span key={e} className="px-2 py-0.5 rounded text-[10.5px] font-semibold bg-line/8 text-soft">{e}</span>
         ))}
@@ -703,6 +786,11 @@ function Bitacora({ anotaciones, onAnotar }) {
 }
 
 function Detalle({ c, onGuardar, etiquetas, anotaciones, onAnotar }) {
+  /* Aviso de «elegí el próximo paso primero». Se apaga solo en cuanto se elige uno.
+     ⚠️ Va acá y no en Fila: los controles de Situación y Próximo paso viven en ESTE
+     componente. Puesto en Fila compilaba igual y reventaba recién al abrir una consulta,
+     con «faltaPaso is not defined». */
+  const [faltaPaso, setFaltaPaso] = useState(false);
   const cerrada = c.situacion === 'cerrada';
 
   function alternarEtiqueta(e) {
@@ -713,6 +801,21 @@ function Detalle({ c, onGuardar, etiquetas, anotaciones, onAnotar }) {
   function cambiarSituacion(situacion) {
     // Al cerrar hace falta decir cómo terminó; al reabrir se limpia el desenlace.
     if (situacion === 'cerrada') return onGuardar({ situacion, desenlace: 'respondida', proximo_paso: null, recordar_el: null });
+
+    /* 🔴 Pasar a «En curso» exige decir qué sigue (11-10-2026). Es el único campo que se
+       obliga además del cierre, y por el mismo motivo: dejarlo vacío no es un olvido, es una
+       contradicción —estás diciendo «la estoy trabajando» y no decís qué—. Sin esto, la
+       consulta desaparece de «Sin accionar» y no aparece en ningún próximo paso: queda en una
+       tierra de nadie donde nadie la vuelve a mirar.
+
+       No se obliga nada más. Un campo obligatorio no produce datos, produce la primera opción
+       de la lista: el filtro deja de estar vacío y pasa a estar MAL, que es peor porque uno le
+       cree. Lo que falta se ve en los menús: «Sin tomar (N)» y «Sin próximo paso (N)». */
+    if (situacion === 'en_curso' && !c.proximo_paso) {
+      setFaltaPaso(true);
+      return;
+    }
+    setFaltaPaso(false);
     onGuardar({ situacion, desenlace: null, episodio: null, duplicada_de: null });
   }
 
@@ -740,6 +843,18 @@ function Detalle({ c, onGuardar, etiquetas, anotaciones, onAnotar }) {
       </div>
 
       <div className="flex flex-wrap gap-2 items-center">
+        {/* Quién se ocupa. Primero de la fila a propósito: es lo que se decide apenas llega
+            la consulta, antes de ponerle estado o próximo paso. */}
+        <span className="text-[11px] text-muted font-semibold">Quién</span>
+        <select
+          value={c.atendida_por || ''}
+          onChange={(e) => onGuardar({ atendida_por: e.target.value || null })}
+          className={`${controlito} ${c.atendida_por ? 'text-accent font-semibold' : ''}`}
+        >
+          <option value="">Sin tomar</option>
+          {PERSONAS.map((x) => <option key={x.id} value={x.id}>{x.texto}</option>)}
+        </select>
+
         <span className="text-[11px] text-muted font-semibold">Situación</span>
         <select value={c.situacion} onChange={(e) => cambiarSituacion(e.target.value)} className={controlito}>
           <option value="nueva">Nueva</option>
@@ -749,8 +864,12 @@ function Detalle({ c, onGuardar, etiquetas, anotaciones, onAnotar }) {
 
         {!cerrada && (
           <>
-            <span className="text-[11px] text-muted font-semibold">Próximo paso</span>
-            <select value={c.proximo_paso || ''} onChange={(e) => onGuardar({ proximo_paso: e.target.value || null })} className={controlito}>
+            <span className={`text-[11px] font-semibold ${faltaPaso ? 'text-red-400' : 'text-muted'}`}>Próximo paso</span>
+            <select
+              value={c.proximo_paso || ''}
+              onChange={(e) => { const v = e.target.value || null; if (v) setFaltaPaso(false); onGuardar({ proximo_paso: v }); }}
+              className={`${controlito} ${faltaPaso ? 'border-red-400 text-red-400' : ''}`}
+            >
               <option value="">Sin definir</option>
               {PASOS.map((p) => <option key={p.id} value={p.id}>{p.texto}</option>)}
             </select>
@@ -758,6 +877,12 @@ function Detalle({ c, onGuardar, etiquetas, anotaciones, onAnotar }) {
             <input type="date" value={c.recordar_el || ''} onChange={(e) => onGuardar({ recordar_el: e.target.value || null })} className={controlito} />
 
           </>
+        )}
+
+        {faltaPaso && (
+          <span className="text-[11.5px] text-red-400 font-semibold basis-full">
+            Para ponerla en curso, elegí primero qué sigue.
+          </span>
         )}
 
         {cerrada && (

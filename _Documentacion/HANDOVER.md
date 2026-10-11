@@ -109,9 +109,24 @@ Dos cosas más, chicas:
 - **`favicon.ico` da 404** — ya daba 404 en producción, no lo trae la migración. Hay un
   `public/logo.png` que podría servir de icono; cambia lo que se ve en la pestaña, así que se
   consulta antes.
-- **Las variables en Vercel siguen con los nombres viejos** (`VITE_SUPABASE_*`).
-  `lib/consultas.js` acepta los dos nombres a propósito para que el formulario no quede sin
-  base. Al renombrarlas en el panel, se puede simplificar.
+- 🔴 **Las variables en Vercel tienen los nombres de Vite, y eso ROMPIÓ el buzón en producción.**
+  Cada herramienta usa su propio prefijo para marcar qué variables pueden viajar al navegador:
+  Vite usaba `VITE_`, Next usa `NEXT_PUBLIC_`. Al compilar en Vercel,
+  `NEXT_PUBLIC_SUPABASE_URL` no existía y `/consultas` mostraba **«Falta configurar Supabase»**
+  en lugar del botón de Google. **En la Mac funcionaba** —el archivo de claves local tiene los
+  dos nombres—, así que la falla **sólo existía en internet** y apareció recién al publicar.
+  `lib/consultas.js` ya aceptaba los dos nombres, pero eso cubre al servidor: el navegador
+  recibe lo que se le grabó al compilar y sólo se graban las `NEXT_PUBLIC_`. **Resuelto** con un
+  puente en `next.config.mjs` (bloque `SUPABASE_PARA_EL_NAVEGADOR`), probado compilando con
+  **sólo** los nombres viejos presentes: la URL y la clave pública quedan grabadas y la clave
+  secreta aparece 0 veces en el compilado.
+  📌 **Limpieza pendiente:** renombrar las dos variables en el panel de Vercel y borrar ese
+  bloque. Requiere la cuenta del podcast; la herramienta de Vercel de esta Mac está con la
+  cuenta de Inmovalue y no llega a ese equipo.
+- 🔴 **La lección, que vale más que el caso:** lo que se graba al compilar sólo se puede
+  comprobar **compilando en las condiciones del lugar donde se publica**. Acá el archivo de
+  claves local tenía los dos nombres y tapaba la falla. La prueba buena fue dejar únicamente
+  los nombres que hay en Vercel y volver a compilar.
 
 ---
 

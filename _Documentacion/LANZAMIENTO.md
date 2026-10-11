@@ -135,56 +135,53 @@ portada. Sin eso puede tardar semanas en pasar solo.
 
 ---
 
-## 🔴 ABRIR EL NOINDEX NO ALCANZA — lo que falta para que funcione
+## ✅ EL SEO YA ESTÁ HECHO — esperando detrás de la puerta cerrada
 
-**Auditado contra la web publicada el 11-10-2026.** Sacar el `noindex` es necesario y no es
-suficiente: si se abre con lo que hay hoy, Google indexa una página que no dice qué es ni dónde
-está, y compartirla no muestra nada.
+**Decisión de Vic (11-10-2026): hacer todo el SEO ahora, con el sitio todavía cerrado, para que
+el día del lanzamiento haya que tocar UNA sola cosa.** Está hecho y verificado:
 
-| Qué | Hoy | Por qué importa |
+| Qué | Dónde vive | Estado |
 |---|---|---|
-| Título | `Detrás del Cartel` | Es el renglón azul del resultado de Google. No dice que es un podcast |
-| Descripción | `Podcast inmobiliario` (19 car.) | Es el texto gris debajo. Google muestra hasta ~155 |
-| Canónica | **no está** | Con dominio + www + la dirección de Vercel sirviendo lo mismo, Google puede tomarlas como páginas distintas |
-| Vista previa (Open Graph) | **ninguna de las 6** | Pegar el enlace en WhatsApp, Instagram o LinkedIn muestra la dirección pelada |
-| Datos estructurados | **no están** | Es lo que le dice a Google y a las IA que esto es un **podcast**, quiénes lo conducen y dónde |
-| Sitemap | **404** | Para 3 páginas no es crítico, pero acelera |
-| «Buenos Aires» en el texto | **0 veces** | 🔴 |
-| «Argentina» en el texto | **0 veces** | 🔴 |
+| Título y descripción, con la ciudad | `app/layout.jsx` | ✅ `Detrás del Cartel — Podcast inmobiliario de Buenos Aires` |
+| Canónica, siempre sin www | `app/layout.jsx` → `alternates` | ✅ |
+| Vista previa al compartir | `app/layout.jsx` → `openGraph` + `twitter` | ✅ las 6 etiquetas |
+| La imagen de 1200×630 | `app/opengraph-image.png` | ✅ armada desde el banner de YouTube |
+| Datos estructurados | `app/datos-estructurados.js` | ✅ PodcastSeries + los 2 conductores + la zona |
+| Sitemap | `app/sitemap.js` | ✅ sólo `/` y `/privacidad` |
+| «Buenos Aires» en el texto visible | `src/App.jsx` → `headerSubtitle` | ✅ |
 
-### 🔴 Lo geográfico es lo más grave, y es invisible
+### Lo geográfico, que era el agujero grande
 
-Es un podcast sobre el mercado inmobiliario **porteño**, y en toda la página **no aparece ni la
-ciudad ni el país**. Ni un buscador ni una IA tienen cómo ubicarlo. Alguien que pregunta «podcast
-inmobiliario en Buenos Aires» no lo va a encontrar, porque la página nunca dice esas palabras.
+Antes la palabra **«Buenos Aires» no aparecía ni una vez** en todo el sitio. Un podcast sobre el
+mercado porteño que nunca dice dónde está no lo encuentra nadie que pregunte por la zona. Se
+resolvió en los dos lugares que hacían falta:
 
-Se arregla en dos lugares, y conviene hacer los dos:
+1. **En el texto visible**, en el subtítulo del encabezado —que está en todas las páginas—.
+   Es lo que importa para las IA: **citan la prosa, no las etiquetas ocultas.**
+2. **En los datos estructurados**, con `spatialCoverage` (CABA y Gran Buenos Aires).
 
-1. **En el texto visible**, que es lo que de verdad leen las IA —no las etiquetas ocultas—.
-   Alcanza con que la bajada o el bloque «Juntos» nombre Buenos Aires de forma natural.
-2. **En los datos estructurados**, con el campo de área de cobertura.
+No se tocaron los textos de la portada: están trabajados y consensuados, y meterles la ciudad
+los hubiera forzado.
 
-### Qué hay que definir, concretamente
+### Lo que NO se puede hacer todavía
 
-Esto es lo que hay que decidir **antes** del día del lanzamiento, no ese día:
+- **El feed RSS en los datos estructurados.** Nace al publicar el primer episodio en Spotify for
+  Creators. Agregando `webFeed`, Google puede mostrar el reproductor en los resultados.
+- **Dar de alta el dominio en Google Search Console** y pedir la indexación. Tiene sentido
+  recién con el sitio abierto; sin eso puede tardar semanas en pasar solo.
 
-| | Qué hay que decidir | Sugerencia para arrancar |
-|---|---|---|
-| **Título** | ≤ 60 caracteres, con la palabra clave adelante | `Detrás del Cartel — Podcast inmobiliario de Buenos Aires` |
-| **Descripción** | 120-155 caracteres, que invite a entrar | Que diga de qué se habla y para quién, nombrando la ciudad |
-| **Imagen de vista previa** | 1200×630 px | Puede salir del banner de YouTube, reencuadrado |
-| **Dónde ubicarlo** | Ciudad y alcance | CABA + GBA Norte, o «Buenos Aires» a secas |
+### Verificado el 11-10-2026
 
-### Lo técnico, que lo resuelvo yo cuando estén las decisiones
+Título, descripción, canónica, las 6 etiquetas de vista previa, el bloque de datos estructurados
+(se lee, es JSON válido y declara PodcastSeries + 2 Person + WebSite), `sitemap.xml` en 200 y la
+imagen de vista previa en 200. **Y lo que podía fallar en silencio:** el bloque de datos es un
+script dentro del HTML y la CSP del sitio no permite scripts sin firma — se comprobó en el
+navegador que **no lo bloquea** (los bloques de datos no son programas) y que la página sigue
+despertando. Las capturas: todo idéntico salvo la portada, que creció 16-24 px por el emblema
+nuevo del encabezado.
 
-- `metadataBase` + bloque `openGraph` y `twitter` en `app/layout.jsx`
-- `alternates.canonical` apuntando siempre al dominio sin www
-- JSON-LD de tipo **PodcastSeries** con los dos conductores y el área de cobertura
-- `app/sitemap.js` (Next lo genera solo) con las dos páginas públicas — **nunca `/consultas`**
-
-⚠️ **Todo esto se publica ANTES de sacar el noindex, no después.** Si Google entra primero y
-guarda la versión pobre, corregirlo después tarda semanas: lo que ya indexó no se borra porque
-uno cambie la página.
+🔒 **Y lo más importante: el sitio SIGUE CERRADO.** `noindex, nofollow, nocache`, comprobado
+después de todos estos cambios.
 
 ---
 

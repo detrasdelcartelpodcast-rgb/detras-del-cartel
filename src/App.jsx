@@ -59,7 +59,13 @@ export const siteConfig = {
     intro: "Tu casa no es un producto más. Decidir sobre ella, tampoco.",
     tagline: "Tips y casos reales, en primera persona. Lo que hay detrás del cartel, explicado sin vueltas.",
     ctaHeader: "ESCUCHAR",
-    headerSubtitle: "Podcast inmobiliario",
+    /* 🔴 "Buenos Aires" va acá y no en la portada, a propósito (11-10-2026). Los textos del
+       hero están trabajados y consensuados; éste es el único lugar donde la ciudad entra sin
+       forzar nada, y aparece en el encabezado de TODAS las páginas.
+       Por qué hace falta: medido, la palabra no aparecía ni una vez en todo el sitio. Un
+       podcast sobre el mercado porteño que nunca dice dónde está no lo encuentra nadie que
+       pregunte por la zona — y lo que las IA citan es la PROSA, no las etiquetas ocultas. */
+    headerSubtitle: "Podcast inmobiliario · Buenos Aires",
     // Podés poner acá tu imagen subida (URL de S3, Cloudinary o carpeta /public/logo.png).
     // Si dejás useVectorLogo: true, se dibuja el SVG de espacio negativo de alta gama.
     useVectorLogo: false,

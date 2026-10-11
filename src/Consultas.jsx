@@ -231,7 +231,13 @@ export default function Consultas() {
         PASOS.find((p) => p.id === c.proximo_paso)?.texto || '', c.recordar_el || '',
         DESENLACES.find((d) => d.id === c.desenlace)?.texto || '',
         c.tema, c.detalle, c.nombre, c.email, c.telefono, c.zona,
-        c.tipo === 'privado' ? 'no corresponde' : c.permiso_uso ? 'sí, sin nombre' : 'no',
+        c.tipo === 'privado'
+          ? 'no corresponde'
+          : !c.permiso_uso
+            ? 'no'
+            : c.tipo === 'anonimo'
+              ? 'sí (es anónima: no hay nombre que ocultar)'
+              : 'sí, sin nombre',
         (notas[c.id] || []).map((n) => `${fechaHora(n.creado_en)} · ${n.autor}: ${n.texto}`).join('\n'),
       ]),
     });
@@ -585,7 +591,14 @@ function Detalle({ c, onGuardar, etiquetas, anotaciones, onAnotar }) {
 
       <p className="text-[12px] text-muted">
         <b className="text-fg">Permiso para contarlo:</b>{' '}
-        {c.tipo === 'privado' ? 'no corresponde (es privada)' : c.permiso_uso ? 'sí, sin nombre' : 'no'}
+        {/* En una anónima decir «sin nombre» confunde: no hay nombre guardado en ninguna parte. */}
+        {c.tipo === 'privado'
+          ? 'no corresponde (es privada)'
+          : !c.permiso_uso
+            ? 'no'
+            : c.tipo === 'anonimo'
+              ? 'sí (es anónima: no hay nombre que ocultar)'
+              : 'sí, sin nombre'}
       </p>
 
       <div className="flex flex-wrap gap-1.5 items-center">

@@ -36,6 +36,13 @@ const campo =
    el ancho completo y tapaba al campo del número. Se le saca y se le pone el que corresponde. */
 const campoSinAncho = campo.replace('w-full ', '');
 
+/* 🔴 «(opcional)» va en el naranja de la marca y no en gris (Vic, 11-10-2026: «para que se
+   note bien que es opcional»). En gris se lee como letra chica —lo que uno saltea— y el
+   efecto era el contrario al buscado: la gente completaba campos creyendo que eran
+   obligatorios. `accent` está definido para los dos modos, día y noche, así que se lee en
+   los dos; un naranja fijo se perdería sobre el fondo crema del modo día. */
+const opcional = 'text-accent font-semibold';
+
 export default function Formulario({ config }) {
   // El formulario arranca cerrado: en la landing solo se ve el botón, y se
   // despliega cuando alguien quiere escribir. Abierto todo el tiempo ocupaba
@@ -183,7 +190,7 @@ export default function Formulario({ config }) {
 
         <div>
           <label htmlFor="detalle" className="block text-[12.5px] font-semibold text-fg mb-1.5">
-            Si querés, contanos un poco más <span className="text-faint font-medium">(opcional)</span>
+            Si querés, contanos un poco más <span className={opcional}>(opcional)</span>
           </label>
           <textarea id="detalle" name="detalle" rows={4} maxLength={4000} className={`${campo} resize-y`}
             placeholder="Como te salga. Cuanto más nos cuentes, mejor te lo podemos contestar." />
@@ -193,7 +200,7 @@ export default function Formulario({ config }) {
           <>
             <div>
               <label htmlFor="nombre" className="block text-[12.5px] font-semibold text-fg mb-1.5">
-                Cómo querés que te llamemos <span className="text-faint font-medium">(opcional)</span>
+                Cómo querés que te llamemos <span className={opcional}>(opcional)</span>
               </label>
               <input id="nombre" name="nombre" maxLength={120} className={campo} placeholder="Tu nombre o un apodo" />
             </div>
@@ -201,7 +208,12 @@ export default function Formulario({ config }) {
             <div>
               <p className="text-[13px] font-bold text-fg mb-2">
                 {privada ? '¿Por dónde te contestamos? ' : '¿Querés que te contestemos? '}
-                <span className="text-faint font-medium">{privada ? 'Dejanos al menos uno.' : 'Opcional: dejanos mail o WhatsApp.'}</span>
+                {/* Ojo: acá el texto cambia de sentido. En la privada NO es opcional —hace falta
+                    un contacto— así que ése se deja en gris; el naranja es sólo para lo que
+                    de verdad se puede saltear. */}
+                <span className={privada ? 'text-faint font-medium' : opcional}>
+                  {privada ? 'Dejanos al menos uno.' : 'Opcional: dejanos mail o WhatsApp.'}
+                </span>
               </p>
               <div className="grid md:grid-cols-2 gap-3.5">
                 <div>
@@ -248,17 +260,29 @@ export default function Formulario({ config }) {
 
             <div>
               <label htmlFor="zona" className="block text-[12.5px] font-semibold text-fg mb-1.5">
-                Zona o barrio <span className="text-faint font-medium">(opcional)</span>
+                Zona o barrio <span className={opcional}>(opcional)</span>
               </label>
               <input id="zona" name="zona" maxLength={120} className={campo} placeholder="Belgrano, Pilar, Vicente López…" />
             </div>
           </>
         )}
 
-        {!anonima && !privada && (
+        {/* 🔴 El permiso también en la ANÓNIMA (Vic, 11-10-2026). Antes sólo aparecía en
+            «háblenlo en el programa», y eso dejaba a la anónima en un callejón sin salida: no
+            se la puede contestar —no hay datos— y tampoco había permiso para contar el caso,
+            así que lo único que se podía hacer con ella era leerla. Justo las consultas más
+            difíciles de conseguir, y las más valiosas para el programa, quedaban inutilizables.
+
+            En la anónima el texto no promete «sin tu nombre» porque no hay nombre que ocultar:
+            prometer algo que ya es imposible suena a cláusula, no a cuidado. */}
+        {!privada && (
           <label className="flex gap-2.5 items-start text-[12.5px] text-soft leading-relaxed cursor-pointer">
             <input type="checkbox" name="permiso_uso" className="mt-0.5 w-4 h-4 accent-amber-500 shrink-0" />
-            <span>Si les sirve, pueden contar mi caso en el programa — sin mi nombre ni mi dirección.</span>
+            <span>
+              {anonima
+                ? 'Si les sirve, pueden contar mi caso en el programa.'
+                : 'Si les sirve, pueden contar mi caso en el programa — sin mi nombre ni mi dirección.'}
+            </span>
           </label>
         )}
       </div>

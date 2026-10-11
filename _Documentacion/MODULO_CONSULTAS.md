@@ -283,3 +283,52 @@ Ahora abre el redactor de Gmail de **detrasdelcartelpodcast@gmail.com** (Vic, 11
 
 📌 **Pendiente de Vic:** correr `sql/04_telefono_de_verdad.sql` en el SQL Editor de Supabase.
 Verificado antes: las 2 consultas que hay hoy pasan la regla, así que no rompe nada.
+
+
+---
+
+## Por qué son TRES opciones y no dos (11-10-2026)
+
+Vic lo planteó: *«la tercera, ¿no está contenida en alguna de las otras?»*. Mirado contra el
+código, **en parte sí**: en «háblenlo en el programa» el nombre, el contacto y la zona son todos
+opcionales, así que alguien que no completa nada queda igual de anónimo.
+
+Lo que la tercera agrega **no es una función, es una promesa**: ahí el anonimato no depende de
+que la persona deje los campos vacíos — lo garantizan el servidor y la restricción
+`anonima_sin_datos` de la base. Aunque el navegador mande datos, se descartan, y tampoco se
+guarda de dónde llegó.
+
+**Se conservan las tres**, y la razón es de contenido, no técnica: alguien que se comió una
+estafa o está peleado con los hermanos por una herencia **no** completa un formulario donde los
+datos «son opcionales»; completa el que le promete que no se guardan. En un podcast que se llama
+*Detrás del Cartel*, ésas son las consultas que valen. La garantía es el producto.
+
+### 🔴 Lo que SÍ estaba mal: la anónima era un callejón sin salida
+
+El tilde de «pueden contar mi caso en el programa» aparecía sólo en la primera opción
+(`!anonima && !privada`). Una consulta anónima quedaba entonces **sin forma de contestarla**
+—no hay datos— **y sin permiso para contarla**. Lo único que se podía hacer con ella era leerla.
+
+Corregido: el tilde aparece también en la anónima (Vic, 11-10-2026). En ese caso el texto no
+promete «sin tu nombre», porque no hay nombre que ocultar: prometer algo que ya es imposible
+suena a cláusula y no a cuidado. El buzón lo muestra como *«sí (es anónima: no hay nombre que
+ocultar)»*.
+
+### Los dos ejes, para la próxima vez que se toque esto
+
+Las tres opciones mezclan **dos preguntas distintas**: las dos primeras contestan *«¿qué querés
+que hagamos con esto?»* y la tercera *«¿cuánto me querés contar de vos?»*. Es la razón de que la
+lista se sienta rara. Se deja así a propósito: separarlo en dos preguntas es más correcto y más
+largo de completar, y acá lo que se está comprando es que la persona se anime a escribir.
+
+### «(opcional)» en naranja, no en gris
+
+Vic, 11-10-2026: *«para que se note bien que es opcional»*. Se usa `text-accent`, que está
+definido para los dos modos. Medido: el gris anterior daba **2,5:1 de contraste** —por debajo
+del mínimo legible de 4,5— y el naranja da **11,3:1 de noche y 4,9:1 de día**. O sea que la
+etiqueta que avisaba «esto no hace falta» era la menos legible de la pantalla, y la gente
+completaba campos creyéndolos obligatorios.
+
+⚠️ El texto del bloque de contacto **cambia de sentido**: en la consulta privada dice «dejanos al
+menos uno» y ahí NO es opcional, así que ése se queda en gris. El naranja es sólo para lo que de
+verdad se puede saltear.

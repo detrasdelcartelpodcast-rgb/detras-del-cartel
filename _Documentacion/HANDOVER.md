@@ -1,3 +1,38 @@
+## 🟡 11-10-2026 — RELEVADA EN LA AUDITORÍA: ES LA PUBLICADA MÁS ATRASADA
+
+Sólo se aplicaron **parches compatibles** (`npm audit fix`, sin `--force`) y Supabase → 2.117.3.
+Críticas: 0. Altas: 7 → 6.
+
+### Por qué está atrasada, y por qué no es culpa de Vite
+
+| | Instalado | Último |
+|---|---|---|
+| **vite** | **5.4.21** | **8.3.4** (3 majors) |
+| react / react-dom | 18.3.1 | 19.3.0 |
+| tailwindcss | 3.4.19 | 4.3.3 |
+| @vitejs/plugin-react | 4.7.0 | 6.1.2 |
+| lucide-react | 0.344.0 | 1.55.0 |
+
+**La elección de Vite fue correcta.** Esta app es *«sin base de datos, sin login, sin formularios»*
+(lo dice su propia `ARQUITECTURA_APP.md`): una sola página con el contenido en `siteConfig` dentro
+de `App.jsx`, más **un** endpoint que le pregunta a YouTube. Next aporta renderizado del lado del
+servidor, regeneración de estáticos, ruteo y rutas de API a escala — **esta app no usa ninguna de
+las cuatro**.
+
+🔴 **El costo de esa decisión es exactamente lo que se ve: es la única con otro stack, y por eso
+es la que se olvidó.** No se atrasó porque Vite sea peor; se atrasó porque es la rara.
+
+**Recomendación: NO migrarla a Next.** Reescribir una landing estática no le cambia nada al
+visitante, cuesta un día y suma riesgo. Lo que corresponde es **meterla en la rutina de
+actualización** para que deje de derivar. El día que necesite base de datos, login o formularios
+—recibir consultas, por ejemplo— ahí Next se gana el lugar y la migración se paga sola.
+
+⚠️ **Queda fuera de la auditoría de seguridad de la base:** usa un **Supabase de otra cuenta**, sin
+acceso desde la sesión. Conviene correrle el mismo chequeo de RLS y de registro cerrado que se le
+hizo a la base del ecosistema.
+
+---
+
 # HANDOVER — Detrás del Cartel
 
 > Última actualización: **2026-09-27 (noche)**. Se sumó el **módulo de consultas** (formulario que guarda en base + buzón privado `/consultas`): ver `MODULO_CONSULTAS.md`. Frecuencia: cerrado sin acción (pendiente 2). La bitácora anterior está en el historial de git.

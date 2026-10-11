@@ -77,7 +77,15 @@ export default function Consultas() {
   const [consultas, setConsultas] = useState([]);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState('');
-  const [filtro, setFiltro] = useState('todas');
+  /* 🔴 UN FILTRO POR PREGUNTA, no uno solo (11-10-2026). Antes había un único `filtro` con
+     nueve valores posibles y excluyentes entre sí: elegir "Piden respuesta" apagaba "Vencidas".
+     Con pocas consultas no se notaba; con cincuenta, la pregunta real —«las privadas que están
+     vencidas»— no se podía hacer. Ahora son cuatro preguntas distintas que se SUMAN. */
+  const [fHacer, setFHacer] = useState('todo');     // qué hay que hacer: vencidas o próximo paso
+  const [fEstado, setFEstado] = useState('abiertas'); // nuevas / en curso / cerradas
+  const [fTipo, setFTipo] = useState('todos');      // privado / programa / anonimo
+  const [fPrior, setFPrior] = useState(false);      // sólo las marcadas con estrella
+  const [enPapelera, setEnPapelera] = useState(false);
   const [etiqueta, setEtiqueta] = useState(null);
   const [busca, setBusca] = useState('');
   const [abierta, setAbierta] = useState(null);
@@ -160,7 +168,6 @@ export default function Consultas() {
   }
 
   const vivas = useMemo(() => consultas.filter((c) => !c.borrada), [consultas]);
-  const enPapelera = filtro === 'papelera';
 
   const cuenta = useMemo(() => {
     const t = {};
@@ -180,21 +187,60 @@ export default function Consultas() {
     return consultas.filter((c) => {
       if (Boolean(c.borrada) !== enPapelera) return false;
       if (corte && new Date(c.creado_en).getTime() < corte) return false;
-      if (filtro === 'prioritarias' && !c.prioritaria) return false;
-      if (filtro === 'vencidas' && !estaVencida(c)) return false;
-      if (filtro === 'pendientes' && (c.situacion === 'cerrada' || !c.proximo_paso)) return false;
-      if (filtro === 'cerradas' && c.situacion !== 'cerrada') return false;
-      if (['programa', 'privado', 'anonimo'].includes(filtro) && c.tipo !== filtro) return false;
-      if (filtro !== 'cerradas' && !enPapelera && c.situacion === 'cerrada') return false;
+
+      // ── qué hay que hacer ──
+      if (fHacer === 'vencidas' && !estaVencida(c)) return false;
+      if (fHacer === 'sin_definir' && (c.proximo_paso || c.situacion === 'cerrada')) return false;
+      if (fHacer.startsWith('paso:') && c.proximo_paso !== fHacer.slice(5)) return false;
+
+      // ── estado ──
+      if (fEstado === 'abiertas' && c.situacion === 'cerrada') return false;
+      if (fEstado === 'nuevas' && c.situacion !== 'nueva') return false;
+      if (fEstado === 'en_curso' && c.situacion !== 'en_curso') return false;
+      if (fEstado === 'cerradas' && c.situacion !== 'cerrada') return false;
+
+      // ── tipo ──
+      if (fTipo !== 'todos' && c.tipo !== fTipo) return false;
+
+      if (fPrior && !c.prioritaria) return false;
       if (etiqueta && !(c.etiquetas || []).includes(etiqueta)) return false;
       if (!texto) return true;
       const anotaciones = (notas[c.id] || []).map((n) => n.texto).join(' ');
       return [c.tema, c.detalle, c.nombre, c.zona, anotaciones].join(' ').toLowerCase().includes(texto);
     });
-  }, [consultas, filtro, etiqueta, busca, enPapelera, periodo, notas, hoy]);
+  }, [consultas, fHacer, fEstado, fTipo, fPrior, etiqueta, busca, enPapelera, periodo, notas, hoy]);
 
   const temaTop = Object.entries(cuenta).sort((a, b) => b[1] - a[1])[0];
   const esperando = vivas.filter((c) => c.tipo === 'privado' && c.situacion !== 'cerrada').length;
+  const sinAccionar = vivas.filter((c) => c.situacion === 'nueva').length;
+
+  /* Cuántas caen en cada opción de cada menú. Va al lado de cada una: así se ve dónde está el
+     trabajo sin tener que probar filtro por filtro. Se cuenta sobre las que NO están en la
+     papelera y respetando el período elegido, para que el número no mienta. */
+  const abiertas = vivas.filter((c) => c.situacion !== 'cerrada');
+  const cuantas = {
+    vencidas: vivas.filter(estaVencida).length,
+    sin_definir: abiertas.filter((c) => !c.proximo_paso).length,
+    pasos: Object.fromEntries(PASOS.map((p) => [p.id, abiertas.filter((c) => c.proximo_paso === p.id).length])),
+    nuevas: sinAccionar,
+    en_curso: vivas.filter((c) => c.situacion === 'en_curso').length,
+    cerradas: vivas.filter((c) => c.situacion === 'cerrada').length,
+    abiertas: abiertas.length,
+    tipos: { privado: 0, programa: 0, anonimo: 0 },
+    prioritarias: vivas.filter((c) => c.prioritaria).length,
+    papelera: consultas.length - vivas.length,
+  };
+  vivas.forEach((c) => { if (cuantas.tipos[c.tipo] !== undefined) cuantas.tipos[c.tipo]++; });
+
+  const sinFiltros =
+    fHacer === 'todo' && fEstado === 'abiertas' && fTipo === 'todos' && !fPrior &&
+    !enPapelera && !etiqueta && periodo === 'todo' && !busca.trim();
+
+  function limpiarFiltros() {
+    setFHacer('todo'); setFEstado('abiertas'); setFTipo('todos'); setFPrior(false);
+    setEnPapelera(false); setEtiqueta(null); setPeriodo('todo'); setBusca('');
+    setElegidas(new Set());
+  }
   const vencidas = vivas.filter(estaVencida).length;
 
   function alternarElegida(id) {
@@ -345,39 +391,91 @@ export default function Consultas() {
           </div>
         </header>
 
+        {/* Los cuatro tableros quedan como estaban: sólo informan (Vic, 11-10-2026).
+            Se probó hacerlos clickeables y se volvió atrás: el número de «Sin abrir» cuenta
+            `situacion = nueva`, que no cambia al abrir la consulta sino al ponerle un estado,
+            así que como FILTRO prometía algo que el dato no sabe. Para filtrar están los
+            menús de abajo, donde cada opción dice exactamente qué mira. */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5 mb-4">
           <Ficha valor={esperando} texto="Esperando respuesta" alerta />
-          <Ficha valor={vivas.filter((c) => c.situacion === 'nueva').length} texto="Sin abrir" />
+          <Ficha valor={sinAccionar} texto="Sin abrir" />
           <Ficha valor={temaTop ? `${temaTop[0]} (${temaTop[1]})` : '—'} texto="Tema más pedido" chico />
           <Ficha valor={vivas.length} texto="Recibidas en total" />
         </div>
 
+        {/* 🔴 CUATRO MENÚS EN UNA LÍNEA, en vez de nueve botones en dos renglones
+            (Vic, 11-10-2026). Dos problemas tenía lo anterior, y el segundo era el grave:
+
+            1. Los nueve botones respondían a CINCO preguntas distintas mezcladas, sin decir
+               cuál. «Vencidas» mira una fecha, «Anónimas» mira el tipo, «Cerradas» mira el
+               estado: todo junto y sin rótulo.
+            2. Eran EXCLUYENTES. Elegir «Piden respuesta» apagaba «Vencidas». Con dos consultas
+               no se nota; con cincuenta, la pregunta que uno se hace —«las privadas que están
+               vencidas»— no se podía hacer.
+
+            Ahora cada menú es una pregunta, se elige una opción por menú y los menús SE SUMAN.
+            Horizontal y no apilado por pedido de Vic: cuatro renglones de botones se comían la
+            pantalla antes de mostrar una sola consulta, y en el celular era peor.
+
+            El número al lado de cada opción dice dónde está el trabajo sin tener que probar
+            filtro por filtro. */}
         <div className="flex flex-wrap gap-2 items-center mb-3">
           <input
             type="search"
             value={busca}
             onChange={(e) => setBusca(e.target.value)}
             placeholder="Buscar por tema, nombre o texto…"
-            className="flex-1 min-w-[200px] bg-input text-fg border border-line/10 rounded-xl px-3 py-2 text-[13px] placeholder:text-faint focus:outline-none focus:border-accent"
+            className="flex-1 min-w-[180px] bg-input text-fg border border-line/10 rounded-xl px-3 py-2 text-[13px] placeholder:text-faint focus:outline-none focus:border-accent"
           />
-          {[
-            ['todas', 'Todas'], ['vencidas', '⏰ Vencidas'], ['privado', 'Piden respuesta'],
-            ['programa', 'Para el programa'], ['anonimo', 'Anónimas'], ['prioritarias', '★ Prioritarias'],
-            ['pendientes', 'Con algo pendiente'], ['cerradas', 'Cerradas'], ['papelera', '🗑 Papelera'],
-          ].map(([id, texto]) => (
-            <button key={id} onClick={() => { setFiltro(id); setElegidas(new Set()); }} className={chip(filtro === id)}>
-              {texto}
-              {id === 'vencidas' && vencidas > 0 && <b className="opacity-60"> {vencidas}</b>}
-              {id === 'papelera' && consultas.length - vivas.length > 0 && <b className="opacity-60"> {consultas.length - vivas.length}</b>}
-            </button>
-          ))}
+
+          <Menu titulo="Qué hacer" valor={fHacer} onChange={setFHacer} activo={fHacer !== 'todo'} opciones={[
+            ['todo', 'Todo'],
+            ['vencidas', `⏰ Vencidas (${cuantas.vencidas})`],
+            ...PASOS.map((p) => [`paso:${p.id}`, `${p.texto} (${cuantas.pasos[p.id]})`]),
+            ['sin_definir', `Sin próximo paso (${cuantas.sin_definir})`],
+          ]} />
+
+          <Menu titulo="Estado" valor={fEstado} onChange={setFEstado} activo={fEstado !== 'abiertas'} opciones={[
+            ['abiertas', `Abiertas (${cuantas.abiertas})`],
+            ['nuevas', `Sin abrir (${cuantas.nuevas})`],
+            ['en_curso', `En curso (${cuantas.en_curso})`],
+            ['cerradas', `Cerradas (${cuantas.cerradas})`],
+            ['todas', 'Todas'],
+          ]} />
+
+          <Menu titulo="Tipo" valor={fTipo} onChange={setFTipo} activo={fTipo !== 'todos'} opciones={[
+            ['todos', 'Todos'],
+            ['privado', `Piden respuesta (${cuantas.tipos.privado})`],
+            ['programa', `Para el programa (${cuantas.tipos.programa})`],
+            ['anonimo', `Anónimas (${cuantas.tipos.anonimo})`],
+          ]} />
+
+          <Menu titulo="Llegó" valor={periodo} onChange={setPeriodo} activo={periodo !== 'todo'} opciones={[
+            ['todo', 'Cuando sea'],
+            ['7dias', 'Últimos 7 días'],
+            ['30dias', 'Último mes'],
+          ]} />
+
+          <button onClick={() => setFPrior(!fPrior)} title="Sólo las marcadas con estrella"
+            className={chip(fPrior)}>★ {cuantas.prioritarias}</button>
+          <button onClick={() => { setEnPapelera(!enPapelera); setElegidas(new Set()); }}
+            title="Papelera" className={chip(enPapelera)}>🗑 {cuantas.papelera}</button>
         </div>
 
-        <div className="flex flex-wrap gap-2 items-center mb-3">
-          <span className="text-[11px] text-muted font-semibold">CUÁNDO LLEGÓ:</span>
-          {[['7dias', 'Últimos 7 días'], ['30dias', 'Último mes'], ['todo', 'Todo']].map(([id, texto]) => (
-            <button key={id} onClick={() => setPeriodo(id)} className={chip(periodo === id)}>{texto}</button>
-          ))}
+        {/* La línea que dice qué está filtrado. Sin esto, con un filtro puesto y olvidado
+            parece que no hay consultas, y uno cree que se perdieron. */}
+        <div className="flex flex-wrap gap-2 items-center mb-3 text-[12px]">
+          <span className="text-muted">
+            Mostrando <b className="text-fg">{visibles.length}</b> de {enPapelera ? cuantas.papelera : vivas.length}
+          </span>
+          {!sinFiltros && (
+            <>
+              <span className="text-faint">·</span>
+              <button onClick={limpiarFiltros} className="text-accent font-semibold hover:underline">
+                Limpiar todo
+              </button>
+            </>
+          )}
         </div>
 
         {Object.keys(cuenta).length > 0 && (
@@ -445,6 +543,31 @@ function Marco({ children }) {
   );
 }
 
+/* Un menú = una pregunta. Se ve el título mientras no hay nada elegido, y la opción elegida
+   cuando sí, para que de un vistazo se sepa qué está filtrado sin abrirlo. */
+function Menu({ titulo, valor, onChange, opciones, activo }) {
+  const elegida = opciones.find(([id]) => id === valor);
+  return (
+    <label className="relative inline-flex items-center">
+      <select
+        value={valor}
+        onChange={(e) => onChange(e.target.value)}
+        aria-label={titulo}
+        className={`appearance-none rounded-full border pl-3 pr-7 py-2 text-xs font-semibold cursor-pointer transition
+          ${activo ? 'bg-accent/15 border-accent/50 text-accent' : 'bg-card2 border-line/10 text-soft hover:border-accent/40'}`}
+      >
+        {opciones.map(([id, texto]) => <option key={id} value={id}>{texto}</option>)}
+      </select>
+      <span className="pointer-events-none absolute right-2.5 text-[9px] opacity-60">▼</span>
+      {!activo && (
+        <span className="pointer-events-none absolute left-3 text-xs font-semibold text-soft bg-card2 pr-1">
+          {titulo}
+        </span>
+      )}
+    </label>
+  );
+}
+
 function Ficha({ valor, texto, alerta, chico }) {
   return (
     <div className={`bg-card border rounded-2xl px-4 py-3 ${alerta && valor > 0 ? 'border-red-500/50' : 'border-line/8'}`}>
@@ -470,6 +593,21 @@ function Fila({ c, abierta, elegida, onAbrir, onElegir, onGuardar, anotaciones, 
         elegida ? 'border-accent bg-accent/5' : 'border-line/8 hover:border-accent/40'
       } ${sinResponder ? 'border-l-[3px] border-l-red-400' : ''} ${c.borrada ? 'opacity-60' : ''}`}
     >
+      {/* 🔴 LA ESTRELLA, SOLA Y ARRIBA A LA DERECHA (Vic, 11-10-2026). Antes era de 14 px,
+          gris, pegada al casillero de selección y con el nombre sólo en el globito al pasar el
+          mouse: había un filtro de prioritarias y ninguna forma visible de marcar una. Acá no
+          compite con nada, es de 20 px y cuando está apagada igual se ve el contorno. */}
+      <button
+        onClick={(e) => { e.stopPropagation(); onGuardar({ prioritaria: !c.prioritaria }); }}
+        title={c.prioritaria ? 'Quitar de prioritarias' : 'Marcar como prioritaria'}
+        aria-pressed={!!c.prioritaria}
+        className={`float-right ml-2 -mt-0.5 p-1 rounded-lg transition ${
+          c.prioritaria ? 'text-accent' : 'text-faint/60 hover:text-accent hover:bg-accent/10'
+        }`}
+      >
+        <Star size={20} strokeWidth={2.2} fill={c.prioritaria ? 'currentColor' : 'none'} />
+      </button>
+
       <div className="flex flex-wrap gap-2 items-center text-[11.5px] text-muted">
         <input
           type="checkbox"
@@ -478,13 +616,6 @@ function Fila({ c, abierta, elegida, onAbrir, onElegir, onGuardar, anotaciones, 
           onChange={() => {}}
           className="w-4 h-4 accent-amber-500 shrink-0 cursor-pointer"
         />
-        <button
-          onClick={(e) => { e.stopPropagation(); onGuardar({ prioritaria: !c.prioritaria }); }}
-          title="Prioritaria"
-          className={c.prioritaria ? 'text-accent' : 'text-faint hover:text-accent'}
-        >
-          <Star size={14} fill={c.prioritaria ? 'currentColor' : 'none'} />
-        </button>
         <span className="font-mono text-accent font-bold">{num(c.id)}</span>
         <span>{fechaHora(c.creado_en)} h</span>
         <span className={`px-2 py-0.5 rounded-full text-[10.5px] font-bold ${COLOR_TIPO[c.tipo]}`}>{ROTULO[c.tipo]}</span>
@@ -625,6 +756,7 @@ function Detalle({ c, onGuardar, etiquetas, anotaciones, onAnotar }) {
             </select>
             <span className="text-[11px] text-muted font-semibold">Recordar el</span>
             <input type="date" value={c.recordar_el || ''} onChange={(e) => onGuardar({ recordar_el: e.target.value || null })} className={controlito} />
+
           </>
         )}
 

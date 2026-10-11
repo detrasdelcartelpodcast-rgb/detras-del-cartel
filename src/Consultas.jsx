@@ -177,8 +177,21 @@ export default function Consultas() {
     setConsultas((cs) => cs.map((c) => (c.id === id ? { ...c, ...cambios } : c)));
     const { error } = await supabase.from('consultas').update(cambios).eq('id', id);
     if (error) {
-      setError('No se pudo guardar: ' + error.message);
+      /* 🔴 El aviso de la columna recién creada. Después de agregar una columna, Supabase
+         tarda unos segundos en enterarse y rechaza lo que la usa. No está roto: hay que
+         esperar. Se dice, porque el mensaje crudo —«schema cache»— no se entiende. */
+      const recienCreada = /schema cache|Could not find the/i.test(error.message);
+      setError(
+        recienCreada
+          ? 'Todavía no se puede guardar ese campo: la base acaba de cambiar y tarda unos segundos en enterarse. Probá de nuevo en un momento.'
+          : 'No se pudo guardar: ' + error.message
+      );
       traer();
+    } else {
+      /* 🔴 Y se borra al primer guardado que SÍ funciona. Antes no se borraba nunca: una
+         falla de hace media hora quedaba en pantalla y parecía que nada andaba, aunque todo
+         se estuviera guardando bien. Le pasó a Vic el 11-10-2026. */
+      setError('');
     }
   }
 

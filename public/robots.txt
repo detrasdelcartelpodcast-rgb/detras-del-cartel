@@ -1,4 +1,5 @@
 # Hoy el sitio entero está cerrado a los buscadores (todavía no se lanzó).
+# La lista completa de qué tocar al lanzar: _Documentacion/LANZAMIENTO.md
 User-agent: *
 Disallow: /
 

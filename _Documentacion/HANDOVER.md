@@ -1,3 +1,15 @@
+## 🔴 EL SITIO ESTÁ CERRADO A GOOGLE, A PROPÓSITO
+
+Está en internet y funciona —`https://detrasdelcartel.com`—, pero **no aparece en las
+búsquedas**. Es una decisión, no un olvido: si Google entrara hoy, indexaría una página que dice
+«Muy pronto: el primer episodio», y eso queda guardado semanas aunque después se cambie.
+
+👉 **El día que se lanza, la lista completa de qué tocar está en [`LANZAMIENTO.md`](LANZAMIENTO.md).**
+Son tres cosas que se abren y cuatro que **no se tocan nunca** (las que mantienen el buzón fuera
+de Google, donde hay consultas de personas con nombre, mail y teléfono).
+
+---
+
 ## 🔴 11-10-2026 — MIGRADA DE VITE A NEXT 16. VERIFICADA, **SIN PUBLICAR**
 
 | | Antes | Ahora |

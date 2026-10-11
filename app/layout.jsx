@@ -17,8 +17,11 @@ export const dynamic = 'force-dynamic'
 export const metadata = {
   title: 'Detrás del Cartel',
   description: 'Podcast inmobiliario',
-  // Mientras el podcast no lance, el sitio entero está cerrado a los buscadores.
-  // AL LANZAR: sacar este bloque de acá y el `Disallow: /` de public/robots.txt.
+  /* 🔴 Mientras el podcast no lance, el sitio entero está cerrado a los buscadores.
+     AL LANZAR hay que borrar la línea de abajo, Y la cabecera `X-Robots-Tag` de la lista
+     COMUNES en next.config.mjs, Y el `Disallow: /` de public/robots.txt. Son tres, y hay
+     otras cuatro que NO se tocan nunca (las que mantienen el buzón fuera de Google).
+     La lista completa, con cómo verificarlo el mismo día: _Documentacion/LANZAMIENTO.md */
   robots: { index: false, follow: false, nocache: true },
 }
 

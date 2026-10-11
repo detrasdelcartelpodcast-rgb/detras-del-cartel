@@ -7,6 +7,8 @@
    aplique la intersección de ambas. Antes de agregar una línea de CSP acá, leer `proxy.js`. */
 
 const COMUNES = [
+  // 🔴 AL LANZAR se borra SÓLO esta línea; las cinco de abajo son de seguridad y quedan.
+  //    Ver _Documentacion/LANZAMIENTO.md: es una de las tres que abren el sitio a Google.
   { key: 'X-Robots-Tag', value: 'noindex, nofollow, noarchive' },
   { key: 'X-Content-Type-Options', value: 'nosniff' },
   { key: 'X-Frame-Options', value: 'DENY' },

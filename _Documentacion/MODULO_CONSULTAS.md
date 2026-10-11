@@ -281,8 +281,11 @@ dirección personal de Vic** sin que nada lo avisara. `mailto:` no permite fijar
 Ahora abre el redactor de Gmail de **detrasdelcartelpodcast@gmail.com** (Vic, 11-10-2026:
 *«debería enviarse desde esa»*), y debajo de los botones dice desde qué cuenta sale.
 
-📌 **Pendiente de Vic:** correr `sql/04_telefono_de_verdad.sql` en el SQL Editor de Supabase.
-Verificado antes: las 2 consultas que hay hoy pasan la regla, así que no rompe nada.
+✅ **`sql/04_telefono_de_verdad.sql` corrido el 11-10-2026** (Vic, en el SQL Editor).
+Comprobado desde afuera, escribiendo **directo en la base con la clave secreta** —salteando el
+formulario y el servidor, que es justamente contra lo que protege—: `no tengo`, `a` y `123`
+rebotan con `telefono_de_verdad`, y `+54 11 5555 5555` entra. La regla del mail
+(`mail_sin_trucos`) también sigue activa. Las tres capas quedaron cerradas.
 
 
 ---

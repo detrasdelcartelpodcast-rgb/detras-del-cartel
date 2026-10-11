@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Star, Trash2, RotateCcw, Download, LogOut, Loader2, MessageSquare, Phone, Mail, Send, AlarmClock, Lock } from 'lucide-react';
 import { supabase, hayConfiguracion, entrarConGoogle, salir } from './lib/supabase';
-import { descargarExcel } from './lib/excel';
+import { descargarExcel, Fecha } from './lib/excel';
 import { enlaceWhatsApp } from '../lib/telefono';
 
 /* 🔴 DESDE QUÉ CUENTA SE CONTESTA (Vic, 11-10-2026: «debería enviarse desde esa»).
@@ -313,30 +313,79 @@ export default function Consultas() {
     setElegidas(new Set());
   }
 
+  /* 🔴 LA EXPORTACIÓN SE ARMA SOLA (11-10-2026, pedido de Vic: «dejalo automatizado para que
+     los campos se agreguen automáticamente al Excel»).
+
+     Antes la lista de columnas estaba escrita a mano. Cada vez que se agregaba un campo a la
+     base había que acordarse de sumarlo acá, y no se acordaba nadie: al revisarlo faltaban
+     SEIS, entre ellos `origen` —que se guarda al recibir la consulta y no se veía en ninguna
+     pantalla—, el número de episodio y de cuál es duplicada.
+
+     Ahora funciona al revés: se recorren los campos que REALMENTE traen las consultas. Los que
+     están en COLUMNAS salen con su nombre lindo y su traducción; los que no, salen igual al
+     final, con el nombre crudo de la base. O sea que una columna nueva aparece en el Excel sin
+     tocar este archivo, y cuando alguien quiera ponerle un nombre decente, lo agrega acá. */
+  const COLUMNAS = [
+    ['id', 'Nº', 8, (v) => num(v)],
+    /* Fechas de verdad y sin hora (Vic, 11-10-2026). La hora no se usa para filtrar y
+       ensuciaba la columna; y como FECHA, Excel las ordena bien. */
+    ['creado_en', 'Fecha', 12, (v) => new Fecha(v)],
+    ['tipo', 'Tipo', 17, (v) => ROTULO[v] || v],
+    ['atendida_por', 'Quién la atiende', 15, (v) => PERSONAS.find((x) => x.id === v)?.texto || ''],
+    ['situacion', 'Situación', 13, (v) => ({ nueva: 'Sin abrir', en_curso: 'En curso', cerrada: 'Cerrada' }[v] || v)],
+    ['prioritaria', 'Prioritaria', 11, (v) => (v ? 'Sí' : '')],
+    ['_vencida', 'Vencida', 10, null],
+    ['borrada', 'En la papelera', 13, (v) => (v ? 'Sí' : '')],
+    ['etiquetas', 'Temas', 22, (v) => (v || []).join(', ')],
+    ['proximo_paso', 'Próximo paso', 22, (v) => PASOS.find((x) => x.id === v)?.texto || ''],
+    ['recordar_el', 'Recordar', 12, (v) => (v ? new Fecha(v) : '')],
+    ['desenlace', 'Cómo terminó', 18, (v) => DESENLACES.find((x) => x.id === v)?.texto || ''],
+    ['episodio', 'Nº de episodio', 13, null],
+    ['duplicada_de', 'Duplicada de', 12, (v) => (v ? num(v) : '')],
+    ['tema', 'Consulta', 46, null],
+    ['detalle', 'Detalle', 60, null],
+    ['nombre', 'Nombre', 16, null],
+    ['email', 'Mail', 24, null],
+    ['telefono', 'Teléfono', 18, null],
+    ['zona', 'Zona', 16, null],
+    ['permiso_uso', 'Permiso para contarlo', 20, null], // se arma abajo: depende del tipo
+    ['origen', 'De dónde llegó', 20, null],
+    ['actualizado_en', 'Última modificación', 14, (v) => (v ? new Fecha(v) : '')],
+    ['_anotaciones', 'Anotaciones', 60, null],
+  ];
+
   function exportar() {
+    // Campos que traen las consultas y que NADIE declaró arriba: van al final igual.
+    const declarados = new Set(COLUMNAS.map(([k]) => k));
+    const sueltos = [...new Set(consultas.flatMap((c) => Object.keys(c)))]
+      .filter((k) => !declarados.has(k))
+      .sort();
+
+    const permiso = (c) =>
+      c.tipo === 'privado' ? 'no corresponde'
+        : !c.permiso_uso ? 'no'
+          : c.tipo === 'anonimo' ? 'sí (es anónima: no hay nombre que ocultar)'
+            : 'sí, sin nombre';
+
+    const valor = (c, campo, formato) => {
+      if (campo === '_vencida') return estaVencida(c) ? 'Sí' : '';
+      if (campo === '_anotaciones') {
+        return (notas[c.id] || []).map((n) => `${fechaHora(n.creado_en)} · ${n.autor}: ${n.texto}`).join('\n');
+      }
+      if (campo === 'permiso_uso') return permiso(c);
+      const v = c[campo];
+      if (formato) return formato(v);
+      if (v === null || v === undefined) return '';
+      return typeof v === 'object' ? JSON.stringify(v) : v;
+    };
+
     descargarExcel({
       nombreArchivo: `consultas-detras-del-cartel-${new Date().toISOString().slice(0, 10)}.xlsx`,
-      columnas: [
-        ['Nº', 8], ['Fecha y hora', 17], ['Tipo', 17], ['Quién', 10], ['Situación', 13], ['Prioritaria', 11],
-        ['Temas', 22], ['Próximo paso', 22], ['Recordar', 12], ['Cómo terminó', 18],
-        ['Consulta', 46], ['Detalle', 60], ['Nombre', 16], ['Mail', 24], ['Teléfono', 18],
-        ['Zona', 16], ['Permiso', 16], ['Anotaciones', 60],
-      ],
-      filas: vivas.map((c) => [
-        num(c.id), fechaHora(c.creado_en), ROTULO[c.tipo],
-        PERSONAS.find((x) => x.id === c.atendida_por)?.texto || '', c.situacion, c.prioritaria ? 'Sí' : '',
-        (c.etiquetas || []).join(', '),
-        PASOS.find((p) => p.id === c.proximo_paso)?.texto || '', c.recordar_el || '',
-        DESENLACES.find((d) => d.id === c.desenlace)?.texto || '',
-        c.tema, c.detalle, c.nombre, c.email, c.telefono, c.zona,
-        c.tipo === 'privado'
-          ? 'no corresponde'
-          : !c.permiso_uso
-            ? 'no'
-            : c.tipo === 'anonimo'
-              ? 'sí (es anónima: no hay nombre que ocultar)'
-              : 'sí, sin nombre',
-        (notas[c.id] || []).map((n) => `${fechaHora(n.creado_en)} · ${n.autor}: ${n.texto}`).join('\n'),
+      columnas: [...COLUMNAS.map(([, titulo, ancho]) => [titulo, ancho]), ...sueltos.map((k) => [k, 18])],
+      // Van TODAS, incluidas las de la papelera: para eso está la columna que las distingue.
+      filas: consultas.map((c) => [
+        ...COLUMNAS.map(([campo, , , formato]) => valor(c, campo, formato)),
+        ...sueltos.map((k) => valor(c, k, null)),
       ]),
     });
   }

@@ -10,8 +10,8 @@ import { createClient } from '@supabase/supabase-js';
    La clave secreta NO se importa nunca acá: vive solo en el servidor.
 ========================================================================== */
 
-const url = import.meta.env.VITE_SUPABASE_URL;
-const clave = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const clave = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
 
 export const hayConfiguracion = Boolean(url && clave);
 

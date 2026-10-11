@@ -20,7 +20,17 @@ function inicial() {
 }
 
 export function useTheme() {
-  const [theme, setTheme] = useState(inicial);
+  /* 🔴 ARRANCA SIEMPRE EN 'dark', NO EN LO QUE PREFIERE EL VISITANTE (11-10-2026, al pasar a
+     Next). Con Vite la página se armaba entera en el navegador, así que `inicial()` podía leer
+     localStorage y matchMedia desde el primer render. Next arma el HTML en el SERVIDOR, donde
+     no existe ninguno de los dos: leerlos ahí rompe el build («window is not defined»).
+     Y aunque se los esquivara, el servidor no puede saber qué modo prefiere el visitante, así
+     que el HTML y el navegador dirían cosas distintas.
+     Por eso: se arranca en el modo noche —que es el de la marca y el que ve la mayoría— y en
+     cuanto el componente vive en el navegador se corrige al que corresponda. */
+  const [theme, setTheme] = useState('dark');
+
+  useEffect(() => { setTheme(inicial()); }, []);
 
   useEffect(() => {
     document.documentElement.classList.toggle('light', theme === 'light');

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Play, Pause, RotateCcw, RotateCw, Share2, Radio, CheckCircle2, Send, ChevronRight, ShieldCheck, TrendingUp, Compass, Users, MessageSquare, Volume2, Clock, Headphones, HelpCircle, Lock, Briefcase } from 'lucide-react';
 import DetrasDelCartelLogo from './DetrasDelCartelLogo';
 import Construccion from './Construccion';
@@ -7,6 +7,11 @@ import { useEpisodios, UltimoEpisodio, EpisodiosAnteriores } from './Episodios';
 import MiniMark from './MiniMark';
 import Formulario from './Formulario';
 import { useTheme } from './theme';
+/* 🔴 LAS IMÁGENES SE IMPORTAN DISTINTO EN NEXT (11-10-2026). Con Vite, `import foto from
+   './assets/x.jpg'` devolvía DIRECTAMENTE la dirección del archivo, y se podía poner tal cual
+   en src={foto}. Next devuelve un OBJETO con la dirección, el ancho y el alto, así que hay que
+   pedirle `.src`. Sin esto las imágenes salen rotas y la página se acorta — lo detectó la
+   comparación píxel a píxel, no el build, que compilaba perfecto. */
 import fotoDaniel from './assets/hosts/daniel-bryn.jpg';
 import fotoVictor from './assets/hosts/victor-miascovsky.jpg';
 import emblema from './assets/logos/12-emblema-cobrizo-final-TRANSPARENTE-764.webp';
@@ -109,7 +114,7 @@ export const siteConfig = {
       bio: "Contador y corredor inmobiliario. Escucha cada caso antes de opinar y lo explica con datos.",
       highlight: "En cada episodio traduce los números del mercado a lenguaje claro.",
       // Foto real de Daniel (src/assets/hosts/). Para cambiarla, reemplazar el archivo:
-      photoUrl: fotoDaniel
+      photoUrl: fotoDaniel.src
     },
     {
       name: "Víctor Miascovsky",
@@ -117,7 +122,7 @@ export const siteConfig = {
       bio: "Contador y consultor inmobiliario. Escucha cada caso antes de opinar y lo analiza con números.",
       highlight: "En cada episodio explica cómo se negocia una operación y qué hay detrás de cada cifra.",
       // Foto real de Víctor (src/assets/hosts/). Para cambiarla, reemplazar el archivo:
-      photoUrl: fotoVictor
+      photoUrl: fotoVictor.src
     }
   ],
 
@@ -254,8 +259,17 @@ export default function DetrasDelCartelLanding() {
 
   // Sitio publicado = solo logo + barra "en construcción" (si sitio.publicarCompleto es false).
   // En localhost se ve el prototipo completo; ?produccion=1 muestra la vista en construcción.
-  const construccion = import.meta.env.DEV
-    ? new URLSearchParams(window.location.search).has('produccion')
+  /* En localhost se ve el prototipo completo; ?produccion=1 muestra la vista en construcción.
+     🔴 El valor de ?produccion se lee en un efecto y no al renderizar: en Next el primer
+     render ocurre en el servidor, donde no hay URL del navegador que consultar. */
+  const [verProduccion, setVerProduccion] = useState(false);
+  useEffect(() => {
+    if (process.env.NODE_ENV !== 'production') {
+      setVerProduccion(new URLSearchParams(window.location.search).has('produccion'));
+    }
+  }, []);
+  const construccion = (process.env.NODE_ENV !== 'production')
+    ? verProduccion
     : !sitio.publicarCompleto;
 
   const [theme, toggleTheme] = useTheme();
@@ -322,7 +336,7 @@ export default function DetrasDelCartelLanding() {
             
             {/* Logo del hero: emblema cobrizo con fondo transparente (flota sobre la página en día y en noche) */}
             <img
-              src={emblema}
+              src={emblema.src}
               alt={brand.title}
               className="w-full max-w-sm md:max-w-md mx-auto h-auto select-none drop-shadow-2xl"
             />

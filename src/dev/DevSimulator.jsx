@@ -5,7 +5,7 @@ import Publicar from './Publicar.jsx';
 /* ==========================================================================
    SIMULADOR DE DISPOSITIVOS — SOLO DESARROLLO (localhost)
    Barra flotante arrastrable: celular / tablet / PC + rotar.
-   Se importa únicamente si import.meta.env.DEV: en el build de producción
+   Se importa únicamente si (process.env.NODE_ENV !== 'production'): en el build de producción
    Vite lo elimina, no llega al sitio publicado.
 ========================================================================== */
 

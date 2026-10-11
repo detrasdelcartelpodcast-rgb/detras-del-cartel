@@ -14,7 +14,7 @@ import { ChevronRight, Play } from 'lucide-react';
 const ID_OK = /^[A-Za-z0-9_-]{11}$/;
 
 // Solo en localhost: /?demo=1 muestra episodios de ejemplo para ver el diseño (NO viaja al sitio publicado).
-const DEMO = import.meta.env.DEV
+const DEMO = (process.env.NODE_ENV !== 'production')
   ? [
       { id: 'demoAAAAAA1', titulo: '#3 · Ejemplo: cómo se decide un precio', fecha: '2026-09-20T12:00:00.000Z', resumen: 'Texto de ejemplo del último episodio. Acá se ven las dos primeras líneas de la descripción del video.' },
       { id: 'demoAAAAAA2', titulo: '#2 · Ejemplo: una herencia y dos opiniones', fecha: '2026-09-06T12:00:00.000Z', resumen: 'Resumen de ejemplo de un episodio anterior.' },
@@ -28,7 +28,7 @@ export function useEpisodios(habilitado) {
 
   useEffect(() => {
     if (!habilitado) return undefined;
-    if (import.meta.env.DEV && new URLSearchParams(window.location.search).has('demo')) {
+    if ((process.env.NODE_ENV !== 'production') && new URLSearchParams(window.location.search).has('demo')) {
       setEpisodios(DEMO);
       setEstado('ok');
       return undefined;

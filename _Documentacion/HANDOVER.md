@@ -60,6 +60,12 @@ Ninguna dio un error. Van anotadas porque son la clase de falla que vuelve:
    en un solo lugar.
 4. **Tailwind buscaba las clases en `./index.html`**, que ya no existe. Una clase usada sólo en
    `app/` no habría generado estilo, sin ningún error.
+5. **La portada daba error 500 en desarrollo, y compilada andaba bien.** El simulador de
+   dispositivos leía el ancho de la ventana en el primer dibujado; con Vite la página se armaba
+   **siempre** en el navegador, con Next se arma primero en el servidor, donde no hay ventana.
+   🔴 **Esta no se veía al compilar:** en producción esa barra está apagada y nunca se dibuja, así
+   que el compilado y las 6 capturas salían perfectos. Fallaba sólo en desarrollo, que es
+   justamente el modo en el que Vic abre la app. **De acá en más se verifican los dos modos.**
 
 ### 🔴 Y lo que habría roto la PUBLICACIÓN
 

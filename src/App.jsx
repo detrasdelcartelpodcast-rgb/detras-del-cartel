@@ -118,9 +118,48 @@ export const siteConfig = {
     },
     {
       name: "Víctor Miascovsky",
-      role: "NEGOCIACIÓN & FINANZAS",
+      /* 🔴 Cambiado el 11-10-2026. Antes decía "NEGOCIACIÓN & FINANZAS" y la bio era la misma
+         frase de Daniel con dos palabras cambiadas ("lo explica con datos" / "lo analiza con
+         números"): leídas juntas parecían la misma persona escrita dos veces.
+
+         Dos cosas que decidió Vic al revisarlo:
+          · "Negociación" se va porque no es especialista en eso y el rótulo lo obligaba a
+            sostenerlo al aire. "Estrategia" sí: es la decisión previa —vender, esperar, mover
+            el precio—, que es lo que de verdad hace y lo que la gente pregunta.
+          · "Datos" se va porque es la palabra de Daniel. Repetirla dejaba a uno de los dos
+            como la copia del otro.
+          · La BIO queda como estaba, por decisión de Vic (11-10-2026). Se había probado una
+            que contaba la trayectoria financiera ("veintidós años dirigiendo las finanzas de
+            empresas") y se volvió a ésta. Consecuencia asumida: la segunda oración es casi la
+            misma que la de Daniel —"lo explica con datos" / "lo analiza con números"—. Puede
+            leerse como repetición o como la promesa compartida del programa dicha dos veces;
+            Vic eligió lo segundo. Lo que ahora separa a los dos es el rótulo y la frase de
+            abajo, no la bio. "Consultor" frente a "corredor" también distingue, y es real:
+            Daniel está matriculado y Vic no.
+
+         📌 La tarjeta cuenta una PROGRESIÓN y por eso ninguna de las tres partes repite a las
+         otras: «contador y consultor» es QUIÉN, «lo analiza con números» es CÓMO, y «la mejor
+         estrategia respaldada con información» es PARA QUÉ. Se probó poner «estrategia» también
+         en la bio y se descartó: dejaba la palabra tres veces en el mismo cuadro y, peor, sacaba
+         el escalón del medio. Son los números los que vuelven creíble la palabra «estrategia»
+         del rótulo; sin ellos queda colgada, que es lo contrario de «respaldada».
+
+         La dupla queda: Daniel explica CÓMO ESTÁ el mercado, Víctor QUÉ HACER con eso.
+         No se nombra InmoValue ni el Pulso: el programa informa, no ofrece servicios.
+
+         ⚠️ MEDIDO contra la tarjeta de Daniel para que las dos queden parejas: el rótulo entra
+         en 1 renglón (202 px de 286 disponibles), la bio ocupa 2 renglones en escritorio y 3 en
+         celular, y la frase 2 en los dos. Resultado: las dos tarjetas miden 188 px en escritorio
+         y 202 en celular. Si se alarga cualquiera de los tres textos, una queda más alta.
+
+         🔴 El celular es el que manda, no el escritorio. La frase que Vic quería —«explica cuál
+         es la mejor estrategia basada en información para cada caso»— entra en 2 renglones en
+         escritorio y se va a 3 en celular. Se cambió «basada en» por «con», que dice lo mismo
+         en tres letras, y entra en los dos. Antes de tocar cualquiera de estos textos: medirlo
+         en 393 px de ancho, no alcanza con mirarlo en la pantalla grande. */
+      role: "INFORMACIÓN & ESTRATEGIA",
       bio: "Contador y consultor inmobiliario. Escucha cada caso antes de opinar y lo analiza con números.",
-      highlight: "En cada episodio explica cómo se negocia una operación y qué hay detrás de cada cifra.",
+      highlight: "En cada episodio explica la mejor estrategia para cada caso, respaldada con información.",
       // Foto real de Víctor (src/assets/hosts/). Para cambiarla, reemplazar el archivo:
       photoUrl: fotoVictor.src
     }

@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Send, Check, Loader2, ShieldCheck, ChevronDown } from 'lucide-react';
+import { PAISES, PAIS_POR_DEFECTO, armarTelefono, telefonoValido } from '../lib/telefono';
 
 /* ==========================================================================
    PROPONÉ UN TEMA — formulario que guarda en la base
@@ -29,6 +30,12 @@ const GRACIAS = {
 const campo =
   'w-full bg-input text-fg border border-line/10 rounded-xl px-3.5 py-2.5 text-sm placeholder:text-faint focus:outline-none focus:border-accent transition';
 
+/* El mismo campo pero SIN el ancho. 🔴 No alcanza con agregarle otro ancho al lado: `w-full`
+   y un ancho fijo son las dos reglas del mismo tipo, y cuál gana lo decide el orden en que
+   Tailwind las escribe, no el orden en que uno las pone. Al selector de país se le estiraba
+   el ancho completo y tapaba al campo del número. Se le saca y se le pone el que corresponde. */
+const campoSinAncho = campo.replace('w-full ', '');
+
 export default function Formulario({ config }) {
   // El formulario arranca cerrado: en la landing solo se ve el botón, y se
   // despliega cuando alguien quiere escribir. Abierto todo el tiempo ocupaba
@@ -38,6 +45,7 @@ export default function Formulario({ config }) {
   const [enviando, setEnviando] = useState(false);
   const [error, setError] = useState('');
   const [listo, setListo] = useState(null);
+  const [pais, setPais] = useState(PAIS_POR_DEFECTO);
   const abierto = useRef(Date.now()); // para distinguir a una persona de un robot
   const caja = useRef(null);
 
@@ -58,6 +66,10 @@ export default function Formulario({ config }) {
     setTimeout(() => caja.current?.querySelector('input[name="tema"]')?.focus({ preventScroll: true }), 60);
   }
 
+  // El ejemplo del campo sigue al país elegido: un uruguayo no tiene por qué ver "11 5555 5555".
+  const ejemploDelPais =
+    PAISES.find((p) => p.codigo === pais)?.ejemplo ?? PAISES[0].ejemplo;
+
   const anonima = tipo === 'anonimo';
   const privada = tipo === 'privado';
 
@@ -66,7 +78,15 @@ export default function Formulario({ config }) {
     setError('');
     const datos = Object.fromEntries(new FormData(e.currentTarget));
 
-    if (privada && !datos.email?.trim() && !datos.telefono?.trim()) {
+    /* 🔴 El teléfono se revisa ACÁ y también en el servidor y en la base. Acá es sólo
+       para avisar en el momento, sin tener que mandar el formulario; lo que de verdad
+       protege son las otras dos, porque esta se puede saltear. */
+    const tel = datos.telefono?.trim();
+    if (tel && !telefonoValido(tel)) {
+      return setError('Revisá el teléfono: faltan números.');
+    }
+
+    if (privada && !datos.email?.trim() && !tel) {
       return setError('Dejanos un mail o un WhatsApp para poder contestarte.');
     }
 
@@ -81,7 +101,8 @@ export default function Formulario({ config }) {
           detalle: datos.detalle,
           nombre: datos.nombre,
           email: datos.email,
-          telefono: datos.telefono,
+          // Se manda ya con el país adelante: "+54 11 5555 5555".
+          telefono: armarTelefono(datos.pais, datos.telefono),
           zona: datos.zona,
           permiso_uso: datos.permiso_uso === 'on',
           web: datos.web, // trampa para robots: tiene que llegar vacío
@@ -189,7 +210,35 @@ export default function Formulario({ config }) {
                 </div>
                 <div>
                   <label htmlFor="telefono" className="block text-[12.5px] font-semibold text-fg mb-1.5">WhatsApp o teléfono</label>
-                  <input id="telefono" name="telefono" maxLength={40} className={campo} placeholder="11 5555 5555" />
+                  {/* El país va adelante y se ve: así la persona entiende el formato de un
+                      vistazo, y quien escribe desde afuera puede cambiarlo. Arranca en
+                      Argentina, que es de donde va a venir casi todo. */}
+                  <div className="flex gap-2">
+                    <select
+                      name="pais"
+                      aria-label="País"
+                      value={pais}
+                      onChange={(e) => setPais(e.target.value)}
+                      className={`${campoSinAncho} w-[108px] shrink-0 px-2.5`}
+                    >
+                      {PAISES.map((p) => (
+                        <option key={p.codigo} value={p.codigo}>
+                          {p.bandera} +{p.codigo}
+                        </option>
+                      ))}
+                    </select>
+                    <input
+                      id="telefono"
+                      name="telefono"
+                      /* `tel` es lo que hace que en el celular salga el teclado de números.
+                         Antes era un campo de texto común y aparecía el de letras. */
+                      type="tel"
+                      inputMode="tel"
+                      maxLength={30}
+                      className={`${campoSinAncho} flex-1 min-w-0`}
+                      placeholder={ejemploDelPais}
+                    />
+                  </div>
                 </div>
               </div>
               <p className="text-[11.5px] text-muted mt-2 leading-relaxed">

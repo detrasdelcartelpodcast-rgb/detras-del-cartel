@@ -2,6 +2,27 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Star, Trash2, RotateCcw, Download, LogOut, Loader2, MessageSquare, Phone, Mail, Send, AlarmClock, Lock } from 'lucide-react';
 import { supabase, hayConfiguracion, entrarConGoogle, salir } from './lib/supabase';
 import { descargarExcel } from './lib/excel';
+import { enlaceWhatsApp } from '../lib/telefono';
+
+/* 🔴 DESDE QUÉ CUENTA SE CONTESTA (Vic, 11-10-2026: «debería enviarse desde esa»).
+
+   Antes el botón era un `mailto:` pelado: abría el programa de correo de la Mac con la
+   cuenta que ese programa tuviera por defecto. O sea que la respuesta a una persona podía
+   salir desde la dirección personal de Vic sin que nada lo avisara — y `mailto:` no permite
+   fijar el remitente, no es cuestión de agregarle un parámetro.
+
+   Ahora abre el redactor de Gmail de ESTA cuenta. Si la sesión está abierta, escribe desde
+   ella; si no, Gmail pide entrar, que es lo correcto: mejor un paso más que mandar el
+   mensaje desde la cuenta equivocada. */
+const CUENTA_DEL_PODCAST = 'detrasdelcartelpodcast@gmail.com';
+
+function redactarEnGmail(destino, asunto) {
+  const para = encodeURIComponent(String(destino).split('?')[0]);
+  return (
+    `https://mail.google.com/mail/u/${encodeURIComponent(CUENTA_DEL_PODCAST)}/` +
+    `?view=cm&fs=1&to=${para}&su=${encodeURIComponent(asunto)}`
+  );
+}
 import ThemeToggle from './ThemeToggle';
 
 /* ==========================================================================
@@ -614,14 +635,19 @@ function Detalle({ c, onGuardar, etiquetas, anotaciones, onAnotar }) {
 
       {(c.email || c.telefono) && (
         <div className="flex flex-wrap gap-2">
-          {c.telefono && (
+          {c.telefono && enlaceWhatsApp(c.telefono) && (
             <a
-              href={`https://wa.me/${c.telefono.replace(/\D/g, '')}`}
+              /* El enlace lo arma `lib/telefono.js`, que le pone el país si falta y el 9 que
+                 WhatsApp exige para los celulares argentinos. Antes se armaba acá sacándole
+                 todo lo que no fuera número, y con "11 5555 5555" salía un número inexistente:
+                 WhatsApp decía «no está en WhatsApp» y parecía problema del contacto. */
+              href={enlaceWhatsApp(c.telefono)}
               target="_blank"
               rel="noreferrer"
+              title={`Abrir WhatsApp con ${c.telefono}`}
               className="inline-flex items-center gap-1.5 bg-card2 border border-line/10 rounded-lg px-3 py-1.5 text-xs font-semibold hover:border-accent/40"
             >
-              <Phone size={13} /> Abrir WhatsApp
+              <Phone size={13} /> WhatsApp a {c.telefono}
             </a>
           )}
           {c.email && (
@@ -629,11 +655,21 @@ function Detalle({ c, onGuardar, etiquetas, anotaciones, onAnotar }) {
               // La dirección se corta en el primer "?" y se codifica: aunque una
               // dirección rara llegue a guardarse, no puede meter una copia oculta
               // ni un texto propio en el mensaje que escribimos.
-              href={`mailto:${encodeURIComponent(String(c.email).split('?')[0])}?subject=${encodeURIComponent('Detrás del Cartel — tu consulta ' + num(c.id))}`}
+              href={redactarEnGmail(c.email, 'Detrás del Cartel — tu consulta ' + num(c.id))}
+              target="_blank"
+              rel="noreferrer"
+              title={`Escribir a ${c.email} desde ${CUENTA_DEL_PODCAST}`}
               className="inline-flex items-center gap-1.5 bg-card2 border border-line/10 rounded-lg px-3 py-1.5 text-xs font-semibold hover:border-accent/40"
             >
-              <Mail size={13} /> Responder por mail
+              <Mail size={13} /> Responder a {c.email}
             </a>
+          )}
+          {/* Lo que Vic no tenía cómo saber y por eso desconfiaba del botón: desde qué
+              dirección sale la respuesta. */}
+          {c.email && (
+            <p className="basis-full text-[11px] text-faint mt-0.5">
+              El mail sale desde <b className="text-muted">{CUENTA_DEL_PODCAST}</b>
+            </p>
           )}
         </div>
       )}

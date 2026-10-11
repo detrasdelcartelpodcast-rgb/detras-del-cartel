@@ -73,7 +73,8 @@ un conteo global por minuto, justamente para no tener que guardarla).
 | `src/lib/excel.js` | Genera el `.xlsx` a mano (sin librerías de afuera: la CSP no permite cargar nada externo). |
 | `src/main.jsx` | Ruteo mínimo: `/consultas` o la landing. El buzón se carga aparte (ver abajo). |
 | ~~`vite.config.js` → `apiConsultaLocal()`~~ | **Ya no existe** (11-10-2026). Con Vite había que escribir un plugin para que `/api/consulta` funcionara en localhost con el mismo código que en Vercel. Con Next el endpoint es el mismo archivo en los dos lados: no hay nada que duplicar ni que se pueda desincronizar. |
-| `sql/01_consultas.sql` · `02_bitacora.sql` · `03_mail_sin_trucos.sql` | Esquema, permisos y correcciones. Se corren en el SQL Editor. |
+| `sql/01_consultas.sql` · `02_bitacora.sql` · `03_mail_sin_trucos.sql` · `04_telefono_de_verdad.sql` | Esquema, permisos y correcciones. Se corren en el SQL Editor. |
+| `lib/telefono.js` | 🔴 **La regla del teléfono, en un solo lugar.** La usan el formulario, el servidor y el botón de WhatsApp del buzón. Si se copia en cada uno, el que se equivoca es quien carga la consulta. |
 
 **El buzón se carga aparte a propósito** (`React.lazy`): el cliente de Supabase pesa 251 KB,
 más que todo el resto del sitio. Quien entra a la landing no lo descarga.
@@ -234,3 +235,51 @@ profesional.
       y dejar la de Vercel en Redirect URLs. **Si no se hace, el login rebota.**
 - [ ] Revisar los **Security Advisors** de Supabase cada tanto (panel → Advisors).
 - [ ] Confirmar con un abogado la inscripción de la base ante la AAIP.
+
+
+---
+
+## 🔴 EL TELÉFONO (11-10-2026) — antes no se validaba en ninguna capa
+
+**Cómo se descubrió:** probando contra la web publicada entraron `no tengo`, la letra `a` y
+`123`. No era un problema de seguridad; era peor para el uso diario:
+
+- Una consulta **privada** pide «dejanos un mail o un WhatsApp». Con cualquier texto se cumplía
+  el requisito, y quedaba alguien **esperando respuesta a quien no se podía contestar**.
+- Ese texto alimentaba el botón de WhatsApp, que armaba el enlace sacando todo lo que no fuera
+  número. **El botón se veía igual de bien en los tres casos** y no llevaba a ninguna parte.
+
+### Lo que hay ahora
+
+| Dónde | Qué hace |
+|---|---|
+| **El formulario** | Selector de país con bandera, **Argentina por defecto**, y el ejemplo del campo cambia según el país elegido. El campo es `type="tel"`, así en el celular sale el teclado de números (antes salía el de letras). Avisa en el momento si faltan números. |
+| **El servidor** (`lib/consultas.js`) | Vuelve a revisar. Es la que no se puede saltear desde el navegador. |
+| **La base** (`04_telefono_de_verdad.sql`) | `telefono_de_verdad`: entre 8 y 14 dígitos. Ni con la clave secreta entra un «no tengo». |
+
+Se guarda con el país adelante: **`+54 11 5555 5555`**.
+
+### 🔴 Tres trampas que encontró la prueba de la función, no el ojo
+
+1. **El país duplicado.** Mucha gente tiene el número guardado como «+54 9 11 5555 5555» y lo
+   pega entero sin mirar que al lado ya dice +54. Quedaba `+54 +54 9 11…`. `armarTelefono()` le
+   saca el país si ya viene.
+2. **El 9 argentino.** Para un celular de acá WhatsApp no quiere `54 11 5555 5555` sino
+   `54 **9** 11 5555 5555`. Ese 9 no se marca al llamar y nadie lo escribe: lo pone
+   `enlaceWhatsApp()`. Sin él WhatsApp dice «el número no está en WhatsApp» y parece que el
+   problema es del contacto.
+3. **Los números viejos.** Los guardados antes de esto no tienen `+`. El primer intento fue
+   adivinar el país mirando con qué dígitos empieza: **no sirve**, porque el `1` de Estados
+   Unidos coincide con el principio de cualquier número porteño y «11 555 5555» se tomaba como
+   yanqui. Ahora la regla es simple: **sin `+` ⇒ Argentina**.
+
+### Y desde qué cuenta se contesta
+
+El botón «Responder» era un `mailto:` pelado: abría el programa de correo de la Mac con la
+cuenta que ese programa tuviera por defecto, así que la respuesta podía salir **desde la
+dirección personal de Vic** sin que nada lo avisara. `mailto:` no permite fijar el remitente.
+Ahora abre el redactor de Gmail de **detrasdelcartelpodcast@gmail.com** (Vic, 11-10-2026:
+*«debería enviarse desde esa»*), y debajo de los botones dice desde qué cuenta sale.
+
+📌 **Pendiente de Vic:** correr `sql/04_telefono_de_verdad.sql` en el SQL Editor de Supabase.
+Verificado antes: las 2 consultas que hay hoy pasan la regla, así que no rompe nada.

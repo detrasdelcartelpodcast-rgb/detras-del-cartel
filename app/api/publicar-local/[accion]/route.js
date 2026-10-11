@@ -151,7 +151,12 @@ async function revisarSecretos(archivos) {
     }
     let texto = ''
     try {
-      texto = await readFile(path.join(RAIZ, archivo), 'utf8')
+      /* El comentario `turbopackIgnore` no es decorativo. Al compilar, Next ve que acá se abre
+         un archivo cuyo nombre se decide en el momento y, por precaución, mete TODO el proyecto
+         dentro de la función que sube a Vercel —«all source files (including the public folder)
+         to be deployed as part of the server code», dice el propio aviso—. Acá no hace falta:
+         este código sólo corre en la máquina de Vic, donde los archivos ya están. */
+      texto = await readFile(path.join(/* turbopackIgnore: true */ RAIZ, archivo), 'utf8')
     } catch {
       continue // borrado o binario: nada que leer
     }
@@ -246,9 +251,27 @@ async function ejecutar() {
   if (!pruebas.ok) return fallar('Pruebas', pruebas.salida.split('\n').slice(-25).join('\n'))
   registrar('Pruebas', true, pruebas.salida.split('\n').filter((l) => /pruebas OK|✗/.test(l)).join('\n'))
 
-  // Compila en una carpeta aparte, para no pisar la que está usando este mismo servidor.
+  /* Compila en una carpeta aparte, para no pisar la que está usando este mismo servidor.
+
+     🔴 Y CON EL ENTORNO LIMPIADO, que es lo que hacía fallar al botón (11-10-2026, primer uso
+     en Next). Este código corre DENTRO del servidor de desarrollo, así que hereda su entorno:
+     entre otras cosas `NODE_ENV=development` y las variables internas de Next. Compilar con
+     eso puesto revienta — `Cannot read properties of null (reading 'useContext')` al armar la
+     página de error, y el botón se negaba a publicar sin poder decir por qué.
+
+     Con Vite no pasaba: el plugin hacía `npm run build` y Vite no mira `NODE_ENV` para decidir
+     cómo compila. Next sí: con `development` compila mal y se cae.
+
+     Se le saca `NODE_ENV` y las internas, y se le pone `production`, que es con lo que va a
+     compilar Vercel. O sea: la compilación de control pasa a hacerse en las mismas condiciones
+     que la de verdad, que era la intención desde el principio. */
+  const entornoLimpio = Object.fromEntries(
+    Object.entries(process.env).filter(
+      ([k]) => !/^(__NEXT|NEXT_RUNTIME|NEXT_PRIVATE|TURBOPACK)/.test(k) && k !== 'NODE_ENV'
+    )
+  )
   const compilar = await correr('npm', ['run', 'build'], {
-    env: { ...process.env, CARPETA_COMPILADO: COMPILADO },
+    env: { ...entornoLimpio, NODE_ENV: 'production', CARPETA_COMPILADO: COMPILADO },
   })
   if (!compilar.ok) return fallar('Compilación', compilar.salida.split('\n').slice(-25).join('\n'))
   registrar('Compilación', true, compilar.salida.split('\n').filter((l) => /Compiled|error/i.test(l)).join('\n'))

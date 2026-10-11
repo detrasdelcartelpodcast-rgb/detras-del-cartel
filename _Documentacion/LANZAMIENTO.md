@@ -135,37 +135,56 @@ portada. Sin eso puede tardar semanas en pasar solo.
 
 ---
 
-## Lo que conviene hacer EL MISMO DÍA, y hoy no está
+## 🔴 ABRIR EL NOINDEX NO ALCANZA — lo que falta para que funcione
 
-No bloquean el lanzamiento, pero si se abre el sitio sin esto, Google y las redes muestran algo
-pobre y después cuesta corregir la primera impresión.
+**Auditado contra la web publicada el 11-10-2026.** Sacar el `noindex` es necesario y no es
+suficiente: si se abre con lo que hay hoy, Google indexa una página que no dice qué es ni dónde
+está, y compartirla no muestra nada.
 
-### El título y la descripción
-
-Hoy son los de prueba, y es **literalmente lo que se va a leer en el resultado de Google**:
-
-| | Hoy | Problema |
+| Qué | Hoy | Por qué importa |
 |---|---|---|
-| Título | `Detrás del Cartel` | No dice que es un podcast ni de qué |
-| Descripción | `Podcast inmobiliario` | 19 caracteres. Google muestra hasta ~155 |
+| Título | `Detrás del Cartel` | Es el renglón azul del resultado de Google. No dice que es un podcast |
+| Descripción | `Podcast inmobiliario` (19 car.) | Es el texto gris debajo. Google muestra hasta ~155 |
+| Canónica | **no está** | Con dominio + www + la dirección de Vercel sirviendo lo mismo, Google puede tomarlas como páginas distintas |
+| Vista previa (Open Graph) | **ninguna de las 6** | Pegar el enlace en WhatsApp, Instagram o LinkedIn muestra la dirección pelada |
+| Datos estructurados | **no están** | Es lo que le dice a Google y a las IA que esto es un **podcast**, quiénes lo conducen y dónde |
+| Sitemap | **404** | Para 3 páginas no es crítico, pero acelera |
+| «Buenos Aires» en el texto | **0 veces** | 🔴 |
+| «Argentina» en el texto | **0 veces** | 🔴 |
 
-Están en `app/layout.jsx`, arriba del bloque que hay que borrar.
+### 🔴 Lo geográfico es lo más grave, y es invisible
 
-### La vista previa al compartir (Open Graph)
+Es un podcast sobre el mercado inmobiliario **porteño**, y en toda la página **no aparece ni la
+ciudad ni el país**. Ni un buscador ni una IA tienen cómo ubicarlo. Alguien que pregunta «podcast
+inmobiliario en Buenos Aires» no lo va a encontrar, porque la página nunca dice esas palabras.
 
-**Medido el 11-10-2026: el sitio tiene 0 etiquetas de vista previa.** Cuando alguien pega el
-enlace en WhatsApp, Instagram o LinkedIn, aparece la dirección pelada, sin imagen ni título. Para
-un podcast que se va a difundir justamente compartiendo el enlace, es la diferencia entre que lo
-abran o no.
+Se arregla en dos lugares, y conviene hacer los dos:
 
-Hace falta: una imagen de 1200×630, y agregar `openGraph` y `metadataBase` al bloque `metadata`
-de `app/layout.jsx`. **Es una tarea con su propia prueba** (hay que verificarla con el
-depurador de enlaces de cada red, no alcanza con mirar el código).
+1. **En el texto visible**, que es lo que de verdad leen las IA —no las etiquetas ocultas—.
+   Alcanza con que la bajada o el bloque «Juntos» nombre Buenos Aires de forma natural.
+2. **En los datos estructurados**, con el campo de área de cobertura.
 
-### El sitemap
+### Qué hay que definir, concretamente
 
-No existe. No es obligatorio para un sitio de tres páginas —Google las encuentra igual—, pero si
-el día de mañana crecen las páginas, conviene.
+Esto es lo que hay que decidir **antes** del día del lanzamiento, no ese día:
+
+| | Qué hay que decidir | Sugerencia para arrancar |
+|---|---|---|
+| **Título** | ≤ 60 caracteres, con la palabra clave adelante | `Detrás del Cartel — Podcast inmobiliario de Buenos Aires` |
+| **Descripción** | 120-155 caracteres, que invite a entrar | Que diga de qué se habla y para quién, nombrando la ciudad |
+| **Imagen de vista previa** | 1200×630 px | Puede salir del banner de YouTube, reencuadrado |
+| **Dónde ubicarlo** | Ciudad y alcance | CABA + GBA Norte, o «Buenos Aires» a secas |
+
+### Lo técnico, que lo resuelvo yo cuando estén las decisiones
+
+- `metadataBase` + bloque `openGraph` y `twitter` en `app/layout.jsx`
+- `alternates.canonical` apuntando siempre al dominio sin www
+- JSON-LD de tipo **PodcastSeries** con los dos conductores y el área de cobertura
+- `app/sitemap.js` (Next lo genera solo) con las dos páginas públicas — **nunca `/consultas`**
+
+⚠️ **Todo esto se publica ANTES de sacar el noindex, no después.** Si Google entra primero y
+guarda la versión pobre, corregirlo después tarda semanas: lo que ya indexó no se borra porque
+uno cambie la página.
 
 ---
 

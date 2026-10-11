@@ -73,6 +73,21 @@ pedir una sola página.
 
 **Al lanzar:** borrar `Disallow: /` y su comentario. **Las dos líneas de abajo quedan.**
 
+### ✅ Esta lista está PROBADA, no supuesta
+
+El 11-10-2026 se aplicaron los tres cambios **en seco** —en la máquina, sin publicar—, se compiló
+y se midió el resultado. Dio exactamente esto:
+
+| | Resultado |
+|---|---|
+| La portada | ✅ sin etiqueta `robots` en el HTML y sin cabecera `X-Robots-Tag` → **abierta** |
+| `/consultas` | ✅ `X-Robots-Tag: noindex, nofollow, noarchive, nosnippet` + `Cache-Control: no-store` → **sigue cerrado** |
+| `/api/episodios` | ✅ `X-Robots-Tag: noindex, nofollow` → **sigue cerrado** |
+| `robots.txt` | ✅ queda sólo `Disallow: /consultas` y `Disallow: /api/` |
+
+Después se revirtió todo. **Si el día del lanzamiento el resultado no es ese, algo cambió en el
+medio: parar y revisar antes de publicar.**
+
 ---
 
 ## 🔴 LO QUE NO SE TOCA NUNCA — cuatro cosas

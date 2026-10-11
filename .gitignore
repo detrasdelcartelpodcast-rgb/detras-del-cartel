@@ -2,6 +2,10 @@ node_modules/
 # dist/ era la salida de Vite; .next es la de Next (11-10-2026, la migración)
 dist/
 .next/
+# 🔴 La carpeta donde el botón de publicar compila para controlar que no se rompió nada.
+# Sin esta línea, su `git add -A` subiría el compilado entero al repositorio. Lo marcó la
+# revisión de seguridad del 11-10-2026, antes del primer uso del botón en Next.
+.next-publicar/
 .vercel/
 next-env.d.ts
 .env

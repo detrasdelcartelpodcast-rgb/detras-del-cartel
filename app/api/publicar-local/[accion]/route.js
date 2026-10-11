@@ -78,7 +78,40 @@ function correr(cmd, args, opciones = {}) {
 const json = (datos, estado = 200) => Response.json(datos, { status: estado })
 const noExiste = () => new Response('Not Found', { status: 404 })
 
+/* 🔴 CANDADO 1b — EL NOMBRE CON EL QUE SE PIDE. Repuesto el 11-10-2026 por la revisión de
+   seguridad de la migración, porque la migración se lo había llevado puesto.
+
+   Vite rechazaba de plano cualquier pedido cuyo nombre de sitio (la cabecera `Host`) no
+   reconociera; de hecho el 06-10 hubo que agregarle a mano los nombres de Tailscale para poder
+   abrir la app desde la MacBook Air. **Next no hace eso**: comprobado, contesta 200 a un pedido
+   que dice venir de `sitio-del-atacante.com`, y entregaba el token de publicar.
+
+   Para qué sirve el nombre. El ataque se llama "reatado de nombres" (DNS rebinding): una página
+   de otro sitio hace que su propio dominio pase a apuntar a 127.0.0.1. A partir de ahí el
+   navegador considera que esa página y este servidor son el mismo sitio, así que la protección
+   normal entre sitios distintos deja de aplicar y la página puede LEER las respuestas. Lo que
+   NO puede cambiar es el nombre con el que viaja el pedido: sigue siendo el suyo. Por eso
+   mirarlo alcanza, y por eso es la defensa estándar de un servidor de desarrollo.
+
+   Qué se podía leer sin esto: el token, y con el token el estado del repositorio completo —cada
+   archivo sin confirmar y el texto de cada cambio sin subir de un repositorio privado—.
+   El `git push` seguía fuera de alcance: el candado del origen lo frenaba (una página reatada
+   manda `Origin: null` y eso no pasa). Pero la lectura alcanzaba igual, y era nueva.
+
+   ⚠️ Queda una puerta que NO abrió la migración y por eso no se toca acá: desde la red de
+   Tailscale —las propias máquinas de Vic— un programa que no sea un navegador no manda
+   `Origin`, y entonces sí llega al `git push`. Era idéntico con Vite. Cerrarlo exige obligar a
+   que venga el `Origin`, y eso puede dejar el botón sin funcionar según el navegador: es un
+   cambio con su propia prueba, no un apéndice de esta migración. Anotado en SEGURIDAD.md. */
+const NOMBRES_PERMITIDOS =
+  /^(localhost|127\.0\.0\.1|\[::1\]|macbook-pro-de-victor(\.tail460b3a\.ts\.net)?)(:\d+)?$/
+
+function nombreConfiable(request) {
+  return NOMBRES_PERMITIDOS.test(request.headers.get('host') || '')
+}
+
 function permitido(request) {
+  if (!nombreConfiable(request)) return false
   if (request.headers.get('x-publicar-token') !== TOKEN) return false
   const origen = request.headers.get('origin')
   if (origen && !/^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origen)) return false
@@ -278,11 +311,18 @@ export async function GET(request, { params }) {
   if (EN_PRODUCCION) return noExiste()
   const { accion } = await params
 
-  /* El token se entrega por su propia dirección, y ésta es la única que no lo pide (no
-     podría: es la que lo da). Que se pueda pedir no lo vuelve público: una pestaña de otro
-     sitio puede disparar el pedido, pero el navegador no la deja LEER la respuesta, que es
-     de otro origen. Sin leerla, no tiene el token, y sin token no puede publicar. */
-  if (accion === 'token') return json({ ok: true, token: TOKEN })
+  /* El token se entrega por su propia dirección, que es la única que no puede pedirlo (es la
+     que lo da). Lo que la protege son las otras dos cosas: el nombre con el que viaja el pedido
+     —ver `nombreConfiable`— y que el navegador no deja que una página de otro sitio LEA una
+     respuesta ajena.
+
+     🔴 Hasta el 11-10-2026 ésta era la única acción SIN ningún control, y ahí estaba el
+     problema: con el nombre reatado a 127.0.0.1 la protección entre sitios no aplica y el
+     token salía. Comprobado con `curl -H "Host: sitio-del-atacante.com"`: lo entregaba. */
+  if (accion === 'token') {
+    if (!nombreConfiable(request)) return json({ ok: false, error: 'sin permiso' }, 403)
+    return json({ ok: true, token: TOKEN })
+  }
 
   if (!permitido(request)) return json({ ok: false, error: 'sin permiso' }, 403)
   if (accion === 'estado') return json({ ok: true, ...(await estado()) })

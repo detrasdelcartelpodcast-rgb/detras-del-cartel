@@ -42,6 +42,26 @@ import { NextResponse } from 'next/server'
 
 const SUPABASE = 'https://wdvvsrikmyorfiimqrkk.supabase.co'
 
+/* 🔴 LAS DOS ÚNICAS LÍNEAS QUE SE AFLOJAN TRABAJANDO, Y POR QUÉ.
+
+   La barra de desarrollo muestra la vista de tablet y de celular metiendo la propia página
+   dentro de un marco (un iframe a `/?simulating=true`). Dos reglas de la CSP lo prohíben:
+   `frame-src`, que dice qué se puede meter en un marco, y `frame-ancestors`, que dice quién
+   puede meter a esta página en uno. En producción las dos están cerradas a propósito —es la
+   defensa contra que alguien monte esta web dentro de la suya para engañar a un visitante— y
+   así se quedan.
+
+   ⚠️ Esto NO existía antes de la migración y por eso apareció recién ahora: con Vite las
+   cabeceras vivían en `vercel.json`, así que **sólo regían en producción** y el servidor de
+   desarrollo no tenía ninguna. Al traerlas a `next.config.mjs` y acá —para que lo que se ve
+   trabajando sea lo que sale publicado— el simulador se quedó sin marco: apretabas tablet o
+   celular y no pasaba nada (Vic, 11-10-2026).
+
+   La diferencia se decide por `NODE_ENV`, que es lo mismo que apaga el botón de publicar. En la
+   web publicada estas dos líneas valen `https://www.youtube-nocookie.com` y `'none'`, sin
+   excepción. */
+const EN_DESARROLLO = process.env.NODE_ENV !== 'production'
+
 export default function proxy(request) {
   // 16 bytes al azar del generador criptográfico del sistema, en base64.
   const nonce = btoa(String.fromCharCode(...crypto.getRandomValues(new Uint8Array(16))))
@@ -54,12 +74,14 @@ export default function proxy(request) {
     "style-src 'self' 'unsafe-inline'",
     `script-src 'self' 'nonce-${nonce}'`,
     `connect-src 'self' ${SUPABASE}`,
-    'frame-src https://www.youtube-nocookie.com',
+    EN_DESARROLLO
+      ? "frame-src 'self' https://www.youtube-nocookie.com"
+      : 'frame-src https://www.youtube-nocookie.com',
     "object-src 'none'",
     "base-uri 'self'",
     // El salto a Google del login del buzón sale por acá.
     "form-action 'self' https://accounts.google.com",
-    "frame-ancestors 'none'",
+    EN_DESARROLLO ? "frame-ancestors 'self'" : "frame-ancestors 'none'",
   ].join('; ')
 
   // Se manda en el PEDIDO para que Next lo lea y firme sus scripts con él...

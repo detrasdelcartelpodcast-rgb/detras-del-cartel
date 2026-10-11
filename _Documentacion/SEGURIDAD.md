@@ -48,9 +48,35 @@ camino formulario → base → buzón, y los Security Advisors de Supabase entra
 ## Revisiones de seguridad hechas (todas: sin hallazgos ≥ 8/10; 5 en total, la última el 22-09 (pie: solo clases de presentación))
 1. **2026-09-19** — manual (el skill no corría sin `origin/HEAD`): archivos a subir, dependencias (177 paquetes de `registry.npmjs.org`), build.
 2. **2026-09-21** — `/security-review` de la landing completa + función `/api/episodios` + CSP con `frame-src`.
-3. 🔴 **2026-10-11 — FALTA.** La migración de Vite a Next está terminada y verificada pero **sin
+3. ✅ **2026-10-11 — HECHO, con 1 hallazgo corregido.** La migración de Vite a Next está terminada y verificada pero **sin
    publicar**, y el `/security-review` de estos cambios es el paso que falta (el botón de
-   publicar no deja seguir sin esa constancia). Lo que hay que mirar, concretamente:
+   publicar no dejaba seguir sin esa constancia).
+
+   🔴 **EL HALLAZGO: la migración se llevó puesta la defensa contra el "reatado de nombres"
+   (DNS rebinding), justo la que protegía al endpoint que hace `git push`.** Vite rechazaba de
+   plano cualquier pedido cuyo `Host` no reconociera —por eso el 06-10 hubo que agregarle a mano
+   los nombres de Tailscale—. **Next no lo hace**: comprobado, contestaba 200 y entregaba el
+   token de publicar a un pedido que decía venir de `sitio-del-atacante.com`. El `/token` era
+   además la única acción sin ningún control. Con el token, una página reatada leía el estado
+   completo del repositorio privado: cada archivo sin confirmar y el texto de cada cambio sin
+   subir. El `git push` seguía fuera de alcance (lo frenaba el candado del origen), pero la
+   lectura era nueva y alcanzaba. **Corregido** con una lista de nombres permitidos aplicada a
+   todas las acciones, `/token` incluida. Verificado: con `Host` ajeno da 403; por localhost y
+   por el nombre de Tailscale sigue funcionando.
+
+   ⚠️ **Queda abierto, y NO lo abrió la migración:** desde la red de Tailscale —las propias
+   máquinas de Vic— un cliente que no sea un navegador no manda `Origin`, y `permitido()` deja
+   pasar cuando falta. Eso sí llega al `git push`. Era idéntico con Vite. Cerrarlo exige
+   **obligar** a que venga el `Origin`, y eso puede dejar el botón sin funcionar según el
+   navegador (Safari no siempre lo manda en un POST del mismo sitio): es un cambio con su propia
+   prueba, no un apéndice de esta migración.
+
+   **Un error de funcionamiento, no de seguridad, encontrado en la misma revisión:**
+   `.next-publicar/` —la carpeta donde el botón compila para controlar— no estaba en
+   `.gitignore`, y el `git add -A` del propio botón habría subido el compilado entero al
+   repositorio **la primera vez que Vic lo apretara**. Corregido antes del primer uso.
+
+   Lo demás que se revisó y quedó limpio:
    - **`proxy.js`** — ahora la CSP se arma en cada visita con un número al azar (nonce) en vez de
      permitir programas sin firma. El `script-src` quedó **igual de restrictivo** que el de
      septiembre (`'self'` + el nonce de esa visita, sin `'unsafe-inline'`), comprobado comparando
@@ -60,7 +86,27 @@ camino formulario → base → buzón, y los Security Advisors de Supabase entra
      sube a Vercel**. Lo único que lo vuelve inofensivo es el `NODE_ENV === 'production'` → 404
      de la primera línea. Verificado en los dos modos. Es el punto a revisar con más cuidado.
    - Los 6 encabezados de seguridad se mudaron de `vercel.json` a `next.config.mjs`: comparados
-     uno por uno contra producción, **idénticos**.
+     uno por uno contra producción, **idénticos**. La CSP también, salvo el nonce.
+   - **El nonce**: 16 bytes (128 bits) del generador criptográfico del sistema. Un
+     `Content-Security-Policy` o un `x-nonce` mandados por el visitante **no** pueden influirlo
+     (`.set()` sobrescribe, no agrega). Ninguna página se sirve sin CSP.
+   - **El formulario**: la validación, el campo trampa, el piso de 3 segundos, la lista de tipos
+     y el borrado de datos en las anónimas sobrevivieron **idénticos**. La clave secreta se lee
+     sólo en `lib/consultas.js`, que únicamente importa la ruta del servidor: no puede llegar al
+     navegador. Comprobado además que su valor no aparece en ningún archivo de `.next/` ni en
+     ninguno de los 14 cambios del rango.
+   - **Secretos en el repositorio**: lo único seguido por git es `.env.example`. El valor de la
+     clave secreta aparece en 0 archivos.
+   - **El identificador del cambio (SHA) ahora viaja en el HTML** (`generateBuildId`): no es un
+     problema, el repositorio es privado y un SHA solo no revela nada.
+
+   🔴 **Y una diferencia entre local y producción que se decidió a propósito** (ver el
+   encabezado de `proxy.js`): trabajando, `frame-src` y `frame-ancestors` se aflojan a `'self'`
+   para que la barra de desarrollo pueda mostrar las vistas de tablet y celular, que funcionan
+   metiendo la página en un marco. **En la web publicada siguen cerradas** (`'none'` y sólo
+   youtube-nocookie), verificado contra el compilado de producción. Esto apareció recién ahora
+   porque con Vite las cabeceras existían **sólo en producción**: traerlas a local dejó al
+   simulador sin marco y Vic lo vio en pantalla.
 3. **2026-09-21** — `/security-review` de la lectura por API oficial (clave por header, filtro de privacidad, duración).
 - **Pruebas automáticas** (`npm run probar`, **33**): feeds y respuestas de API inventados, incluidos hostiles (scripts en título, IDs inyectados, XXE, entidades absurdas, respuestas gigantes, timeouts, canal inválido, clave con formato raro, errores sin la clave, elementos `null`). Una prueba encontró y corrigió un fallo real.
 - **Pruebas en navegador real** con las reglas reales de `vercel.json`: 4 escenarios (con episodios / vacío / API caída / texto hostil): 0 violaciones de CSP, 0 errores de JavaScript, sin desborde horizontal a 390 px.

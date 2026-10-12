@@ -1,3 +1,54 @@
+## 🔧 11-10-2026 (tarde) — LOS 6 MAJORES QUE FALTABAN DEL ECOSISTEMA
+
+Se cerró la actualización de versiones: `typescript`, `eslint`, `better-sqlite3`,
+`framer-motion`, `lucide-react` y `puppeteer`. Después de esto
+`bash _scripts/versiones.sh revisar` dice **«TODAS LAS APPS COINCIDEN CON EL MANIFIESTO»**.
+
+🔴 **TypeScript queda en la 6.0.3 y NO en la 7, que es la última. No es atraso.**
+`typescript-eslint` —la pieza que le permite a eslint entender TypeScript, y que trae
+`eslint-config-next`— declara `"typescript": ">=4.8.4 <6.1.0"`: **no acepta la 7**. El
+motivo de fondo es que la 7 es el compilador reescrito en Go y salió **sin API de
+programación** (llega en la 7.1). Comprobado que Next 16 sí compila con la 7 (probado en
+dueno-vende-app: 679 ms de chequeo de tipos) — **el freno es el lint, no Next**. Se
+destraba cuando typescript-eslint suba su tope. Anotado en `_scripts/versiones.json`.
+
+🔴 **CADA TIPO DE PAQUETE TIENE SU PROPIA PRUEBA. `npm run build` sólo sirve para los
+invisibles.** Un build en verde no dice nada de si una base abre, de si un PDF sale bien
+o de cómo se ve una animación. Lo que se usó en cada caso está abajo.
+
+### Qué cambió en esta app
+
+`typescript` → 6.0.3. **Nada más.** `lucide-react` ya estaba en 1.55.0 desde la migración de
+la mañana, y no usa `eslint` declarado, ni `better-sqlite3`, ni `framer-motion`, ni
+`puppeteer`.
+
+### Un detalle que quedó anotado de esta app
+
+Declara `eslint-config-next` **pero no `eslint`**, y no tiene ni script `lint` ni archivo de
+configuración. O sea: **esa dependencia no la usa nadie**, sólo arrastra un árbol de
+paquetes (eslint 9, typescript-eslint y compañía) en cada instalación. Sacarla es una
+limpieza pendiente, no urgente. (A `inmovalue-brain-app` le pasa lo mismo.)
+
+### Sigue siendo la única excepción declarada del ecosistema
+
+**Tailwind 3.4.19.** Se probó la 4 el 11-10 por la mañana y **se revirtió**: compilaba
+perfecto pero **movía el diseño** (la home crecía 31 px y cambiaba el 6,9% de los píxeles en
+la versión celular). La capa de compatibilidad oficial no alcanzó. Encontrar y compensar
+cada default nuevo es una tarea propia, no un apéndice de una actualización.
+
+### Probado
+
+`npm run build` completo · `/` y `/privacidad` en 200 · y **detrasdelcartel.com responde
+200 en vivo**.
+
+### Publicado
+
+**Sin cambios pendientes**: el commit local y el publicado son el mismo (`4530b8f`). El
+sitio sigue **cerrado a los buscadores** a propósito — para abrirlo, la lista está en
+`_Documentacion/LANZAMIENTO.md`.
+
+---
+
 ## 🔴 EL SITIO ESTÁ CERRADO A GOOGLE, A PROPÓSITO
 
 Está en internet y funciona —`https://detrasdelcartel.com`—, pero **no aparece en las
